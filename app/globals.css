@@ -1,8 +1,61 @@
 @import "tailwindcss";
 
+/*
+ * Social feed typography — tuned for Thai users (LINE / Facebook / TikTok habits).
+ * - 16px Thai body, generous line-height
+ * - 15–17px titles, 13px meta/captions
+ * - Soft cards, pill actions, LINE green accent (#06C755)
+ */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #050505;
+  --social-feed-bg: #eef0f3;
+  --social-surface: #ffffff;
+  --social-surface-muted: #f0f2f5;
+  --social-text-primary: #050505;
+  --social-text-secondary: #65676b;
+  --social-text-muted: #8a8d91;
+  --social-line-green: #06c755;
+  --social-line-green-press: #05b34c;
+  --social-divider: rgb(0 0 0 / 0.08);
+  --social-divider-soft: rgb(0 0 0 / 0.05);
+  --social-section-gap: 0.5rem;
+  --social-layout-gap: 0.625rem;
+  --social-feed-gap: 0.625rem;
+  --social-zone-green: rgb(6 199 85 / 0.06);
+  --social-zone-sky: rgb(14 165 233 / 0.07);
+  --social-zone-amber: rgb(245 158 11 / 0.08);
+  --social-zone-rose: rgb(244 63 94 / 0.06);
+  --social-zone-slate: rgb(100 116 139 / 0.07);
+  --social-zone-violet: rgb(139 92 246 / 0.07);
+  --social-zone-engagement: #f0f2f5;
+  --social-zone-comments: #f7f8fa;
+  --social-nav-width: 10.5rem;
+  --social-nav-gap: 0.125rem;
+  --social-shell-pl: 0.375rem;
+  --social-shell-pt: 0.75rem;
+  --social-shell-pb: 4.5rem;
+  --social-sticky-top: 0.5rem;
+  --social-content-px: 0.625rem;
+  --social-card-py: 0.625rem;
+  --social-card-px: 0.75rem;
+  --social-content-min-width: 16rem;
+  --social-sidebar-width: 15rem;
+  --social-place-sidebar-width: 14rem;
+  --social-post-feed-max-width: 100%;
+  --social-page-min-width: calc(
+    var(--social-shell-pl) + var(--social-content-min-width) +
+      var(--social-nav-gap) + var(--social-nav-width)
+  );
+  --social-radius-lg: 1rem;
+  --social-radius-md: 0.75rem;
+  --social-radius-pill: 9999px;
+  --ui-line-height: 1.55;
+  --ui-title-line-height: 1.35;
+  --social-text-body: 0.9375rem;
+  --social-text-title: 1.0625rem;
+  --social-text-headline: 1.25rem;
+  --social-text-meta: 0.8125rem;
 }
 
 @theme inline {
@@ -10,6 +63,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-thai: var(--font-sarabun);
+  --font-korean: var(--font-noto-kr);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,8 +74,571 @@
   }
 }
 
+html {
+  font-size: 100%;
+  text-size-adjust: 100%;
+  height: auto;
+  min-height: 100%;
+  overflow-x: auto;
+  overflow-y: scroll;
+}
+
+html.locale-th {
+  font-size: 100%;
+  --social-text-body: 1rem;
+  --social-text-title: 1.125rem;
+  --social-text-headline: 1.3125rem;
+  --ui-line-height: 1.65;
+  --ui-title-line-height: 1.4;
+}
+
+html.locale-ko {
+  font-size: 106.25%;
+  --social-text-body: 0.9375rem;
+  --ui-line-height: 1.55;
+  --ui-title-line-height: 1.32;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --social-content-px: 0.75rem;
+    --social-card-px: 0.875rem;
+    --social-nav-gap: 0.25rem;
+    --social-shell-pl: 0.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --social-nav-width: 11rem;
+    --social-content-px: 0.875rem;
+    --social-text-body: 1rem;
+    --social-text-title: 1.125rem;
+    --social-text-headline: 1.375rem;
+    --social-page-min-width: calc(
+      var(--social-shell-pl) + var(--social-sidebar-width) +
+        var(--social-layout-gap) + var(--social-content-min-width) +
+        var(--social-nav-gap) + var(--social-nav-width)
+    );
+  }
+
+  html.locale-th {
+    --social-text-body: 1.0625rem;
+    --social-text-title: 1.1875rem;
+    --social-text-headline: 1.4375rem;
+  }
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--social-feed-bg);
+  color: var(--social-text-primary);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-size: var(--social-text-body);
+  font-weight: 400;
+  line-height: var(--ui-line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-wrap: anywhere;
+  height: auto;
+  min-height: 100%;
+  overflow-x: visible;
+  overflow-y: visible;
+}
+
+html.locale-th body {
+  font-family: var(--font-sarabun), var(--font-noto-thai), -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Thonburi", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+html.locale-ko body {
+  font-family: var(--font-noto-kr), var(--font-geist-sans), "Apple SD Gothic Neo",
+    "Malgun Gothic", sans-serif;
+}
+
+@layer components {
+  .social-feed-bg {
+    background-color: var(--social-feed-bg);
+  }
+
+  /** Page shell: grows with viewport; scrolls horizontally when layout min exceeds width. */
+  .social-page-shell {
+    min-width: var(--social-page-min-width);
+    width: max(100%, var(--social-page-min-width));
+  }
+
+  /** App grid — content column never overlaps the TopNav column. */
+  .social-app-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--social-nav-width);
+    column-gap: var(--social-nav-gap);
+  }
+
+  .social-app-content {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .social-app-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    align-self: start;
+    width: 100%;
+    max-width: var(--social-nav-width);
+    padding-top: 0.375rem;
+  }
+
+  /** FAB centered in the content column only (not under TopNav). */
+  .social-fab-center {
+    position: fixed;
+    bottom: 1.5rem;
+    left: calc(
+      var(--social-shell-pl) +
+        (100vw - var(--social-shell-pl) - var(--social-nav-width) - var(--social-nav-gap)) /
+          2
+    );
+    z-index: 40;
+    transform: translateX(-50%);
+  }
+
+  /** Centered single-column post feed — full width of its container (LINE / Facebook). */
+  .social-post-feed {
+    display: flex;
+    width: 100%;
+    max-width: var(--social-post-feed-max-width);
+    flex-direction: column;
+    gap: var(--social-feed-gap);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /** Feed area: fills horizontal space; children stretch to full width. */
+  .social-post-feed-wrap {
+    display: flex;
+    min-width: 0;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /** Place-board: post column beside left address sidebar — uses all remaining width. */
+  .social-place-feed-column {
+    min-width: 0;
+    width: 100%;
+  }
+
+  /** Main feed / content column — keeps readable width beside sidebars & TopNav. */
+  .social-main-column {
+    flex: 1 1 var(--social-content-min-width);
+    min-width: var(--social-content-min-width);
+  }
+
+  /** Two equal columns (reviews map + list, etc.) without squashing at xl+. */
+  .social-dual-column-grid {
+    display: grid;
+    gap: var(--social-layout-gap);
+  }
+
+  @media (min-width: 1280px) {
+    .social-dual-column-grid {
+      grid-template-columns: repeat(2, minmax(var(--social-content-min-width), 1fr));
+      min-width: calc(
+        var(--social-content-min-width) * 2 + var(--social-layout-gap)
+      );
+    }
+  }
+
+  /** Place-board: address sidebar left, posts centered in the rest. */
+  .social-place-board-row {
+    display: grid;
+    gap: var(--social-layout-gap);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    .social-place-board-row {
+      grid-template-columns: var(--social-place-sidebar-width) minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .social-place-sidebar-column {
+      width: var(--social-place-sidebar-width);
+      max-width: var(--social-place-sidebar-width);
+    }
+
+    .social-place-feed-column {
+      width: 100%;
+    }
+  }
+
+  .social-surface {
+    border-radius: var(--social-radius-lg);
+    border: 1px solid rgb(0 0 0 / 0.06);
+    background-color: var(--social-surface);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+    padding: var(--social-card-py) var(--social-card-px);
+  }
+
+  .social-surface-muted {
+    border-radius: var(--social-radius-md);
+    background-color: var(--social-surface-muted);
+  }
+
+  .section-label {
+    margin-bottom: 0.375rem;
+    padding-left: 0;
+    padding-right: 0;
+    font-size: var(--social-text-meta);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--social-text-muted);
+    text-wrap: balance;
+  }
+
+  html.locale-ko .section-label {
+    font-size: 0.8125rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .menu-label {
+    margin-bottom: 0.5rem;
+    padding-left: 0;
+    padding-right: 0;
+    font-size: var(--social-text-meta);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--social-text-muted);
+    text-wrap: balance;
+  }
+
+  html.locale-ko .menu-label {
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .text-ui-headline {
+    font-size: var(--social-text-headline);
+    font-weight: 700;
+    line-height: var(--ui-title-line-height);
+    color: var(--social-text-primary);
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  .text-site-name {
+    font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI",
+      sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--social-text-primary);
+    line-height: var(--ui-title-line-height);
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  .text-ui-title {
+    font-size: var(--social-text-title);
+    font-weight: 600;
+    line-height: var(--ui-title-line-height);
+    color: var(--social-text-primary);
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  html.locale-th .text-ui-title {
+    font-weight: 600;
+  }
+
+  .text-ui-body {
+    font-size: var(--social-text-body);
+    font-weight: 400;
+    line-height: var(--ui-line-height);
+    color: var(--social-text-secondary);
+    overflow-wrap: anywhere;
+  }
+
+  .text-ui-caption {
+    font-size: var(--social-text-meta);
+    font-weight: 400;
+    line-height: 1.45;
+    color: var(--social-text-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .text-ui-chip {
+    font-size: var(--social-text-body);
+    font-weight: 500;
+    line-height: 1.45;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  html.locale-th .text-ui-chip {
+    font-weight: 500;
+  }
+
+  .text-ui-btn {
+    font-size: var(--social-text-body);
+    font-weight: 600;
+    line-height: 1.35;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .social-engagement-btn {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border-radius: var(--social-radius-md);
+    background-color: var(--social-surface-muted);
+    padding: 0.5rem 0.875rem;
+    font-size: var(--social-text-meta);
+    font-weight: 600;
+    color: var(--social-text-secondary);
+    transition: transform 0.1s ease, background-color 0.1s ease;
+  }
+
+  .social-engagement-btn:active {
+    transform: scale(0.96);
+    background-color: rgb(0 0 0 / 0.06);
+  }
+
+  .social-comment-bubble {
+    border-radius: var(--social-radius-md);
+    background-color: var(--social-surface-muted);
+    padding: 0.625rem 0.875rem;
+  }
+
+  .social-input {
+    width: 100%;
+    border-radius: var(--social-radius-pill);
+    border: none;
+    background-color: var(--social-surface-muted);
+    padding: 0.625rem 1rem;
+    font-size: var(--social-text-body);
+    line-height: 1.45;
+    color: var(--social-text-primary);
+    outline: none;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.06);
+  }
+
+  .social-input:focus {
+    background-color: var(--social-surface);
+    box-shadow: inset 0 0 0 2px rgb(6 199 85 / 0.35);
+  }
+
+  .social-input::placeholder {
+    color: var(--social-text-muted);
+  }
+
+  /* ── Feed sections (Facebook / LINE grouped blocks) ── */
+  .social-feed-section {
+    margin-bottom: var(--social-section-gap);
+  }
+
+  .social-section-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: 0.375rem;
+    padding: 0 0.25rem;
+  }
+
+  .social-section-eyebrow-text {
+    font-size: var(--social-text-meta);
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--social-text-muted);
+    letter-spacing: 0.02em;
+  }
+
+  html.locale-ko .social-section-eyebrow-text {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .social-section-card {
+    overflow: hidden;
+    border-radius: var(--social-radius-lg);
+    border: 1px solid rgb(0 0 0 / 0.06);
+    background-color: var(--social-surface);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  }
+
+  .social-section-card--default {
+    border-top: 3px solid rgb(0 0 0 / 0.12);
+  }
+
+  .social-section-card--green {
+    border-top: 3px solid var(--social-line-green);
+  }
+
+  .social-section-card--sky {
+    border-top: 3px solid #0ea5e9;
+  }
+
+  .social-section-card--amber {
+    border-top: 3px solid #f59e0b;
+  }
+
+  .social-section-card--rose {
+    border-top: 3px solid #f43f5e;
+  }
+
+  .social-section-card--slate {
+    border-top: 3px solid #64748b;
+  }
+
+  .social-section-card--violet {
+    border-top: 3px solid #8b5cf6;
+  }
+
+  .social-section-intro {
+    border-bottom: 1px solid var(--social-divider-soft);
+    background-color: var(--social-surface-muted);
+    padding: 0.5rem var(--social-content-px);
+  }
+
+  html.locale-th .social-section-intro {
+    padding: 0.625rem var(--social-content-px);
+  }
+
+  .social-section-card-body {
+    padding: var(--social-card-py) var(--social-card-px);
+  }
+
+  .social-section-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--social-section-gap);
+  }
+
+  .social-divider {
+    height: 1px;
+    background: var(--social-divider);
+    margin: 0.5rem 0;
+  }
+
+  .social-divider-full {
+    height: 1px;
+    background: var(--social-divider);
+  }
+
+  .social-divider-inset {
+    height: 1px;
+    background: var(--social-divider-soft);
+    margin-left: var(--social-content-px);
+    margin-right: var(--social-content-px);
+  }
+
+  /* ── Inner zones (TikTok / LINE sub-areas) ── */
+  .social-zone {
+    border-radius: var(--social-radius-md);
+  }
+
+  .social-zone--muted {
+    background-color: var(--social-surface-muted);
+  }
+
+  .social-zone--green {
+    background-color: var(--social-zone-green);
+    box-shadow: inset 0 0 0 1px rgb(6 199 85 / 0.12);
+  }
+
+  .social-zone--sky {
+    background-color: var(--social-zone-sky);
+    box-shadow: inset 0 0 0 1px rgb(14 165 233 / 0.12);
+  }
+
+  .social-zone--amber {
+    background-color: var(--social-zone-amber);
+    box-shadow: inset 0 0 0 1px rgb(245 158 11 / 0.14);
+  }
+
+  .social-post-header {
+    padding: 0.625rem var(--social-content-px) 0.5rem;
+  }
+
+  .social-post-body {
+    padding: 0.5rem var(--social-content-px) 0.625rem;
+  }
+
+  /** Displayed post body text — min height set per template in PostCard. */
+  .social-post-content {
+    width: 100%;
+  }
+
+  .social-zone--engagement {
+    border-top: 1px solid var(--social-divider);
+    background-color: var(--social-zone-engagement);
+    padding: 0.625rem var(--social-content-px);
+  }
+
+  .social-zone--comments {
+    border-top: 1px solid var(--social-divider-soft);
+    background-color: var(--social-zone-comments);
+    padding: 0.625rem var(--social-content-px);
+  }
+
+  .social-list-row {
+    border-bottom: 1px solid var(--social-divider-soft);
+    padding: 0.625rem 0;
+  }
+
+  .social-list-row:first-child {
+    padding-top: 0;
+  }
+
+  .social-list-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .social-list-item {
+    border-radius: var(--social-radius-md);
+    background-color: var(--social-surface-muted);
+    padding: 0.625rem 0.75rem;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.04);
+  }
+
+  .social-list-item + .social-list-item {
+    margin-top: 0.375rem;
+  }
+
+  .social-action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--social-divider-soft);
+  }
+
+  .social-meta-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--social-divider-soft);
+  }
+
+  .social-page-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--social-layout-gap);
+  }
+
+  @media (min-width: 1024px) {
+    .social-page-stack--sidebar {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+  }
 }
