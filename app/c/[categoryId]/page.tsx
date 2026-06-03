@@ -95,7 +95,7 @@ export default function CategoryOverviewPage({ params }: CategoryOverviewProps) 
         ) : (
           <>
             <p className="section-label">{t("home.allSubcategories")}</p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
+            <div className="social-menu-grid">
               {subItems.map((item) => (
                 <Link
                   key={item.id}

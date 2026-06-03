@@ -3,19 +3,21 @@
 import MenuIcon from "@/components/MenuIcon";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useUserMenus } from "@/hooks/useUserMenus";
-import { userCategoryToItem } from "@/lib/categories/userMenus";
 import UserMenuCreateForm from "@/components/UserMenuCreateForm";
 
 type UserMenusSectionProps = {
   selectedId: string | null;
   onSelect: (categoryId: string) => void;
   onCreated?: (categoryId: string) => void;
+  /** 세부카테고리 카드 안에 붙일 때 */
+  embedded?: boolean;
 };
 
 export default function UserMenusSection({
   selectedId,
   onSelect,
   onCreated,
+  embedded = false,
 }: UserMenusSectionProps) {
   const { t, pick } = useLocale();
   const { userCategories } = useUserMenus();
@@ -26,16 +28,21 @@ export default function UserMenusSection({
   };
 
   return (
-    <div className="social-surface mb-3">
+    <div
+      className={
+        embedded
+          ? "mt-5 border-t border-gray-200 pt-5"
+          : "social-surface mb-3 mt-4"
+      }
+    >
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <p className="menu-label !mb-0">{t("home.userMenus")}</p>
         <span className="text-ui-caption">{t("home.userMenusHint")}</span>
       </div>
 
       {userCategories.length > 0 ? (
-        <div className="mb-3 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8">
+        <div className="social-menu-grid mb-3">
           {userCategories.map((menu) => {
-            const item = userCategoryToItem(menu);
             const active = selectedId === menu.id;
             return (
               <div key={menu.id} className="relative">

@@ -45,7 +45,13 @@ export const socialPageShellClassName = socialAppShellClassName;
 /** Main content column beside optional sidebar. */
 export const socialMainColumnClassName = "social-main-column";
 
-/** xl+ two-column layouts (map + panels, etc.). */
+/** Category menu grids — desktop column counts at every viewport. */
+export const socialMenuGridClassName = "social-menu-grid";
+
+/** Info/jobs — main + tips sidebar side by side on all viewports. */
+export const socialPageTwoColumnClassName = "social-page-two-column";
+
+/** Two equal columns (reviews map + list, etc.). */
 export const socialDualColumnGridClassName = "social-dual-column-grid";
 
 /** Centered post list / detail column. */

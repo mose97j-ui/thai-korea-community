@@ -484,7 +484,7 @@ function ReviewsContent() {
         <SectionLabel>{t("reviews.step1City")}</SectionLabel>
 
         <Card className="mb-0 p-3">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div className="social-filter-grid">
             {Object.keys(areas).map((city) => (
               <FilterChip
                 key={city}
@@ -506,7 +506,7 @@ function ReviewsContent() {
             <SectionLabel>{t("reviews.step2Gu")}</SectionLabel>
 
             <Card className="mb-0 p-3">
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              <div className="social-filter-grid">
                 {gus.map((gu) => (
                   <FilterChip
                     key={gu}

@@ -1,4 +1,5 @@
 import { normalizePhone } from "./phone";
+import { validateGmail } from "./gmail";
 import type { AuthErrorKey } from "./errors";
 
 export type VerificationMethod = "email" | "phone";
@@ -55,8 +56,11 @@ export function sendVerificationCode(
   }
 
   const trimmed = target.trim();
-  if (method === "email" && !trimmed.includes("@")) {
-    return { ok: false, errorKey: "VERIFY_EMAIL_INVALID" };
+  if (method === "email") {
+    const gmailCheck = validateGmail(trimmed);
+    if (!gmailCheck.ok) {
+      return { ok: false, errorKey: "GMAIL_INVALID" };
+    }
   }
   if (method === "phone" && normalizePhone(trimmed).length < 10) {
     return { ok: false, errorKey: "VERIFY_PHONE_INVALID" };

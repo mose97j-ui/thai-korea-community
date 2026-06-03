@@ -18,6 +18,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { isProfileComplete } from "@/lib/auth/profileComplete";
+import { GOOGLE_AUTH_ENABLED } from "@/lib/auth/features";
 import type { Gender } from "@/lib/auth/types";
 
 export default function SignupCompletePage() {
@@ -54,7 +55,13 @@ function SignupCompleteContent() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isReady) {
+    if (!GOOGLE_AUTH_ENABLED) {
+      router.replace("/signup");
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!GOOGLE_AUTH_ENABLED || !isReady) {
       return;
     }
 

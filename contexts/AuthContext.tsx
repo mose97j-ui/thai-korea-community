@@ -36,9 +36,11 @@ import {
 import { extendPremiumUntil } from "@/lib/auth/premium";
 import type { AuthFail } from "@/lib/auth/errors";
 import { authFail } from "@/lib/auth/errors";
+import { validateGmail } from "@/lib/auth/gmail";
 import type { GoogleSignupInput, LoginInput, SignupInput, User } from "@/lib/auth/types";
 import type { VerificationMethod } from "@/lib/auth/verification";
 import { refreshSupabaseSessionWithRetry } from "@/lib/auth/refreshSessionWithRetry";
+import { GOOGLE_AUTH_ENABLED } from "@/lib/auth/features";
 import { saveGoogleProfile } from "@/lib/auth/supabaseUser";
 import { tryCreateClient } from "@/utils/supabase/client";
 
@@ -93,15 +95,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     purgeExpiredRestrictions();
 
     async function initSession() {
-      try {
-        const supabaseResult = await refreshSupabaseSessionWithRetry();
-        if (supabaseResult.user) {
-          setUser(supabaseResult.user);
-          syncUiLocaleForUser(supabaseResult.user);
-          return;
+      if (GOOGLE_AUTH_ENABLED) {
+        try {
+          const supabaseResult = await refreshSupabaseSessionWithRetry();
+          if (supabaseResult.user) {
+            setUser(supabaseResult.user);
+            syncUiLocaleForUser(supabaseResult.user);
+            return;
+          }
+        } catch {
+          // Fall back to local session when Supabase is unavailable.
         }
-      } catch {
-        // Fall back to local session when Supabase is unavailable.
       }
 
       const sessionUser = getSessionUser();
@@ -113,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsReady(true);
     });
 
-    const supabase = tryCreateClient();
+    const supabase = GOOGLE_AUTH_ENABLED ? tryCreateClient() : null;
     const subscription = supabase
       ? supabase.auth.onAuthStateChange(() => {
           void refreshSupabaseSessionWithRetry().then((result) => {
@@ -154,7 +158,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signup = useCallback((input: SignupInput) => {
-    if (findUserByGmail(input.gmail)) {
+    const gmailResult = validateGmail(input.gmail);
+    if (!gmailResult.ok) {
+      return authFail("GMAIL_INVALID");
+    }
+
+    if (findUserByGmail(gmailResult.gmail)) {
       return authFail("EMAIL_TAKEN");
     }
 
@@ -199,12 +208,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profileImage: input.profileImage,
       birthDate: input.birthDate,
       hometown: input.hometown.trim(),
-      gmail: input.gmail.trim().toLowerCase(),
+      gmail: gmailResult.gmail,
       koreanPhone: formatPhone(input.koreanPhone),
       personalCode: createUniqueCode(),
       referredBy: input.referralCode?.trim().toUpperCase() || undefined,
       password: input.password,
       role: "user",
+      authProvider: "local",
       createdAt: new Date().toISOString(),
     };
 
@@ -216,11 +226,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshSession = useCallback(async () => {
-    const result = await refreshSupabaseSessionWithRetry();
-    if (result.user) {
-      setUser(result.user);
-      syncUiLocaleForUser(result.user);
-      return;
+    if (GOOGLE_AUTH_ENABLED) {
+      const result = await refreshSupabaseSessionWithRetry();
+      if (result.user) {
+        setUser(result.user);
+        syncUiLocaleForUser(result.user);
+        return;
+      }
     }
     const sessionUser = getSessionUser();
     setUser(sessionUser);
@@ -304,7 +316,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback((input: LoginInput) => {
-    const found = findUserByGmail(input.gmail);
+    const gmailResult = validateGmail(input.gmail);
+    if (!gmailResult.ok) {
+      return authFail("GMAIL_INVALID");
+    }
+
+    const found = findUserByGmail(gmailResult.gmail);
     if (!found || found.password !== input.password) {
       return authFail("LOGIN_FAILED");
     }
@@ -357,10 +374,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const findAccountId = useCallback(
     (method: VerificationMethod, contact: string) => {
-      const found =
-        method === "email"
-          ? findUserByGmail(contact)
-          : findUserByPhone(contact);
+      if (method === "email") {
+        const gmailResult = validateGmail(contact);
+        if (!gmailResult.ok) {
+          return authFail("GMAIL_INVALID");
+        }
+        const found = findUserByGmail(gmailResult.gmail);
+        if (!found) {
+          return authFail("ACCOUNT_NOT_FOUND");
+        }
+        return { ok: true as const, email: maskEmail(found.gmail) };
+      }
+
+      const found = findUserByPhone(contact);
       if (!found) {
         return authFail("ACCOUNT_NOT_FOUND");
       }
@@ -371,10 +397,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = useCallback(
     (method: VerificationMethod, contact: string, newPassword: string) => {
-      const found =
-        method === "email"
-          ? findUserByGmail(contact)
-          : findUserByPhone(contact);
+      let found: User | undefined;
+      if (method === "email") {
+        const gmailResult = validateGmail(contact);
+        if (!gmailResult.ok) {
+          return authFail("GMAIL_INVALID");
+        }
+        found = findUserByGmail(gmailResult.gmail);
+      } else {
+        found = findUserByPhone(contact);
+      }
       if (!found) {
         return authFail("ACCOUNT_NOT_FOUND");
       }
@@ -476,14 +508,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const getVerificationTarget = useCallback(
     (method: VerificationMethod, contact: string) => {
-      const found =
-        method === "email"
-          ? findUserByGmail(contact)
-          : findUserByPhone(contact);
-      if (!found) {
-        return null;
+      if (method === "email") {
+        const gmailResult = validateGmail(contact);
+        if (!gmailResult.ok) {
+          return null;
+        }
+        const found = findUserByGmail(gmailResult.gmail);
+        return found ? found.gmail : null;
       }
-      return method === "email" ? found.gmail : found.koreanPhone;
+
+      const found = findUserByPhone(contact);
+      return found ? found.koreanPhone : null;
     },
     []
   );

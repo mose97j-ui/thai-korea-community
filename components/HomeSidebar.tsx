@@ -154,7 +154,7 @@ export default function HomeSidebar({
   );
 
   return (
-    <aside className="w-full shrink-0 lg:w-[var(--social-sidebar-width)] lg:min-w-[var(--social-sidebar-width)]">
+    <aside className="w-[var(--social-sidebar-width)] min-w-[var(--social-sidebar-width)] shrink-0">
       <Card className="space-y-5 pr-1">
         <div>
           <SectionLabel>{t("home.favorites")}</SectionLabel>

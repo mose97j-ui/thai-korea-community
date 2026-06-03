@@ -6,6 +6,7 @@ export const DEFAULT_THAI_FAVORITE_CATEGORY_IDS = [
   "food",
   "reviews",
   "purchase",
+  "hotitems",
   "info",
   "transport",
 ] as const;

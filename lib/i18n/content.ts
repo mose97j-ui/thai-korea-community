@@ -55,7 +55,8 @@ function purchaseLinks(
 }
 
 export const homeCategories: CategoryItem[] = [
-  { id: "info", label: { th: "ข้อมูล", ko: "정보" }, icon: "📢", href: "/c/info/info-0", tint: "bg-sky-100" },
+  { id: "info", label: { th: "ความรู้มีประโยชน์", ko: "유용한지식" }, icon: "📚", href: "/c/info/info-0", tint: "bg-sky-100" },
+  { id: "hotitems", label: { th: "ไอเทมฮอต&ข้อมูล", ko: "핫한아이템&정보" }, icon: "🔥", href: "/c/hotitems/hotitems-0", tint: "bg-pink-100" },
   { id: "jobs", label: { th: "หางาน", ko: "구인구직" }, icon: "💼", href: "/c/jobs/jobs-0", tint: "bg-emerald-100" },
   { id: "reviews", label: { th: "รีวิวสถานที่", ko: "장소리뷰" }, icon: "📍", href: "/c/reviews/reviews-0", tint: "bg-rose-100" },
   { id: "purchase", label: { th: "รับหิ้ว", ko: "구매대행" }, icon: "🛍️", href: "/c/purchase/purchase-0", tint: "bg-violet-100" },
@@ -147,6 +148,96 @@ export const infoTips: { th: string[]; ko: string[] } = {
     "근로계약서를 잘 이해하지 못하면 태국어 번역을 요청하세요",
     "통역 서비스 또는 외국인 근로자 지원 hotline을 활용하세요",
     "급여명세서와 영수증을 세금 및 보험 청구용으로 보관하세요",
+  ],
+};
+
+export const hotItemsTopics: TopicItem[] = [
+  {
+    title: { th: "Olive Young แนะนำ", ko: "올리브영 추천템" },
+    description: {
+      th: "สินค้าขายดี Olive Young, ของใหม่เข้า, รีวิว viral บน TikTok และ Instagram",
+      ko: "올영 베스트·신상·틱톡/인스타에서 화제인 추천템",
+    },
+    icon: "🛒",
+    tint: "bg-lime-100",
+  },
+  {
+    title: { th: "K-Beauty & Skincare", ko: "K-뷰티·스킨케어" },
+    description: {
+      th: "เซรั่ม มาสก์ กันแดด ที่คนไทยในเกาหลีนิยมแชร์",
+      ko: "세럼·마스크팩·선크림 등 인기 스킨케어",
+    },
+    icon: "✨",
+    tint: "bg-pink-100",
+  },
+  {
+    title: { th: "เมคอัพ & ลิป", ko: "메이크업·색조" },
+    description: {
+      th: "Cushion, Lip tint, Blush ที่ SNS แนะนำบ่อย",
+      ko: "쿠션·틴트·블러셔 등 SNS 인기 색조",
+    },
+    icon: "💄",
+    tint: "bg-rose-100",
+  },
+  {
+    title: { th: "ไอเทม viral SNS", ko: "SNS 핫템" },
+    description: {
+      th: "ของมาแรง TikTok, Instagram, Lemon8 ที่คนไทยแชร์กัน",
+      ko: "틱톡·인스타·레몬8 등에서 뜨는 아이템",
+    },
+    icon: "🔥",
+    tint: "bg-orange-100",
+  },
+  {
+    title: { th: "Daison & ร้านสะดวก", ko: "다이소·편의점템" },
+    description: {
+      th: "ของถูกดีจาก Daison, CU, GS ที่คนไทยชอบซื้อ",
+      ko: "다이소·CU·GS 가성비템",
+    },
+    icon: "🏪",
+    tint: "bg-yellow-100",
+  },
+  {
+    title: { th: "คนไทยแนะนำ", ko: "태국인 커뮤 추천" },
+    description: {
+      th: "ของที่ชาวไทยในเกาหลีแนะนำกันจริงในชุมชน",
+      ko: "커뮤니티에서 검증된 추천템",
+    },
+    icon: "🇹🇭",
+    tint: "bg-sky-100",
+  },
+  {
+    title: { th: "โปรโมชั่น & จำนวนจำกัด", ko: "세일·한정판" },
+    description: {
+      th: "1+1, Black Friday, ของหมดเร็ว แจ้งโปรให้เพื่อนไทย",
+      ko: "1+1·블프·한정 수량 세일 정보",
+    },
+    icon: "🏷️",
+    tint: "bg-amber-100",
+  },
+  {
+    title: { th: "ของฝาก & ส่งไทย", ko: "선물·태국 보낼템" },
+    description: {
+      th: "ของฝากจากเกาหลีที่ญาติและเพื่อนไทยชอบ",
+      ko: "한국에서 사서 태국으로 보낼 만한 선물",
+    },
+    icon: "🎁",
+    tint: "bg-violet-100",
+  },
+];
+
+export const hotItemsTips: { th: string[]; ko: string[] } = {
+  th: [
+    "Olive Young มักมี 1+1 ช่วงสุดสัปดาห์ — แชร์โปรให้เพื่อนไทย",
+    "เช็ครีวิว TikTok/IG ก่อนซื้อ แล้วมาแชร์ประสบการณ์ในชุมชน",
+    "Daison มีของดีราคาถูก — แนะนำไอเทมที่ใช้แลกับคนไทย",
+    "ของฝากส่งไทย: เช็คน้ำหนักและของต้องห้ามในเครื่องบิน",
+  ],
+  ko: [
+    "올리브영은 주말 1+1이 많습니다 — 프로모션을 공유해 주세요",
+    "틱톡·인스타 리뷰 확인 후 직접 써본 후기를 남겨 주세요",
+    "다이소·편의점 가성비템도 커뮤 추천에 좋습니다",
+    "태국 선물은 항공 수하물·금지 품목을 미리 확인하세요",
   ],
 };
 
@@ -508,6 +599,7 @@ const serviceItems: TopicItem[] = [
 
 export const homeCategoryItems: Record<string, HomeSubItem[]> = {
   info: topicLinks(infoTopics, "info"),
+  hotitems: topicLinks(hotItemsTopics, "hotitems"),
   jobs: topicLinks(jobTopics, "jobs"),
   reviews: withRoutes("reviews", reviewPlaceItems),
   purchase: purchaseLinks("purchase", purchaseItems),

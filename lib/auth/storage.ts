@@ -123,16 +123,23 @@ export function ensureOperatorAccount(): User {
   const defaults = getOperatorDefaults();
   const byGmail = findUserByGmail(defaults.gmail);
   const byId = readUsers().find((user) => user.id === defaults.id);
+  const byCode = findUserByPersonalCode(defaults.personalCode);
+  const base = byGmail ?? byId ?? byCode;
 
-  if (byGmail || byId) {
-    const base = byGmail ?? byId!;
+  if (base) {
     const updated: User = {
+      ...base,
       ...defaults,
       id: base.id,
-      nickname: base.nickname || defaults.nickname,
-      gender: base.gender ?? defaults.gender,
+      role: "operator",
+      gmail: defaults.gmail,
+      password: defaults.password,
+      personalCode: defaults.personalCode.toUpperCase(),
+      nickname: base.nickname?.trim() || defaults.nickname,
       profileImage: base.profileImage ?? defaults.profileImage,
       referredBy: base.referredBy,
+      premiumUntil: base.premiumUntil,
+      restriction: base.restriction,
       createdAt: base.createdAt,
     };
     updateUser(updated);

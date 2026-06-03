@@ -5,8 +5,11 @@ import Link from "next/link";
 import AccountLinks from "@/components/AccountLinks";
 import AuthPageShell from "@/components/AuthPageShell";
 import BilingualText from "@/components/BilingualText";
-import GoogleSignInButton from "@/components/GoogleSignInButton";
-import { Card, SectionLabel, secondaryButtonClassName } from "@/components/ui";
+import {
+  Card,
+  primaryButtonClassName,
+  secondaryButtonClassName,
+} from "@/components/ui";
 import { useLocale } from "@/contexts/LocaleContext";
 import { siteNameClass } from "@/lib/i18n/typography";
 
@@ -58,13 +61,14 @@ export default function WelcomeScreen() {
       </Card>
 
       <Card>
-        <SectionLabel>{t("common.account")}</SectionLabel>
-        <p className="mb-4 text-base text-gray-600">{t("auth.googleOnlyNote")}</p>
-        <div className="space-y-3">
-          <GoogleSignInButton
-            nextPath="/signup/complete"
-            labelKey="auth.googleSignup"
-          />
+        <div className="flex flex-col gap-3">
+          <Link href="/signup" className={`w-full py-5 ${primaryButtonClassName}`}>
+            {bilingual ? (
+              <BilingualText messageKey="welcome.signup" layout="stack" />
+            ) : (
+              t("welcome.signup")
+            )}
+          </Link>
           <Link
             href="/login"
             className={`w-full flex-col gap-1 py-5 ${secondaryButtonClassName}`}
@@ -78,11 +82,7 @@ export default function WelcomeScreen() {
         </div>
       </Card>
 
-      <AccountLinks
-        showSignup={false}
-        bilingual={bilingual}
-        className="mt-5"
-      />
+      <AccountLinks bilingual={bilingual} className="mt-5" />
 
       <p className="text-ui-caption mt-4 text-xs text-gray-400">
         <Link href="/privacy" className="hover:text-[#06C755]">

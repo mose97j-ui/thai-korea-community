@@ -17,7 +17,11 @@ import OperatorMenuAdminPanel, {
 import SortableTileGrid, { SortableDragHandle, type SortableDragHandleProps } from "@/components/SortableTileGrid";
 import UserMenusSection from "@/components/UserMenusSection";
 import { Card, SectionLabel, TopicCard, pillSecondaryButtonClassName, primaryButtonClassName } from "@/components/ui";
-import { socialMainColumnClassName, socialPageStackSidebarClassName } from "@/components/PageShell";
+import {
+  socialMainColumnClassName,
+  socialMenuGridClassName,
+  socialPageStackSidebarClassName,
+} from "@/components/PageShell";
 import {
   getCategorySubItems,
   getHomeCategoryById,
@@ -88,8 +92,7 @@ export default function HomeContent() {
     [statsVersion]
   );
 
-  const menuGridClassName =
-    "grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8";
+  const menuGridClassName = socialMenuGridClassName;
 
   const { visibleMenuItems, hiddenMenuItems } = useMemo(() => {
     if (!showOperatorUI) {
@@ -375,6 +378,18 @@ export default function HomeContent() {
     ? subItems.find((item) => item.id === editingSubId) ?? null
     : null;
 
+  const userMenuProps = {
+    selectedId,
+    onSelect: handleCategorySelect,
+    onCreated: (id: string) => {
+      setWriteCategoryId(id);
+      const subs = getCategorySubItems(id);
+      if (subs[0]) {
+        setWriteSubId(subs[0].id);
+      }
+    },
+  };
+
   return (
     <div className={socialPageStackSidebarClassName}>
       <HomeSidebar
@@ -387,7 +402,7 @@ export default function HomeContent() {
       />
 
       <div className={socialMainColumnClassName}>
-        <div className="mb-3 flex flex-col gap-2 xl:flex-row xl:items-end">
+        <div className="mb-3 flex flex-row items-end gap-2">
           <div className="flex min-w-0 items-center gap-5">
             <Link
               href="/"
@@ -473,22 +488,13 @@ export default function HomeContent() {
           ) : null}
         </div>
 
-        <UserMenusSection
-          selectedId={selectedId}
-          onSelect={handleCategorySelect}
-          onCreated={(id) => {
-            setWriteCategoryId(id);
-            const subs = getCategorySubItems(id);
-            if (subs[0]) {
-              setWriteSubId(subs[0].id);
-            }
-          }}
-        />
-
         <div ref={panelRef} className="mt-6 scroll-mt-8">
           {selectedCategory ? (
             isPremiumCategoryId(selectedCategory.id) && !hasPremiumAccess ? (
-              <PremiumPaywall variant="inline" />
+              <>
+                <PremiumPaywall variant="inline" />
+                <UserMenusSection {...userMenuProps} />
+              </>
             ) : (
             <Card>
               <div className="mb-4 flex items-start justify-between gap-3">
@@ -591,12 +597,17 @@ export default function HomeContent() {
                   )}
                 </div>
               ) : null}
+
+              <UserMenusSection embedded {...userMenuProps} />
             </Card>
             )
           ) : (
-            <Card className="py-12 text-center text-lg text-gray-500">
-              {t("home.pickCategory")}
-            </Card>
+            <>
+              <Card className="py-12 text-center text-lg text-gray-500">
+                {t("home.pickCategory")}
+              </Card>
+              <UserMenusSection {...userMenuProps} />
+            </>
           )}
         </div>
 

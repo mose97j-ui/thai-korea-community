@@ -25,12 +25,10 @@ const sectionToneCardClass: Record<SectionTone, string> = {
 /** LINE / Facebook-style feed card surface. */
 export const surfaceCardClassName = "social-surface";
 
-/** Multi-column grids for list/topic layouts (responsive). */
-export const topicGridClassName =
-  "grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5";
+/** Multi-column grids for list/topic layouts (desktop layout on all viewports). */
+export const topicGridClassName = "social-topic-grid";
 
-export const postGridClassName =
-  "grid gap-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4";
+export const postGridClassName = "social-post-grid";
 
 /** Social feed list — one post per row, centered (LINE / Facebook). */
 export const postFeedClassName = "social-post-feed w-full";
@@ -38,11 +36,9 @@ export const postFeedClassName = "social-post-feed w-full";
 /** Alias kept for layout imports (centered feed column). */
 export const postFeedCenterClassName = postFeedClassName;
 
-export const cardGridClassName =
-  "grid gap-2 sm:grid-cols-2 xl:grid-cols-3";
+export const cardGridClassName = "social-card-grid";
 
-export const compactLinkGridClassName =
-  "grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5";
+export const compactLinkGridClassName = "social-compact-link-grid";
 
 export function Card({ children, className = "" }: CardProps) {
   return <div className={`${surfaceCardClassName} ${className}`}>{children}</div>;

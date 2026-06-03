@@ -36,6 +36,7 @@ export type AuthErrorKey =
   | "COMMENT_BANNED"
   | "MESSAGE_BANNED"
   | "ACTIVITY_BANNED"
+  | "GMAIL_INVALID"
   | "PROFILE_SAVE_FAILED";
 
 export type AuthFail = { ok: false; errorKey: AuthErrorKey };

@@ -7,7 +7,8 @@ type IconRule = {
 };
 
 const RULES: IconRule[] = [
-  { keywords: ["ข้อมูล", "info", "정보"], icon: "📢", tint: "bg-sky-100" },
+  { keywords: ["ความรู้", "유용한", "지식", "info"], icon: "📚", tint: "bg-sky-100" },
+  { keywords: ["ฮอต", "hot", "올리브", "olive", "뷰티", "beauty"], icon: "🔥", tint: "bg-pink-100" },
   { keywords: ["หางาน", "งาน", "구인", "job"], icon: "💼", tint: "bg-emerald-100" },
   { keywords: ["รีวิว", "สถานที่", "ร้าน", "장소", "review"], icon: "📍", tint: "bg-rose-100" },
   { keywords: ["หิ้ว", "ช้อป", "ซื้อ", "구매", "shop"], icon: "🛍️", tint: "bg-violet-100" },

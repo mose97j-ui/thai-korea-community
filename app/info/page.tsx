@@ -1,6 +1,6 @@
 "use client";
 
-import PageShell from "@/components/PageShell";
+import PageShell, { socialPageTwoColumnClassName } from "@/components/PageShell";
 import PageHeader from "@/components/PageHeader";
 import { Card, SectionLabel, TipBox, TopicCard, topicGridClassName } from "@/components/ui";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -17,7 +17,7 @@ export default function InfoPage() {
         <p className="text-sm leading-relaxed text-gray-600">{t("info.intro")}</p>
       </Card>
 
-      <div className="grid gap-[var(--social-layout-gap)] lg:grid-cols-[minmax(0,1fr)_min(18rem,26%)] lg:items-start">
+      <div className={socialPageTwoColumnClassName}>
         <div>
           <SectionLabel>{t("common.category")}</SectionLabel>
           <div className={topicGridClassName}>
