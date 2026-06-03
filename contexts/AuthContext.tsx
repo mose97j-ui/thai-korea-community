@@ -40,7 +40,10 @@ import { validateGmail } from "@/lib/auth/gmail";
 import type { GoogleSignupInput, LoginInput, SignupInput, User } from "@/lib/auth/types";
 import type { VerificationMethod } from "@/lib/auth/verification";
 import { refreshSupabaseSessionWithRetry } from "@/lib/auth/refreshSessionWithRetry";
-import { GOOGLE_AUTH_ENABLED } from "@/lib/auth/features";
+import {
+  GOOGLE_AUTH_ENABLED,
+  SIGNUP_REFERRAL_CODE_ENABLED,
+} from "@/lib/auth/features";
 import { saveGoogleProfile } from "@/lib/auth/supabaseUser";
 import { tryCreateClient } from "@/utils/supabase/client";
 
@@ -193,7 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return authFail("AGE_INVALID");
     }
 
-    if (input.referralCode?.trim()) {
+    if (SIGNUP_REFERRAL_CODE_ENABLED && input.referralCode?.trim()) {
       const referrer = findUserByPersonalCode(input.referralCode.trim());
       if (!referrer) {
         return authFail("REFERRAL_INVALID");
@@ -211,7 +214,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       gmail: gmailResult.gmail,
       koreanPhone: formatPhone(input.koreanPhone),
       personalCode: createUniqueCode(),
-      referredBy: input.referralCode?.trim().toUpperCase() || undefined,
+      referredBy:
+        SIGNUP_REFERRAL_CODE_ENABLED && input.referralCode?.trim()
+          ? input.referralCode.trim().toUpperCase()
+          : undefined,
       password: input.password,
       role: "user",
       authProvider: "local",
@@ -276,7 +282,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return authFail("AGE_INVALID");
     }
 
-    if (input.referralCode?.trim()) {
+    if (SIGNUP_REFERRAL_CODE_ENABLED && input.referralCode?.trim()) {
       const referrer = findUserByPersonalCode(input.referralCode.trim());
       if (!referrer) {
         return authFail("REFERRAL_INVALID");
@@ -295,7 +301,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       gmail,
       koreanPhone: formatPhone(input.koreanPhone),
       personalCode: existing?.personalCode ?? createUniqueCode(),
-      referredBy: input.referralCode?.trim().toUpperCase() || existing?.referredBy,
+      referredBy:
+        SIGNUP_REFERRAL_CODE_ENABLED && input.referralCode?.trim()
+          ? input.referralCode.trim().toUpperCase()
+          : existing?.referredBy,
       password: "",
       role: existing?.role ?? "user",
       premiumUntil: existing?.premiumUntil,

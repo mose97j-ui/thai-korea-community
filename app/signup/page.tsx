@@ -19,6 +19,10 @@ import {
 } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import {
+  SIGNUP_PHONE_VERIFICATION_ENABLED,
+  SIGNUP_REFERRAL_CODE_ENABLED,
+} from "@/lib/auth/features";
 import type { Gender } from "@/lib/auth/types";
 
 export default function SignupPage() {
@@ -46,7 +50,7 @@ export default function SignupPage() {
     event.preventDefault();
     setError("");
 
-    if (!emailVerified || !phoneVerified) {
+    if (!emailVerified || (SIGNUP_PHONE_VERIFICATION_ENABLED && !phoneVerified)) {
       setError(te("VERIFY_REQUIRED"));
       return;
     }
@@ -83,7 +87,10 @@ export default function SignupPage() {
       gmail,
       koreanPhone,
       password,
-      referralCode: referralCode.trim() || undefined,
+      referralCode:
+        SIGNUP_REFERRAL_CODE_ENABLED && referralCode.trim()
+          ? referralCode.trim()
+          : undefined,
     });
 
     setSubmitting(false);
@@ -217,6 +224,7 @@ export default function SignupPage() {
             />
           </FormField>
 
+          {SIGNUP_PHONE_VERIFICATION_ENABLED ? (
           <VerificationBlock
             target={koreanPhone}
             method="phone"
@@ -225,6 +233,7 @@ export default function SignupPage() {
             onVerified={() => setPhoneVerified(true)}
             disabled={!koreanPhone.trim()}
           />
+          ) : null}
 
           <FormField label={t("signup.password")}>
             <input
@@ -248,17 +257,21 @@ export default function SignupPage() {
             />
           </FormField>
 
-          <FormField label={t("signup.referral")}>
-            <input
-              type="text"
-              value={referralCode}
-              onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-              placeholder="CAPTAINKOREA97"
-              className={inputClassName}
-            />
-          </FormField>
+          {SIGNUP_REFERRAL_CODE_ENABLED ? (
+            <>
+              <FormField label={t("signup.referral")}>
+                <input
+                  type="text"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  placeholder="CAPTAINKOREA97"
+                  className={inputClassName}
+                />
+              </FormField>
 
-          <p className="text-sm text-gray-500">{t("signup.codeNote")}</p>
+              <p className="text-sm text-gray-500">{t("signup.codeNote")}</p>
+            </>
+          ) : null}
 
           {error && <ErrorMessage message={error} />}
 

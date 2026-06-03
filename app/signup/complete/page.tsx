@@ -18,7 +18,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { isProfileComplete } from "@/lib/auth/profileComplete";
-import { GOOGLE_AUTH_ENABLED } from "@/lib/auth/features";
+import { GOOGLE_AUTH_ENABLED, SIGNUP_REFERRAL_CODE_ENABLED } from "@/lib/auth/features";
 import type { Gender } from "@/lib/auth/types";
 
 export default function SignupCompletePage() {
@@ -116,7 +116,10 @@ function SignupCompleteContent() {
       birthDate,
       hometown,
       koreanPhone,
-      referralCode: referralCode.trim() || undefined,
+      referralCode:
+        SIGNUP_REFERRAL_CODE_ENABLED && referralCode.trim()
+          ? referralCode.trim()
+          : undefined,
     });
 
     setSubmitting(false);
@@ -253,15 +256,17 @@ function SignupCompleteContent() {
             />
           </FormField>
 
-          <FormField label={t("signup.referral")}>
-            <input
-              type="text"
-              value={referralCode}
-              onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-              placeholder="CAPTAINKOREA97"
-              className={inputClassName}
-            />
-          </FormField>
+          {SIGNUP_REFERRAL_CODE_ENABLED ? (
+            <FormField label={t("signup.referral")}>
+              <input
+                type="text"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                placeholder="CAPTAINKOREA97"
+                className={inputClassName}
+              />
+            </FormField>
+          ) : null}
 
           {error && <ErrorMessage message={error} />}
 
