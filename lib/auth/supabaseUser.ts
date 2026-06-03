@@ -129,6 +129,15 @@ export async function refreshSupabaseSession(): Promise<{
 
   try {
     const supabase = createClient();
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session?.user) {
+      return syncSupabaseAuthUser(session.user);
+    }
+
     const {
       data: { user: authUser },
     } = await supabase.auth.getUser();

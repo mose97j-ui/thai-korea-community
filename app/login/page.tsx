@@ -5,8 +5,8 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AccountLinks from "@/components/AccountLinks";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import AuthPageShell from "@/components/AuthPageShell";
 import PageHeader from "@/components/PageHeader";
-import PageShell from "@/components/PageShell";
 import { Card, ErrorMessage, SectionLabel } from "@/components/ui";
 import { useLocale } from "@/contexts/LocaleContext";
 
@@ -19,12 +19,13 @@ function LoginContent() {
 
   useEffect(() => {
     if (searchParams.get("error") === "auth") {
-      setError(t("login.authError"));
+      const reason = searchParams.get("reason");
+      setError(reason ? `${t("login.authError")} (${reason})` : t("login.authError"));
     }
   }, [searchParams, t]);
 
   return (
-    <PageShell maxWidth="2xl">
+    <AuthPageShell centerContent>
       <PageHeader title={t("login.title")} backLabel={t("common.back")} />
 
       <Card>
@@ -48,7 +49,7 @@ function LoginContent() {
       </p>
 
       <AccountLinks />
-    </PageShell>
+    </AuthPageShell>
   );
 }
 
@@ -56,9 +57,9 @@ function LoginFallback() {
   const { t } = useLocale();
 
   return (
-    <PageShell maxWidth="2xl">
+    <AuthPageShell centerContent>
       <Card className="py-10 text-center text-base text-gray-500">{t("common.loading")}</Card>
-    </PageShell>
+    </AuthPageShell>
   );
 }
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
-import PageShell from "@/components/PageShell";
+import AuthPageShell from "@/components/AuthPageShell";
 import VerificationBlock from "@/components/VerificationBlock";
 import {
   Card,
@@ -55,7 +55,7 @@ export default function FindIdPage() {
   };
 
   return (
-    <PageShell maxWidth="2xl">
+    <AuthPageShell topAligned centerContent={false}>
       <PageHeader
         title={t("findId.title")}
         backHref="/"
@@ -147,6 +147,6 @@ export default function FindIdPage() {
           {t("login.findPassword")}
         </Link>
       </p>
-    </PageShell>
+    </AuthPageShell>
   );
 }

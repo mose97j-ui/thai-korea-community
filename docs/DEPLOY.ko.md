@@ -57,21 +57,21 @@ git push -u origin main
 - `http://localhost:3000`
 - `http://localhost:3000/auth/callback`
 
-## 4. Google OAuth (배포 도메인 추가)
+## 5. Google OAuth — 다른 사람도 가입 가능하게
 
-[Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
+[GOOGLE_PUBLIC_SIGNUP.ko.md](./GOOGLE_PUBLIC_SIGNUP.ko.md) 가이드를 따라:
 
-OAuth 클라이언트 **Authorized JavaScript origins**에 추가:
+1. Google OAuth consent screen **Publish App**
+2. Supabase Redirect URLs에 Vercel URL 추가
+3. Google Cloud origins에 Vercel URL 추가
 
-- `https://YOUR-APP.vercel.app`
-
-## 5. Kakao Developers (배포 도메인 추가)
+## 6. Kakao Developers (배포 도메인 추가)
 
 [Kakao Developers](https://developers.kakao.com/) → 앱 → **플랫폼 → Web**
 
 - `https://YOUR-APP.vercel.app` 등록
 
-## 6. 배포 확인
+## 7. 배포 확인
 
 1. Vercel URL 접속 → 홈 로딩
 2. Google 로그인 → `/auth/callback` → 홈 이동

@@ -4,6 +4,12 @@ import AppShell from "@/components/AppShell";
 type PageShellProps = {
   children: React.ReactNode;
   maxWidth?: "lg" | "xl" | "2xl" | "3xl" | "5xl" | "6xl" | "7xl" | "write" | "full";
+  /** `auth` hides TopNav and centers content (signup, login, welcome). */
+  layout?: "app" | "auth";
+  /** Vertically center auth content (welcome landing). */
+  centerContent?: boolean;
+  /** Auth form pages — centered column, scroll from top. */
+  topAligned?: boolean;
 };
 
 /** Right padding — legacy; prefer AppShell grid column instead. */
@@ -17,6 +23,10 @@ export const shellPaddingClassName =
 /** Grid shell: main column + dedicated nav column (no fixed overlap). */
 export const socialAppShellClassName =
   "social-page-shell social-app-shell social-feed-bg min-h-screen";
+
+/** Auth/onboarding — single centered column, no TopNav. */
+export const socialAppShellAuthClassName =
+  "social-app-shell social-app-shell--auth social-feed-bg min-h-screen w-full max-w-[100vw]";
 
 export const socialAppContentClassName = "social-app-content min-w-0 w-full";
 
@@ -57,6 +67,9 @@ export const pageStickyHeaderClassName =
 export default function PageShell({
   children,
   maxWidth = "full",
+  layout = "app",
+  centerContent = false,
+  topAligned = false,
 }: PageShellProps) {
   const widthClass =
     maxWidth === "full"
@@ -77,14 +90,22 @@ export default function PageShell({
                     ? "max-w-lg"
                     : "max-w-xl";
 
-  const centerClass = maxWidth === "full" ? "" : "mx-auto";
+  const centerClass = layout === "auth" || maxWidth !== "full" ? "mx-auto w-full" : "";
+  const sectionPadding =
+    layout === "auth"
+      ? "px-4 pt-[var(--social-shell-pt)] pb-[var(--social-shell-pb)] sm:px-6"
+      : shellPaddingClassName;
 
   return (
-    <AppShell>
+    <AppShell layout={layout}>
       <section
-        className={`${centerClass} ${widthClass} ${shellPaddingClassName}`}
+        className={`${centerClass} ${widthClass} ${sectionPadding} ${
+          layout === "auth" ? "auth-screen-section" : ""
+        } ${centerContent ? "auth-screen-section--center" : ""} ${
+          topAligned ? "auth-screen-section--top" : ""
+        }`}
       >
-        <OperatorModeBar />
+        {layout === "app" ? <OperatorModeBar /> : null}
         {children}
       </section>
     </AppShell>

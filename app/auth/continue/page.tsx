@@ -2,11 +2,11 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import PageShell from "@/components/PageShell";
+import AuthPageShell from "@/components/AuthPageShell";
 import { Card } from "@/components/ui";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { refreshSupabaseSession } from "@/lib/auth/supabaseUser";
+import { refreshSupabaseSessionWithRetry } from "@/lib/auth/refreshSessionWithRetry";
 
 function AuthContinueContent() {
   const router = useRouter();
@@ -20,7 +20,8 @@ function AuthContinueContent() {
 
     async function run() {
       const next = searchParams.get("next") || "/";
-      const result = await refreshSupabaseSession();
+      router.refresh();
+      const result = await refreshSupabaseSessionWithRetry();
       await refreshSession();
 
       if (!active) {
@@ -28,7 +29,7 @@ function AuthContinueContent() {
       }
 
       if (!result.user) {
-        router.replace("/login?error=auth");
+        router.replace("/login?error=auth&reason=session_missing");
         return;
       }
 
@@ -52,9 +53,9 @@ function AuthContinueContent() {
   }, [router, searchParams, t, refreshSession]);
 
   return (
-    <PageShell maxWidth="2xl">
+    <AuthPageShell centerContent>
       <Card className="py-12 text-center text-lg text-gray-600">{message}</Card>
-    </PageShell>
+    </AuthPageShell>
   );
 }
 
@@ -62,9 +63,9 @@ function AuthContinueFallback() {
   const { t } = useLocale();
 
   return (
-    <PageShell maxWidth="2xl">
+    <AuthPageShell centerContent>
       <Card className="py-12 text-center text-lg text-gray-600">{t("auth.continuing")}</Card>
-    </PageShell>
+    </AuthPageShell>
   );
 }
 

@@ -25,6 +25,15 @@ const projectRef = env.SUPABASE_PROJECT_REF ?? "vniflkqbmybgfnoekxny";
 const accessToken = env.SUPABASE_ACCESS_TOKEN;
 const clientId = env.GOOGLE_OAUTH_CLIENT_ID;
 const clientSecret = env.GOOGLE_OAUTH_CLIENT_SECRET;
+const productionSiteUrl =
+  env.NEXT_PUBLIC_SITE_URL ?? "https://thai-korea-community.vercel.app";
+
+const redirectUrls = [
+  "http://localhost:3000/auth/callback",
+  "http://localhost:3000/**",
+  `${productionSiteUrl.replace(/\/$/, "")}/auth/callback`,
+  `${productionSiteUrl.replace(/\/$/, "")}/**`,
+];
 
 if (!accessToken) {
   console.error("❌ SUPABASE_ACCESS_TOKEN이 없습니다.\n");
@@ -32,7 +41,11 @@ if (!accessToken) {
   console.error("2. .env.local 에 SUPABASE_ACCESS_TOKEN=... 추가");
   console.error("3. npm run setup:google 다시 실행\n");
   console.error("또는 Supabase 대시보드에서 직접 입력:");
-  console.error(`   https://supabase.com/dashboard/project/${projectRef}/auth/providers?provider=Google`);
+  console.error(`   https://supabase.com/dashboard/project/${projectRef}/auth/url-configuration`);
+  console.error("\n등록할 Redirect URLs:");
+  for (const url of redirectUrls) {
+    console.error(`   - ${url}`);
+  }
   process.exit(1);
 }
 
@@ -45,11 +58,13 @@ const payload = {
   external_google_enabled: true,
   external_google_client_id: clientId,
   external_google_secret: clientSecret,
-  site_url: "http://localhost:3000",
-  uri_allow_list: "http://localhost:3000/auth/callback",
+  site_url: productionSiteUrl.replace(/\/$/, ""),
+  uri_allow_list: redirectUrls.join(","),
 };
 
 console.log(`Supabase Google OAuth 설정 중 (${projectRef})…\n`);
+console.log(`  Site URL: ${payload.site_url}`);
+console.log(`  Redirect URLs: ${redirectUrls.join(", ")}\n`);
 
 const res = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/config/auth`, {
   method: "PATCH",
@@ -68,6 +83,7 @@ if (!res.ok) {
 }
 
 console.log("✅ Google Provider 활성화");
-console.log("✅ Site URL: http://localhost:3000");
-console.log("✅ Redirect URL: http://localhost:3000/auth/callback");
-console.log("\n다음: SQL 마이그레이션 실행 후 npm run verify:supabase");
+console.log("✅ Site URL 및 Redirect URLs (로컬 + 배포) 등록");
+console.log("\n다음: Google Cloud Console에서도 배포 도메인을 추가하고 OAuth 앱을 Publish 하세요.");
+console.log("   docs/GOOGLE_PUBLIC_SIGNUP.ko.md 참고");
+console.log("\n확인: npm run verify:supabase");

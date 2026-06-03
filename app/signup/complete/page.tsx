@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
 import PageHeader from "@/components/PageHeader";
-import PageShell from "@/components/PageShell";
+import AuthPageShell from "@/components/AuthPageShell";
 import ProfilePhotoField from "@/components/ProfilePhotoField";
 import {
   Card,
@@ -26,9 +26,9 @@ export default function SignupCompletePage() {
   return (
     <Suspense
       fallback={
-        <PageShell maxWidth="2xl">
+        <AuthPageShell topAligned centerContent={false}>
           <Card className="py-10 text-center text-base text-gray-500">{t("common.loading")}</Card>
-        </PageShell>
+        </AuthPageShell>
       }
     >
       <SignupCompleteContent />
@@ -125,15 +125,15 @@ function SignupCompleteContent() {
 
   if (!isReady) {
     return (
-      <PageShell maxWidth="2xl">
+      <AuthPageShell topAligned centerContent={false}>
         <Card className="py-12 text-center text-lg text-gray-600">{t("common.loading")}</Card>
-      </PageShell>
+      </AuthPageShell>
     );
   }
 
   if (!user) {
     return (
-      <PageShell maxWidth="2xl">
+      <AuthPageShell topAligned centerContent={false}>
         <PageHeader title={t("signup.complete.title")} backLabel={t("common.back")} />
         <Card className="space-y-4">
           <p className="text-base text-gray-600">{t("signup.complete.loginRequired")}</p>
@@ -142,12 +142,12 @@ function SignupCompleteContent() {
             labelKey="auth.googleSignup"
           />
         </Card>
-      </PageShell>
+      </AuthPageShell>
     );
   }
 
   return (
-    <PageShell maxWidth="2xl">
+    <AuthPageShell topAligned centerContent={false}>
       <PageHeader title={t("signup.complete.title")} backLabel={t("common.back")} />
 
       <Card className="mb-4">
@@ -263,6 +263,6 @@ function SignupCompleteContent() {
           </SubmitButton>
         </form>
       </Card>
-    </PageShell>
+    </AuthPageShell>
   );
 }

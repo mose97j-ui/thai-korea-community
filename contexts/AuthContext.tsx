@@ -38,7 +38,8 @@ import type { AuthFail } from "@/lib/auth/errors";
 import { authFail } from "@/lib/auth/errors";
 import type { GoogleSignupInput, LoginInput, SignupInput, User } from "@/lib/auth/types";
 import type { VerificationMethod } from "@/lib/auth/verification";
-import { refreshSupabaseSession, saveGoogleProfile } from "@/lib/auth/supabaseUser";
+import { refreshSupabaseSessionWithRetry } from "@/lib/auth/refreshSessionWithRetry";
+import { saveGoogleProfile } from "@/lib/auth/supabaseUser";
 import { tryCreateClient } from "@/utils/supabase/client";
 
 type AuthContextValue = {
@@ -93,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function initSession() {
       try {
-        const supabaseResult = await refreshSupabaseSession();
+        const supabaseResult = await refreshSupabaseSessionWithRetry();
         if (supabaseResult.user) {
           setUser(supabaseResult.user);
           syncUiLocaleForUser(supabaseResult.user);
@@ -115,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = tryCreateClient();
     const subscription = supabase
       ? supabase.auth.onAuthStateChange(() => {
-          void refreshSupabaseSession().then((result) => {
+          void refreshSupabaseSessionWithRetry().then((result) => {
             purgeExpiredRestrictions();
             if (result.user) {
               setUser(result.user);
@@ -131,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const refreshSession = () => {
       purgeExpiredRestrictions();
-      void refreshSupabaseSession().then((result) => {
+      void refreshSupabaseSessionWithRetry().then((result) => {
         if (result.user) {
           setUser(result.user);
           syncUiLocaleForUser(result.user);
@@ -215,7 +216,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshSession = useCallback(async () => {
-    const result = await refreshSupabaseSession();
+    const result = await refreshSupabaseSessionWithRetry();
     if (result.user) {
       setUser(result.user);
       syncUiLocaleForUser(result.user);

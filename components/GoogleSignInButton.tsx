@@ -25,16 +25,17 @@ export default function GoogleSignInButton({
 
     try {
       if (!isSupabaseConfigured()) {
-        setError(t("auth.googleFailed"));
+        setError(t("auth.supabaseNotConfigured"));
         setLoading(false);
         return;
       }
 
       const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithOAuth({
+      const redirectTo = getGoogleRedirectUrl(nextPath);
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: getGoogleRedirectUrl(nextPath),
+          redirectTo,
           queryParams: {
             prompt: "select_account",
           },
@@ -42,7 +43,13 @@ export default function GoogleSignInButton({
       });
 
       if (authError) {
-        setError(authError.message);
+        setError(authError.message || t("auth.googleFailed"));
+        setLoading(false);
+        return;
+      }
+
+      if (!data?.url) {
+        setError(t("auth.googleFailed"));
         setLoading(false);
       }
     } catch (caught) {

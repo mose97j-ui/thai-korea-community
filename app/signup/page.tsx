@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import AuthPageShell from "@/components/AuthPageShell";
 import PageHeader from "@/components/PageHeader";
-import PageShell from "@/components/PageShell";
 import AccountLinks from "@/components/AccountLinks";
 import { Card, SectionLabel } from "@/components/ui";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -12,7 +12,7 @@ export default function SignupPage() {
   const { t } = useLocale();
 
   return (
-    <PageShell maxWidth="2xl">
+    <AuthPageShell centerContent>
       <PageHeader title={t("signup.title")} backLabel={t("common.back")} />
 
       <Card className="mb-4">
@@ -22,7 +22,7 @@ export default function SignupPage() {
       <Card>
         <SectionLabel>{t("common.account")}</SectionLabel>
         <p className="mb-4 text-base text-gray-600">{t("auth.googleOnlyNote")}</p>
-        <GoogleSignInButton nextPath="/" labelKey="auth.googleSignup" />
+        <GoogleSignInButton nextPath="/signup/complete" labelKey="auth.googleSignup" />
       </Card>
 
       <p className="mt-4 text-center text-base text-gray-500">
@@ -33,6 +33,6 @@ export default function SignupPage() {
       </p>
 
       <AccountLinks showSignup={false} showLogin={false} />
-    </PageShell>
+    </AuthPageShell>
   );
 }

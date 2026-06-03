@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
-import PageShell from "@/components/PageShell";
+import AuthPageShell from "@/components/AuthPageShell";
 import VerificationBlock from "@/components/VerificationBlock";
 import {
   Card,
@@ -65,7 +65,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <PageShell maxWidth="2xl">
+    <AuthPageShell topAligned centerContent={false}>
       <PageHeader
         title={t("resetPassword.title")}
         backHref="/"
@@ -176,6 +176,6 @@ export default function ResetPasswordPage() {
           {t("login.findId")}
         </Link>
       </p>
-    </PageShell>
+    </AuthPageShell>
   );
 }

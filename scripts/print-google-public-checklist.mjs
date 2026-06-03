@@ -1,0 +1,23 @@
+const productionSiteUrl = "https://thai-korea-community.vercel.app";
+const supabaseCallback = "https://vniflkqbmybgfnoekxny.supabase.co/auth/v1/callback";
+
+console.log("다른 사람 Google 회원가입 — 수동 설정 체크리스트\n");
+console.log("배포 URL:", productionSiteUrl);
+console.log("\n1) Google Cloud → OAuth consent screen → Publish App");
+console.log("   https://console.cloud.google.com/apis/credentials/consent");
+console.log("\n2) Google Cloud → Credentials → OAuth client");
+console.log("   Origins:");
+console.log("     - http://localhost:3000");
+console.log(`     - ${productionSiteUrl}`);
+console.log("   Redirect URIs:");
+console.log(`     - ${supabaseCallback}`);
+console.log("\n3) Supabase → Auth → URL Configuration");
+console.log(`   https://supabase.com/dashboard/project/vniflkqbmybgfnoekxny/auth/url-configuration`);
+console.log(`   Site URL: ${productionSiteUrl}`);
+console.log(`   Redirect URLs:`);
+console.log(`     - ${productionSiteUrl}/auth/callback`);
+console.log("     - http://localhost:3000/auth/callback");
+console.log("\n4) (선택) 자동 Supabase 설정:");
+console.log("   .env.local 에 SUPABASE_ACCESS_TOKEN 추가 후 npm run setup:google");
+console.log("\n5) 확인: npm run verify:supabase");
+console.log(`   배포 사이트: ${productionSiteUrl}/signup`);

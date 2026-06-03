@@ -29,7 +29,8 @@ Supabase URL: `https://vniflkqbmybgfnoekxny.supabase.co`
 
 5. **Create** 후 **Client ID**와 **Client Secret** 복사
 
-> 배포 시 origins에 `https://your-domain.com`도 추가하세요.
+> 배포 시 origins에 `https://thai-korea-community.vercel.app` 도 추가하세요.  
+> **다른 사람도 가입**하려면 OAuth consent screen을 **Publish** 해야 합니다 → [GOOGLE_PUBLIC_SIGNUP.ko.md](./GOOGLE_PUBLIC_SIGNUP.ko.md)
 
 ---
 
