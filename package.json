@@ -11,7 +11,8 @@
     "setup:google": "node scripts/configure-google-supabase.mjs",
     "apply:production-auth": "node scripts/apply-production-auth.mjs",
     "diagnose:google-login": "node scripts/diagnose-google-login.mjs",
-    "check:google-public": "node scripts/print-google-public-checklist.mjs"
+    "check:google-public": "node scripts/print-google-public-checklist.mjs",
+    "deploy:prod": "vercel deploy --prod --yes"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
