@@ -402,8 +402,8 @@ export default function HomeContent() {
       />
 
       <div className={socialMainColumnClassName}>
-        <div className="mb-3 flex flex-row items-end gap-2">
-          <div className="flex min-w-0 items-center gap-5">
+        <div className="mb-3 flex flex-col gap-3 xl:flex-row xl:items-end">
+          <div className="social-home-brand-row">
             <Link
               href="/"
               aria-label={t("nav.home")}
@@ -414,15 +414,17 @@ export default function HomeContent() {
                 alt="Thai Korea Community"
                 width={88}
                 height={88}
-                className="h-[110px] w-[110px] rounded-[30px] object-cover shadow-sm ring-1 ring-black/5"
+                className="h-16 w-16 rounded-[22px] object-cover shadow-sm ring-1 ring-black/5 sm:h-[110px] sm:w-[110px] sm:rounded-[30px]"
               />
             </Link>
-            <div className="min-w-0">
-              <h1 className={`${siteNameClass} text-2xl sm:text-3xl`}>Thai Korea Community</h1>
-              <p className="text-ui-caption mt-2 sm:mt-2.5">{t("welcome.subtitle")}</p>
+            <div className="social-home-brand-title">
+              <h1 className={`${siteNameClass} text-lg leading-tight sm:text-2xl lg:text-3xl`}>
+                Thai Korea Community
+              </h1>
+              <p className="text-ui-caption mt-1 sm:mt-2.5">{t("welcome.subtitle")}</p>
             </div>
           </div>
-          <GlobalSearchBar className="mb-0 xl:min-w-[min(100%,28rem)] xl:flex-1" />
+          <GlobalSearchBar className="mb-0 w-full xl:min-w-[min(100%,28rem)] xl:flex-1" />
         </div>
 
         <HomeQuickWritePanel

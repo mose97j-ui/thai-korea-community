@@ -39,16 +39,12 @@
   --social-content-px: 0.625rem;
   --social-card-py: 0.625rem;
   --social-card-px: 0.75rem;
-  --social-content-min-width: 28rem;
+  --social-content-min-width: 0;
   --social-sidebar-width: 15rem;
   --social-place-sidebar-width: 14rem;
   --social-post-feed-max-width: 100%;
-  --social-nav-width: 11rem;
-  --social-page-min-width: calc(
-    var(--social-shell-pl) + var(--social-sidebar-width) +
-      var(--social-layout-gap) + var(--social-content-min-width) +
-      var(--social-nav-gap) + var(--social-nav-width)
-  );
+  --social-nav-width: 10.5rem;
+  --social-page-min-width: 100%;
   --social-radius-lg: 1rem;
   --social-radius-md: 0.75rem;
   --social-radius-pill: 9999px;
@@ -112,10 +108,17 @@ html.locale-ko {
 
 @media (min-width: 1024px) {
   :root {
+    --social-nav-width: 11rem;
+    --social-content-min-width: 16rem;
     --social-content-px: 0.875rem;
     --social-text-body: 1rem;
     --social-text-title: 1.125rem;
     --social-text-headline: 1.375rem;
+    --social-page-min-width: calc(
+      var(--social-shell-pl) + var(--social-sidebar-width) +
+        var(--social-layout-gap) + var(--social-content-min-width) +
+        var(--social-nav-gap) + var(--social-nav-width)
+    );
   }
 
   html.locale-th {
@@ -159,17 +162,31 @@ html.locale-ko body {
     background-color: var(--social-feed-bg);
   }
 
-  /** Page shell: grows with viewport; scrolls horizontally when layout min exceeds width. */
+  /** Page shell: full width on mobile; desktop min-width when layout needs it. */
   .social-page-shell {
-    min-width: var(--social-page-min-width);
-    width: max(100%, var(--social-page-min-width));
+    min-width: 0;
+    width: 100%;
   }
 
-  /** App grid — content column never overlaps the TopNav column. */
+  @media (min-width: 1024px) {
+    .social-page-shell {
+      min-width: var(--social-page-min-width);
+      width: max(100%, var(--social-page-min-width));
+    }
+  }
+
+  /** App grid — mobile: full-width content + bottom nav; desktop: content + right TopNav. */
   .social-app-shell {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--social-nav-width);
-    column-gap: var(--social-nav-gap);
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .social-app-shell {
+      grid-template-columns: minmax(0, 1fr) var(--social-nav-width);
+      column-gap: var(--social-nav-gap);
+    }
   }
 
   /** Auth/onboarding — no TopNav, content centered in viewport. */
@@ -262,26 +279,55 @@ html.locale-ko body {
   }
 
   .social-app-nav {
-    position: sticky;
-    top: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     z-index: 50;
-    align-self: start;
     width: 100%;
-    max-width: var(--social-nav-width);
-    padding-top: 0.375rem;
+    max-width: none;
+    padding: 0.375rem 0.5rem calc(0.375rem + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--social-divider);
+    background-color: rgb(238 240 243 / 0.96);
+    backdrop-filter: blur(8px);
+  }
+
+  @media (min-width: 1024px) {
+    .social-app-nav {
+      position: sticky;
+      top: 0;
+      bottom: auto;
+      left: auto;
+      right: auto;
+      align-self: start;
+      width: 100%;
+      max-width: var(--social-nav-width);
+      padding-top: 0.375rem;
+      padding-bottom: 0;
+      border-top: none;
+      background-color: transparent;
+      backdrop-filter: none;
+    }
   }
 
   /** FAB centered in the content column only (not under TopNav). */
   .social-fab-center {
     position: fixed;
-    bottom: 1.5rem;
-    left: calc(
-      var(--social-shell-pl) +
-        (100vw - var(--social-shell-pl) - var(--social-nav-width) - var(--social-nav-gap)) /
-          2
-    );
+    bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    left: 50%;
     z-index: 40;
     transform: translateX(-50%);
+  }
+
+  @media (min-width: 1024px) {
+    .social-fab-center {
+      bottom: 1.5rem;
+      left: calc(
+        var(--social-shell-pl) +
+          (100vw - var(--social-shell-pl) - var(--social-nav-width) - var(--social-nav-gap)) /
+            2
+      );
+    }
   }
 
   /** Centered single-column post feed — full width of its container (LINE / Facebook). */
@@ -310,35 +356,54 @@ html.locale-ko body {
     width: 100%;
   }
 
-  /** Main feed / content column — keeps readable width beside sidebars & TopNav. */
+  /** Main feed / content column — full width on mobile. */
   .social-main-column {
-    flex: 1 1 var(--social-content-min-width);
-    min-width: var(--social-content-min-width);
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
   }
 
-  /** Two equal columns (reviews map + list, etc.) — same on all viewports. */
+  @media (min-width: 1024px) {
+    .social-main-column {
+      flex: 1 1 var(--social-content-min-width);
+      min-width: var(--social-content-min-width);
+    }
+  }
+
+  /** Two equal columns (reviews map + list, etc.) at xl+. */
   .social-dual-column-grid {
     display: grid;
     gap: var(--social-layout-gap);
-    grid-template-columns: repeat(2, minmax(var(--social-content-min-width), 1fr));
-    min-width: calc(var(--social-content-min-width) * 2 + var(--social-layout-gap));
   }
 
-  /** Place-board: address sidebar left, posts centered in the rest. */
+  @media (min-width: 1280px) {
+    .social-dual-column-grid {
+      grid-template-columns: repeat(2, minmax(var(--social-content-min-width), 1fr));
+      min-width: calc(var(--social-content-min-width) * 2 + var(--social-layout-gap));
+    }
+  }
+
+  /** Place-board: stacked on mobile, sidebar + feed at lg+. */
   .social-place-board-row {
     display: grid;
     gap: var(--social-layout-gap);
-    grid-template-columns: var(--social-place-sidebar-width) minmax(0, 1fr);
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .social-place-sidebar-column {
-    width: var(--social-place-sidebar-width);
-    max-width: var(--social-place-sidebar-width);
-  }
+  @media (min-width: 1024px) {
+    .social-place-board-row {
+      grid-template-columns: var(--social-place-sidebar-width) minmax(0, 1fr);
+      align-items: start;
+    }
 
-  .social-place-feed-column {
-    width: 100%;
+    .social-place-sidebar-column {
+      width: var(--social-place-sidebar-width);
+      max-width: var(--social-place-sidebar-width);
+    }
+
+    .social-place-feed-column {
+      width: 100%;
+    }
   }
 
   .social-surface {
@@ -403,7 +468,6 @@ html.locale-ko body {
     letter-spacing: -0.02em;
     color: var(--social-text-primary);
     line-height: var(--ui-title-line-height);
-    text-wrap: balance;
     overflow-wrap: anywhere;
   }
 
@@ -702,17 +766,41 @@ html.locale-ko body {
     gap: var(--social-layout-gap);
   }
 
-  /** Home sidebar + main — row on all viewports (horizontal scroll when narrow). */
+  /** Home sidebar + main — stacked on mobile, side-by-side at lg+. */
   .social-page-stack--sidebar {
-    flex-direction: row;
-    align-items: flex-start;
+    flex-direction: column;
   }
 
-  /** Category menu grids — desktop column counts at every viewport. */
+  @media (min-width: 1024px) {
+    .social-page-stack--sidebar {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+  }
+
+  /** Category menu grids — fewer columns on small screens. */
   .social-menu-grid {
     display: grid;
     gap: 0.75rem;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (min-width: 640px) {
+    .social-menu-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 768px) {
+    .social-menu-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .social-menu-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
   }
 
   @media (min-width: 1280px) {
@@ -730,14 +818,38 @@ html.locale-ko body {
   .social-page-two-column {
     display: grid;
     gap: var(--social-layout-gap);
-    grid-template-columns: minmax(0, 1fr) min(18rem, 26%);
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    .social-page-two-column {
+      grid-template-columns: minmax(0, 1fr) min(18rem, 26%);
+      align-items: start;
+    }
   }
 
   .social-topic-grid {
     display: grid;
     gap: 0.5rem;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 640px) {
+    .social-topic-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .social-topic-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .social-topic-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
   }
 
   @media (min-width: 1536px) {
@@ -749,7 +861,19 @@ html.locale-ko body {
   .social-post-grid {
     display: grid;
     gap: 0.5rem;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    .social-post-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .social-post-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   @media (min-width: 1536px) {
@@ -761,13 +885,43 @@ html.locale-ko body {
   .social-card-grid {
     display: grid;
     gap: 0.5rem;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 640px) {
+    .social-card-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .social-card-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   .social-compact-link-grid {
     display: grid;
     gap: 0.375rem;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 640px) {
+    .social-compact-link-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .social-compact-link-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .social-compact-link-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
   }
 
   @media (min-width: 1536px) {
@@ -779,6 +933,51 @@ html.locale-ko body {
   .social-filter-grid {
     display: grid;
     gap: 0.5rem;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: 640px) {
+    .social-filter-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 768px) {
+    .social-filter-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .social-filter-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  /** Home brand row — logo + title stay horizontal on mobile. */
+  .social-home-brand-row {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 640px) {
+    .social-home-brand-row {
+      gap: 1.25rem;
+    }
+  }
+
+  .social-home-brand-title {
+    min-width: 0;
+    flex: 1 1 auto;
+    text-wrap: wrap;
+  }
+
+  @media (max-width: 1023px) {
+    .social-top-nav-extended {
+      display: none;
+    }
   }
 }

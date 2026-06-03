@@ -20,6 +20,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import {
+  SIGNUP_EMAIL_VERIFICATION_ENABLED,
   SIGNUP_PHONE_VERIFICATION_ENABLED,
   SIGNUP_REFERRAL_CODE_ENABLED,
 } from "@/lib/auth/features";
@@ -50,7 +51,10 @@ export default function SignupPage() {
     event.preventDefault();
     setError("");
 
-    if (!emailVerified || (SIGNUP_PHONE_VERIFICATION_ENABLED && !phoneVerified)) {
+    if (
+      (SIGNUP_EMAIL_VERIFICATION_ENABLED && !emailVerified) ||
+      (SIGNUP_PHONE_VERIFICATION_ENABLED && !phoneVerified)
+    ) {
       setError(te("VERIFY_REQUIRED"));
       return;
     }
@@ -131,14 +135,16 @@ export default function SignupPage() {
             <p className="mt-1 text-sm text-gray-500">{t("signup.gmailHint")}</p>
           </FormField>
 
-          <VerificationBlock
-            target={gmail}
-            method="email"
-            purpose="signup"
-            verified={emailVerified}
-            onVerified={() => setEmailVerified(true)}
-            disabled={!gmail.trim()}
-          />
+          {SIGNUP_EMAIL_VERIFICATION_ENABLED ? (
+            <VerificationBlock
+              target={gmail}
+              method="email"
+              purpose="signup"
+              verified={emailVerified}
+              onVerified={() => setEmailVerified(true)}
+              disabled={!gmail.trim()}
+            />
+          ) : null}
 
           <FormField label={t("signup.profilePhoto")}>
             <ProfilePhotoField

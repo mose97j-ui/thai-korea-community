@@ -79,7 +79,7 @@ export default function TopNav() {
       </div>
 
       {user && (
-        <div className="flex w-full max-w-full flex-col items-center gap-1 pt-0.5">
+        <div className="social-top-nav-extended flex w-full max-w-full flex-col items-center gap-1 pt-0.5">
           <NavProfilePhotoButton user={user} />
           <div className="flex w-full max-w-full items-center justify-center gap-1">
             <p className="text-ui-chip line-clamp-1 min-w-0 flex-1 text-center text-xs font-bold leading-tight text-gray-900">

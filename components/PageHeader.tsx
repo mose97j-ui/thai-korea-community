@@ -19,13 +19,13 @@ export default function PageHeader({
   const { t } = useLocale();
 
   return (
-    <div className="mb-3 flex min-w-0 flex-row items-start justify-between gap-2">
+    <div className="mb-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
       <h1 className="text-ui-headline min-w-0 flex-1 text-lg leading-snug sm:text-xl">
         {title}
       </h1>
       <Link
         href={backHref}
-        className={`shrink-0 self-center ${pillSecondaryButtonClassName}`}
+        className={`shrink-0 self-start sm:self-center ${pillSecondaryButtonClassName}`}
       >
         ← {backLabel ?? t("common.backHome")}
       </Link>
