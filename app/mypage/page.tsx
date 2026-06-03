@@ -41,6 +41,7 @@ import ModerationNotice from "@/components/ModerationNotice";
 import { getActiveRestriction } from "@/lib/auth/moderation";
 import { getCategoryOverviewHref } from "@/lib/i18n/content";
 import { usePremiumAccess } from "@/hooks/usePremiumAccess";
+import { useOperatorMemberSync } from "@/hooks/useOperatorMemberSync";
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
@@ -63,6 +64,8 @@ export default function MyPage() {
   const [copied, setCopied] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [profileSuccess, setProfileSuccess] = useState("");
+  const { showOperatorUI } = useOperatorView();
+  useOperatorMemberSync(Boolean(user) && showOperatorUI);
 
   if (!isReady) {
     return (
@@ -135,8 +138,6 @@ export default function MyPage() {
     }
     setProfileSuccess(t("mypage.profilePhotoSaved"));
   };
-
-  const { showOperatorUI } = useOperatorView();
 
   return (
     <PageShell maxWidth="full">

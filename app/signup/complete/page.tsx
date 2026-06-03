@@ -18,7 +18,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { isProfileComplete } from "@/lib/auth/profileComplete";
-import { GOOGLE_AUTH_ENABLED, SIGNUP_REFERRAL_CODE_ENABLED } from "@/lib/auth/features";
+import { GOOGLE_AUTH_ENABLED, SIGNUP_PROFILE_PHOTO_REQUIRED, SIGNUP_REFERRAL_CODE_ENABLED } from "@/lib/auth/features";
 import type { Gender } from "@/lib/auth/types";
 
 export default function SignupCompletePage() {
@@ -96,7 +96,7 @@ function SignupCompleteContent() {
       return;
     }
 
-    if (!profileImage) {
+    if (SIGNUP_PROFILE_PHOTO_REQUIRED && !profileImage) {
       setError(te("PROFILE_REQUIRED"));
       return;
     }
@@ -112,7 +112,7 @@ function SignupCompleteContent() {
       name,
       nickname,
       gender,
-      profileImage,
+      profileImage: profileImage.trim() || undefined,
       birthDate,
       hometown,
       koreanPhone,
@@ -176,7 +176,13 @@ function SignupCompleteContent() {
             />
           </FormField>
 
-          <FormField label={t("signup.profilePhoto")}>
+          <FormField
+            label={
+              SIGNUP_PROFILE_PHOTO_REQUIRED
+                ? t("signup.profilePhoto")
+                : `${t("signup.profilePhoto")} (${t("signup.profilePhotoOptional")})`
+            }
+          >
             <ProfilePhotoField
               value={profileImage}
               onChange={setProfileImage}

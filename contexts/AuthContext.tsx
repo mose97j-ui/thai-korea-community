@@ -21,6 +21,7 @@ import {
   saveUser,
   setSessionUserId,
   updateUser,
+  setMemberSyncHandler,
 } from "@/lib/auth/storage";
 import { formatPhone, maskEmail, normalizePhone } from "@/lib/auth/phone";
 import {
@@ -42,9 +43,11 @@ import type { VerificationMethod } from "@/lib/auth/verification";
 import { refreshSupabaseSessionWithRetry } from "@/lib/auth/refreshSessionWithRetry";
 import {
   GOOGLE_AUTH_ENABLED,
+  SIGNUP_PROFILE_PHOTO_REQUIRED,
   SIGNUP_REFERRAL_CODE_ENABLED,
 } from "@/lib/auth/features";
 import { saveGoogleProfile } from "@/lib/auth/supabaseUser";
+import { syncMemberToServer } from "@/lib/auth/memberSync";
 import { tryCreateClient } from "@/utils/supabase/client";
 
 type AuthContextValue = {
@@ -92,6 +95,13 @@ function createUniqueCode(): string {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    setMemberSyncHandler((member) => {
+      void syncMemberToServer(member);
+    });
+    return () => setMemberSyncHandler(null);
+  }, []);
 
   useEffect(() => {
     ensureOperatorAccount();
@@ -183,7 +193,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return authFail("NICKNAME_TAKEN");
     }
 
-    if (!input.profileImage?.trim()) {
+    if (SIGNUP_PROFILE_PHOTO_REQUIRED && !input.profileImage?.trim()) {
       return authFail("PROFILE_REQUIRED");
     }
 
@@ -208,7 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: input.name.trim(),
       nickname,
       gender: input.gender,
-      profileImage: input.profileImage,
+      profileImage: input.profileImage?.trim() || undefined,
       birthDate: input.birthDate,
       hometown: input.hometown.trim(),
       gmail: gmailResult.gmail,
@@ -269,7 +279,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return authFail("NICKNAME_TAKEN");
     }
 
-    if (!input.profileImage?.trim()) {
+    if (SIGNUP_PROFILE_PHOTO_REQUIRED && !input.profileImage?.trim()) {
       return authFail("PROFILE_REQUIRED");
     }
 
@@ -295,7 +305,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: input.name.trim(),
       nickname,
       gender: input.gender,
-      profileImage: input.profileImage,
+      profileImage: input.profileImage?.trim() || undefined,
       birthDate: input.birthDate,
       hometown: input.hometown.trim(),
       gmail,
@@ -340,6 +350,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSessionUserId(found.id);
     setUser(found);
     syncUiLocaleForUser(found);
+    void syncMemberToServer(found);
     return { ok: true as const };
   }, []);
 

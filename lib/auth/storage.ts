@@ -5,6 +5,17 @@ import { normalizePhone } from "./phone";
 const USERS_KEY = "tkc_users";
 const SESSION_KEY = "tkc_session";
 
+let memberSyncHandler: ((user: User) => void) | null = null;
+
+/** Register server sync callback (AuthContext sets this on mount). */
+export function setMemberSyncHandler(handler: ((user: User) => void) | null): void {
+  memberSyncHandler = handler;
+}
+
+function notifyMemberSync(user: User): void {
+  memberSyncHandler?.(user);
+}
+
 export function generatePersonalCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let suffix = "";
@@ -87,6 +98,42 @@ export function saveUser(user: User): void {
   const users = readUsers();
   users.push(user);
   writeUsers(users);
+  notifyMemberSync(user);
+}
+
+/** Merge server-side member directory into local storage (keeps local passwords). */
+export function mergeRemoteMembers(remote: User[]): void {
+  if (remote.length === 0) {
+    return;
+  }
+
+  const merged = new Map(readUsers().map((user) => [user.id, user]));
+
+  for (const remoteUser of remote) {
+    const existing =
+      merged.get(remoteUser.id) ??
+      [...merged.values()].find(
+        (user) => user.gmail.toLowerCase() === remoteUser.gmail.toLowerCase()
+      );
+
+    if (existing) {
+      merged.set(existing.id, {
+        ...existing,
+        ...remoteUser,
+        id: existing.id,
+        password: existing.password,
+        authProvider: remoteUser.authProvider ?? existing.authProvider,
+      });
+      continue;
+    }
+
+    merged.set(remoteUser.id, {
+      ...remoteUser,
+      password: "",
+    });
+  }
+
+  writeUsers([...merged.values()]);
 }
 
 export function getSessionUserId(): string | null {
@@ -117,6 +164,7 @@ export function updateUser(updated: User): void {
     user.id === updated.id ? updated : user
   );
   writeUsers(users);
+  notifyMemberSync(updated);
 }
 
 export function ensureOperatorAccount(): User {

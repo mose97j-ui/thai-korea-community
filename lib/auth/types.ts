@@ -39,7 +39,7 @@ export type GoogleSignupInput = {
   name: string;
   nickname: string;
   gender: Gender;
-  profileImage: string;
+  profileImage?: string;
   birthDate: string;
   hometown: string;
   koreanPhone: string;
@@ -50,7 +50,7 @@ export type SignupInput = {
   name: string;
   nickname: string;
   gender: Gender;
-  profileImage: string;
+  profileImage?: string;
   birthDate: string;
   hometown: string;
   gmail: string;

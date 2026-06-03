@@ -1,4 +1,5 @@
 import type { User } from "./types";
+import { SIGNUP_PROFILE_PHOTO_REQUIRED } from "./features";
 
 export function isProfileComplete(user: Partial<User> | null | undefined): boolean {
   if (!user) {
@@ -8,7 +9,7 @@ export function isProfileComplete(user: Partial<User> | null | undefined): boole
   return Boolean(
     user.nickname?.trim() &&
       (user.gender === "male" || user.gender === "female") &&
-      user.profileImage?.trim() &&
+      (SIGNUP_PROFILE_PHOTO_REQUIRED ? user.profileImage?.trim() : true) &&
       user.birthDate?.trim() &&
       user.hometown?.trim() &&
       user.gmail?.trim()

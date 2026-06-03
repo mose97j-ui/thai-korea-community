@@ -21,6 +21,7 @@ import {
   searchUsersForModeration,
   type RestrictionScope,
 } from "@/lib/auth/moderation";
+import { MEMBERS_SYNC_EVENT } from "@/lib/auth/memberSync";
 import { useOperatorView } from "@/hooks/useOperatorView";
 import { findUserById } from "@/lib/auth/storage";
 import type { User } from "@/lib/auth/types";
@@ -93,6 +94,7 @@ export default function OperatorModerationPanel() {
   const [selected, setSelected] = useState<User | null>(null);
   const [reason, setReason] = useState("");
   const [restricted, setRestricted] = useState<User[]>([]);
+  const [membersVersion, setMembersVersion] = useState(0);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -103,13 +105,20 @@ export default function OperatorModerationPanel() {
 
   useEffect(() => {
     refreshRestricted();
+    const onMembersSync = () => setMembersVersion((value) => value + 1);
     window.addEventListener(MODERATION_CHANGE_EVENT, refreshRestricted);
-    return () => window.removeEventListener(MODERATION_CHANGE_EVENT, refreshRestricted);
+    window.addEventListener(MEMBERS_SYNC_EVENT, onMembersSync);
+    window.addEventListener(MEMBERS_SYNC_EVENT, refreshRestricted);
+    return () => {
+      window.removeEventListener(MODERATION_CHANGE_EVENT, refreshRestricted);
+      window.removeEventListener(MEMBERS_SYNC_EVENT, onMembersSync);
+      window.removeEventListener(MEMBERS_SYNC_EVENT, refreshRestricted);
+    };
   }, [refreshRestricted]);
 
   useEffect(() => {
     setResults(query.trim() ? searchUsersForModeration(query) : []);
-  }, [query]);
+  }, [query, restricted, membersVersion]);
 
   const activeRestriction = useMemo(
     () => (selected ? getActiveRestriction(selected) : null),

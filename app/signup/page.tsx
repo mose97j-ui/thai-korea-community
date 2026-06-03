@@ -22,6 +22,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import {
   SIGNUP_EMAIL_VERIFICATION_ENABLED,
   SIGNUP_PHONE_VERIFICATION_ENABLED,
+  SIGNUP_PROFILE_PHOTO_REQUIRED,
   SIGNUP_REFERRAL_CODE_ENABLED,
 } from "@/lib/auth/features";
 import type { Gender } from "@/lib/auth/types";
@@ -74,7 +75,7 @@ export default function SignupPage() {
       return;
     }
 
-    if (!profileImage) {
+    if (SIGNUP_PROFILE_PHOTO_REQUIRED && !profileImage) {
       setError(te("PROFILE_REQUIRED"));
       return;
     }
@@ -85,7 +86,7 @@ export default function SignupPage() {
       name,
       nickname,
       gender,
-      profileImage,
+      profileImage: profileImage.trim() || undefined,
       birthDate,
       hometown,
       gmail,
@@ -146,7 +147,13 @@ export default function SignupPage() {
             />
           ) : null}
 
-          <FormField label={t("signup.profilePhoto")}>
+          <FormField
+            label={
+              SIGNUP_PROFILE_PHOTO_REQUIRED
+                ? t("signup.profilePhoto")
+                : `${t("signup.profilePhoto")} (${t("signup.profilePhotoOptional")})`
+            }
+          >
             <ProfilePhotoField
               value={profileImage}
               onChange={setProfileImage}

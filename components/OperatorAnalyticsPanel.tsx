@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, SectionLabel } from "@/components/ui";
 import { useLocale } from "@/contexts/LocaleContext";
+import { MEMBERS_SYNC_EVENT } from "@/lib/auth/memberSync";
 import {
   buildOperatorAnalytics,
   type OperatorAnalytics,
@@ -74,6 +75,13 @@ function DistributionSection({
 export default function OperatorAnalyticsPanel() {
   const { t, pick, locale } = useLocale();
   const [payments, setPayments] = useState<OperatorAnalytics["payments"]>(null);
+  const [membersVersion, setMembersVersion] = useState(0);
+
+  useEffect(() => {
+    const bump = () => setMembersVersion((value) => value + 1);
+    window.addEventListener(MEMBERS_SYNC_EVENT, bump);
+    return () => window.removeEventListener(MEMBERS_SYNC_EVENT, bump);
+  }, []);
 
   const labelPack = useMemo(() => {
     const categoryLabels = Object.fromEntries(
@@ -125,7 +133,7 @@ export default function OperatorAnalyticsPanel() {
 
   const analytics = useMemo(
     () => buildOperatorAnalytics(labelPack, payments),
-    [labelPack, payments]
+    [labelPack, payments, membersVersion]
   );
 
   const formatMonth = (key: string) => {
