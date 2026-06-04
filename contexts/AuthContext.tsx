@@ -47,7 +47,7 @@ import {
   SIGNUP_REFERRAL_CODE_ENABLED,
 } from "@/lib/auth/features";
 import { saveGoogleProfile } from "@/lib/auth/supabaseUser";
-import { syncMemberToServer } from "@/lib/auth/memberSync";
+import { scheduleMemberSync, syncMemberToServer } from "@/lib/auth/memberSync";
 import { tryCreateClient } from "@/utils/supabase/client";
 
 type AuthContextValue = {
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMemberSyncHandler((member) => {
-      void syncMemberToServer(member);
+      scheduleMemberSync(member);
     });
     return () => setMemberSyncHandler(null);
   }, []);

@@ -129,6 +129,37 @@ type MapMarker = {
   setMap?: (map: unknown) => void;
 };
 
+type KakaoMapsApi = {
+  maps: {
+    LatLng: new (lat: number, lng: number) => unknown;
+    Map: new (
+      container: HTMLElement,
+      options: { center: unknown; level: number }
+    ) => KakaoMapInstance;
+    Marker: new (options: { position: unknown; map: KakaoMapInstance }) => MapMarker;
+    InfoWindow: new (options: { content: string }) => {
+      open: (map: KakaoMapInstance, marker: MapMarker) => void;
+    };
+    event: {
+      addListener: (target: unknown, eventName: string, handler: () => void) => void;
+    };
+    services: {
+      Geocoder: new () => {
+        addressSearch: (
+          address: string,
+          callback: (
+            result: Array<{ x: string | number; y: string | number }>,
+            status: string
+          ) => void
+        ) => void;
+      };
+      Status: {
+        OK: string;
+      };
+    };
+  };
+};
+
 type KakaoMapInstance = {
   setCenter: (position: unknown) => void;
   setLevel?: (level: number) => void;
@@ -137,6 +168,7 @@ type KakaoMapInstance = {
 const KAKAO_MAP_KEY =
   process.env.NEXT_PUBLIC_KAKAO_MAP_KEY ||
   "YOUR_KAKAO_MAP_KEY";
+const hasKakaoMapKey = KAKAO_MAP_KEY !== "YOUR_KAKAO_MAP_KEY";
 
 const cityAliases: Record<string, string> = {
   서울: "서울특별시",
@@ -175,6 +207,7 @@ function ReviewsContent() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<KakaoMapInstance | null>(null);
   const markerRefs = useRef<MapMarker[]>([]);
+  const hasSearchFilters = Boolean(selectedCity || selectedGu || selectedDong);
 
   const extractDong = useCallback((value: string) => {
     const words = value.split(" ");
@@ -197,6 +230,16 @@ function ReviewsContent() {
     if (cat === "쇼핑") return "/category_shopping.svg";
     return "/logo.png";
   };
+
+  const getKakao = () => (window as Window & { kakao?: KakaoMapsApi }).kakao;
+
+  const escapeHtml = (value: string) =>
+    value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
 
   const handleSearch = useCallback(
     (value: string) => {
@@ -232,33 +275,33 @@ function ReviewsContent() {
     [extractDong]
   );
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
   const geocodeAddress = (address: string) => {
     return new Promise<{ lat: number; lng: number } | null>((resolve) => {
-      const kakao = (window as any).kakao;
+      const kakao = getKakao();
       if (!kakao?.maps?.services) {
         resolve(null);
         return;
       }
 
       const geocoder = new kakao.maps.services.Geocoder();
-      geocoder.addressSearch(address, (result: any, status: any) => {
+      geocoder.addressSearch(address, (result, status) => {
         if (status !== kakao.maps.services.Status.OK || !result || result.length === 0) {
           resolve(null);
           return;
         }
 
-        resolve({ lat: result[0].y, lng: result[0].x });
+        resolve({ lat: Number(result[0].y), lng: Number(result[0].x) });
       });
     });
   };
 
   const addReviewMarker = useCallback((review: Review) => {
-    if (!mapInstanceRef.current || review.lat == null || review.lng == null) {
+    const map = mapInstanceRef.current;
+    if (!map || review.lat == null || review.lng == null) {
       return;
     }
 
-    const kakao = (window as any).kakao;
+    const kakao = getKakao();
     if (!kakao) {
       return;
     }
@@ -266,15 +309,15 @@ function ReviewsContent() {
     const position = new kakao.maps.LatLng(review.lat, review.lng);
     const marker = new kakao.maps.Marker({
       position,
-      map: mapInstanceRef.current,
+      map,
     });
 
     const infoWindow = new kakao.maps.InfoWindow({
-      content: `<div style="padding:10px;min-width:200px;"><strong>${review.name}</strong><div>${review.category}</div><div style="margin-top:6px;">${review.address}</div><div style="margin-top:4px;">${review.content}</div></div>`,
+      content: `<div style="padding:10px;min-width:200px;max-width:260px;line-height:1.45;"><strong>${escapeHtml(review.name)}</strong><div>${escapeHtml(review.category)}</div><div style="margin-top:6px;">${escapeHtml(review.address)}</div><div style="margin-top:4px;">${escapeHtml(review.content)}</div></div>`,
     });
 
     kakao.maps.event.addListener(marker, "click", () => {
-      infoWindow.open(mapInstanceRef.current, marker);
+      infoWindow.open(map, marker);
     });
 
     markerRefs.current.push(marker);
@@ -317,9 +360,11 @@ function ReviewsContent() {
     setReviewContent("");
 
     if (mapInstanceRef.current) {
-      const kakao = (window as any).kakao;
-      mapInstanceRef.current.setCenter(new kakao.maps.LatLng(geo.lat, geo.lng));
-      (mapInstanceRef.current as any).setLevel(4);
+      const kakao = getKakao();
+      if (kakao) {
+        mapInstanceRef.current.setCenter(new kakao.maps.LatLng(geo.lat, geo.lng));
+        mapInstanceRef.current.setLevel?.(4);
+      }
     }
   };
 
@@ -350,7 +395,11 @@ function ReviewsContent() {
       mapInstanceRef.current = null;
     }
 
-    const kakao = (window as any).kakao;
+    const kakao = getKakao();
+    if (!kakao) {
+      return;
+    }
+
     mapInstanceRef.current = new kakao.maps.Map(mapRef.current, {
       center: new kakao.maps.LatLng(37.5665, 126.9784),
       level: 6,
@@ -366,8 +415,6 @@ function ReviewsContent() {
     markerRefs.current = [];
     reviewList.forEach(addReviewMarker);
   }, [reviewList, addReviewMarker]);
-  /* eslint-enable @typescript-eslint/no-explicit-any */
-
   const normalizedSearch = search.trim().toLowerCase();
 
   const matchingPlaces = places.filter((place) => {
@@ -438,8 +485,10 @@ function ReviewsContent() {
           backLabel={backLabel}
         />
 
-        <div className="mb-4 flex items-center gap-2 rounded-full bg-white px-4 py-2.5 shadow-sm ring-1 ring-black/[0.06]">
-          <span className="text-lg text-gray-400">🔍</span>
+        <div className="mb-4 flex min-h-12 items-center gap-2 rounded-full bg-white px-4 py-2.5 shadow-sm ring-1 ring-black/[0.06]">
+          <span className="shrink-0 text-lg text-gray-400" aria-hidden>
+            🔍
+          </span>
           <input
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
@@ -457,22 +506,28 @@ function ReviewsContent() {
           </p>
         </Card>
 
-        <Script
-          src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_KEY}&libraries=services`}
-          strategy="beforeInteractive"
-          onLoad={() => setKakaoLoaded(true)}
-        />
+        {hasKakaoMapKey && (
+          <Script
+            src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_KEY}&libraries=services`}
+            strategy="afterInteractive"
+            onLoad={() => setKakaoLoaded(true)}
+          />
+        )}
 
         <SectionLabel>{t("reviews.map")}</SectionLabel>
 
         <Card className="mb-0 overflow-hidden p-0">
-          <div className="h-72 w-full xl:h-96" ref={mapRef} id="map-container" />
-          {!kakaoLoaded && (
+          <div
+            className="h-[22rem] min-h-[320px] w-full sm:h-[26rem] xl:h-[34rem]"
+            ref={mapRef}
+            id="map-container"
+          />
+          {hasKakaoMapKey && !kakaoLoaded && (
             <p className="px-4 py-3 text-sm text-gray-600">
               {t("reviews.kakaoLoading")}
             </p>
           )}
-          {KAKAO_MAP_KEY === "YOUR_KAKAO_MAP_KEY" && (
+          {!hasKakaoMapKey && (
             <p className="px-4 py-3 text-sm text-red-600">
               카카오 지도 앱 키를 환경변수
               <code className="mx-1 rounded bg-gray-100 px-1 text-xs">NEXT_PUBLIC_KAKAO_MAP_KEY</code>
@@ -569,7 +624,12 @@ function ReviewsContent() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">{t("reviews.noSearchResults")}</p>
+              <p className="text-sm text-gray-500">
+                {hasSearchFilters
+                  ? `${selectedCity || ""} ${selectedGu || ""} ${selectedDong || ""}`.trim()
+                  : t("reviews.noSearchResults")}
+                {hasSearchFilters ? " 조건에 맞는 등록 장소가 아직 없습니다." : ""}
+              </p>
             )
           ) : (
             <p className="text-sm text-gray-500">{t("reviews.searchHint")}</p>

@@ -1,5 +1,5 @@
 import type { User } from "./types";
-import { getOperatorDefaults } from "./operator";
+import { getOperatorDefaults, isOperatorUser } from "./operator";
 import { normalizePhone } from "./phone";
 
 const USERS_KEY = "tkc_users";
@@ -96,7 +96,18 @@ export function findUserByNameAndPhone(
 
 export function saveUser(user: User): void {
   const users = readUsers();
-  users.push(user);
+  const existingIndex = users.findIndex(
+    (entry) =>
+      entry.id === user.id ||
+      entry.gmail.toLowerCase() === user.gmail.toLowerCase()
+  );
+
+  if (existingIndex >= 0) {
+    users[existingIndex] = { ...users[existingIndex], ...user, id: users[existingIndex].id };
+  } else {
+    users.push(user);
+  }
+
   writeUsers(users);
   notifyMemberSync(user);
 }
@@ -117,11 +128,13 @@ export function mergeRemoteMembers(remote: User[]): void {
       );
 
     if (existing) {
+      const preserveOperator = isOperatorUser(existing);
       merged.set(existing.id, {
         ...existing,
         ...remoteUser,
         id: existing.id,
         password: existing.password,
+        role: preserveOperator ? existing.role : remoteUser.role ?? existing.role,
         authProvider: remoteUser.authProvider ?? existing.authProvider,
       });
       continue;

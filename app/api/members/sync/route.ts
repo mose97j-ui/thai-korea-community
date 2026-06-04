@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { upsertMemberRegistry } from "@/lib/supabase/memberRegistry";
+import {
+  upsertMemberRegistry,
+  upsertMemberRegistryProfile,
+} from "@/lib/supabase/memberRegistry";
 import type { User } from "@/lib/auth/types";
 import { createAdminClient, isSupabaseAdminConfigured } from "@/utils/supabase/admin";
 
@@ -20,9 +23,21 @@ type SyncMemberBody = {
   restriction?: User["restriction"];
   authProvider?: User["authProvider"];
   createdAt?: string;
+  syncAsOperator?: boolean;
+  /** Required when syncAsOperator — proves the request is from the operator session. */
+  operatorGmail?: string;
 };
 
-function parseSyncBody(body: SyncMemberBody): User | null {
+function getOperatorGmail(): string {
+  return (process.env.NEXT_PUBLIC_OPERATOR_GMAIL || "mose97j@gmail.com").toLowerCase();
+}
+
+function isOperatorSyncRequest(body: SyncMemberBody): boolean {
+  const operatorGmail = body.operatorGmail?.trim().toLowerCase();
+  return body.syncAsOperator === true && operatorGmail === getOperatorGmail();
+}
+
+function parseSyncBody(body: SyncMemberBody, operatorSync: boolean): User | null {
   const gmail = body.gmail?.trim().toLowerCase();
   const id = body.id?.trim();
   const nickname = body.nickname?.trim();
@@ -49,9 +64,9 @@ function parseSyncBody(body: SyncMemberBody): User | null {
     personalCode: body.personalCode.trim().toUpperCase(),
     referredBy: body.referredBy?.trim().toUpperCase() || undefined,
     password: "",
-    role: body.role === "operator" ? "operator" : "user",
-    premiumUntil: body.premiumUntil,
-    restriction: body.restriction,
+    role: operatorSync && body.role === "operator" ? "operator" : "user",
+    premiumUntil: operatorSync ? body.premiumUntil : undefined,
+    restriction: operatorSync ? body.restriction : undefined,
     authProvider: body.authProvider ?? "local",
     createdAt: body.createdAt || new Date().toISOString(),
   };
@@ -72,14 +87,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const user = parseSyncBody(body);
+  const operatorSync = isOperatorSyncRequest(body);
+  const user = parseSyncBody(body, operatorSync);
   if (!user) {
     return NextResponse.json({ ok: false, error: "Invalid member payload." }, { status: 400 });
   }
 
   try {
     const supabase = createAdminClient();
-    const result = await upsertMemberRegistry(supabase, user);
+    const result = operatorSync
+      ? await upsertMemberRegistry(supabase, user)
+      : await upsertMemberRegistryProfile(supabase, user);
+
     if (!result.ok) {
       return NextResponse.json({ ok: false, error: result.message }, { status: 500 });
     }

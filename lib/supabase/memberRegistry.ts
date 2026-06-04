@@ -98,3 +98,29 @@ export async function upsertMemberRegistry(
 
   return { ok: true };
 }
+
+/** Member self-update — keeps premium / restriction / role from existing row. */
+export async function upsertMemberRegistryProfile(
+  supabase: SupabaseClient,
+  user: User
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const { data: existing } = await supabase
+    .from("member_registry")
+    .select("role, premium_until, restriction")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const merged: User = {
+    ...user,
+    role:
+      existing?.role === "operator" || user.role === "operator" ? "operator" : "user",
+    premiumUntil:
+      existing?.premium_until != null
+        ? String(existing.premium_until)
+        : user.premiumUntil,
+    restriction:
+      (existing?.restriction as User["restriction"] | null) ?? user.restriction,
+  };
+
+  return upsertMemberRegistry(supabase, merged);
+}

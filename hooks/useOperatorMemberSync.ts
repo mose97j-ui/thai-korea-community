@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import { subscribeMemberRegistryChanges } from "@/lib/auth/memberRealtime";
 import {
+  MEMBERS_SYNC_EVENT,
   fetchAndMergeMembersFromServer,
 } from "@/lib/auth/memberSync";
 
-/** Operator dashboards — pull shared member directory from Supabase. */
+const POLL_MS = 5_000;
+
+/** Operator dashboards — realtime + fast polling for member directory. */
 export function useOperatorMemberSync(enabled: boolean) {
   useEffect(() => {
     if (!enabled) {
@@ -17,11 +21,26 @@ export function useOperatorMemberSync(enabled: boolean) {
     };
 
     refresh();
+
+    const unsubscribeRealtime = subscribeMemberRegistryChanges(refresh);
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        refresh();
+      }
+    };
+
     window.addEventListener("focus", refresh);
-    const interval = window.setInterval(refresh, 30_000);
+    window.addEventListener("visibilitychange", onVisible);
+    window.addEventListener(MEMBERS_SYNC_EVENT, refresh);
+
+    const interval = window.setInterval(refresh, POLL_MS);
 
     return () => {
+      unsubscribeRealtime();
       window.removeEventListener("focus", refresh);
+      window.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener(MEMBERS_SYNC_EVENT, refresh);
       window.clearInterval(interval);
     };
   }, [enabled]);
