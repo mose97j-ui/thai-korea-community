@@ -14,10 +14,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 Production URL: https://thai-korea-community.vercel.app
 
-After user-facing code changes, commit when the user asks (or when they request auto-apply / 반영), then run:
+After user-facing code changes, run build → deploy → git sync:
 
 ```bash
+npm run build
 npm run deploy:prod
+git add -A && git reset -- .cursor/
+git commit -m "…"
+git push origin main
 ```
 
-GitHub push is optional for deploy (Vercel CLI uploads local files). Push to `origin main` when credentials are available so Vercel Git integration stays in sync.
+Vercel CLI deploy does not require push, but **push `main` after each deploy** so GitHub and Vercel Git stay in sync (project default). If push fails here, tell the user the commit hash and that they should run `git push origin main` locally (one-time `gh auth login` or HTTPS token may be needed).

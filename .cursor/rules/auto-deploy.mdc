@@ -1,0 +1,17 @@
+---
+description: Deploy to Vercel production after implementing or changing project code
+alwaysApply: true
+---
+
+# Auto-deploy to production
+
+After you finish a task that **changes application code, config, or styles** in this repo:
+
+1. Run `npm run build` locally. If it fails, fix errors before deploying.
+2. Deploy production: `npm run deploy:prod` (runs `vercel deploy --prod --yes`).
+3. Report the deployment URL (https://thai-korea-community.vercel.app) and whether the deploy succeeded.
+4. **Git sync (default for this project):** After a successful deploy, commit all relevant app changes on `main` with a clear message, then `git push origin main`. Exclude `.cursor/` and secrets (`.env*`). If push fails (no GitHub credentials in the environment), report the commit hash and ask the user to run `git push origin main` once.
+
+**Skip deploy** when the session only answered questions, reviewed code without edits, or changed docs/rules that are not part of the running app.
+
+**Supabase:** If you add migrations, remind the user to run SQL in Supabase and enable Realtime when relevant; deploy does not apply DB migrations automatically.
