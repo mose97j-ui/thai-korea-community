@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUnreadMessageCount } from "@/lib/social/messages";
+import { MESSAGES_SYNC_EVENT } from "@/lib/social/messageSync";
 import { getUnreadNotificationCount } from "@/lib/social/notifications";
 import { SOCIAL_CHANGE_EVENT } from "@/lib/social/types";
 
@@ -17,16 +18,18 @@ export function useSocialBadges() {
       setUnreadNotifications(0);
       return;
     }
-    setUnreadMessages(getUnreadMessageCount(user.id));
+    setUnreadMessages(getUnreadMessageCount(user.id, user.gmail));
     setUnreadNotifications(getUnreadNotificationCount(user.id));
   }, [user]);
 
   useEffect(() => {
     refresh();
     window.addEventListener(SOCIAL_CHANGE_EVENT, refresh);
+    window.addEventListener(MESSAGES_SYNC_EVENT, refresh);
     window.addEventListener("focus", refresh);
     return () => {
       window.removeEventListener(SOCIAL_CHANGE_EVENT, refresh);
+      window.removeEventListener(MESSAGES_SYNC_EVENT, refresh);
       window.removeEventListener("focus", refresh);
     };
   }, [refresh]);

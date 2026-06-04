@@ -62,6 +62,21 @@ export function userToProfileRow(user: User): SupabaseProfileRow {
   };
 }
 
+export async function listAllProfiles(
+  supabase: SupabaseClient
+): Promise<SupabaseProfileRow[]> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data as SupabaseProfileRow[];
+}
+
 export async function fetchProfileById(
   supabase: SupabaseClient,
   userId: string

@@ -1,7 +1,8 @@
 "use client";
 
 import { notFound } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useCategoryRegistryVersion } from "@/contexts/CategoryRegistryContext";
 import CategoryBoard from "@/components/CategoryBoard";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
@@ -24,10 +25,21 @@ export default function CategoryPage({ params }: CategoryPageProps) {
   const [route, setRoute] = useState<{ categoryId: string; subId: string } | null>(
     null
   );
+  const menuVersion = useCategoryRegistryVersion();
 
   useEffect(() => {
     void params.then(setRoute);
   }, [params]);
+
+  const category = useMemo(
+    () => (route ? getHomeCategoryById(route.categoryId) : undefined),
+    [route, menuVersion]
+  );
+  const subItem = useMemo(
+    () =>
+      route ? getSubCategoryItem(route.categoryId, route.subId) : undefined,
+    [route, menuVersion]
+  );
 
   if (!route) {
     return (
@@ -38,9 +50,6 @@ export default function CategoryPage({ params }: CategoryPageProps) {
       </PageShell>
     );
   }
-
-  const category = getHomeCategoryById(route.categoryId);
-  const subItem = getSubCategoryItem(route.categoryId, route.subId);
 
   if (!category || !subItem) {
     notFound();

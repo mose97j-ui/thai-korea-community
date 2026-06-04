@@ -21,6 +21,7 @@ export const OPERATOR_CATEGORY_ID_PREFIX = "opcat-";
 export const OPERATOR_MENUS_CHANGE_EVENT = "tkc-operator-menus-change";
 
 const STORAGE_KEY = "tkc_operator_menus";
+export const OPERATOR_MENUS_SYNCED_AT_KEY = "tkc_operator_menus_synced_at";
 
 export type CategoryOverride = {
   label?: LocalizedText;
@@ -60,7 +61,7 @@ export type StoredOperatorSubCategory = {
   createdAt: string;
 };
 
-type OperatorMenuStore = {
+export type OperatorMenuStore = {
   categoryOverrides: Record<string, CategoryOverride>;
   subcategoryOverrides: Record<string, SubCategoryOverride>;
   addedCategories: StoredOperatorCategory[];
@@ -193,6 +194,54 @@ function notifyChange(): void {
   }
 }
 
+function scheduleOperatorMenuServerSync(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  void import("./operatorMenuSync").then((mod) => mod.scheduleOperatorMenuSync());
+}
+
+/** Read persisted operator menu store (not edit-session draft). */
+export function getPersistedOperatorMenuStore(): OperatorMenuStore {
+  return readPersistedStore();
+}
+
+export function getOperatorMenuSyncedAt(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return localStorage.getItem(OPERATOR_MENUS_SYNCED_AT_KEY);
+}
+
+export function markOperatorMenuSyncedAt(updatedAt: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  localStorage.setItem(OPERATOR_MENUS_SYNCED_AT_KEY, updatedAt);
+}
+
+/** Apply server menu config locally and refresh all listeners. */
+export function applyRemoteOperatorMenuStore(
+  store: OperatorMenuStore,
+  updatedAt: string
+): boolean {
+  if (typeof window === "undefined" || isOperatorMenuEditSessionActive()) {
+    return false;
+  }
+
+  const serialized = JSON.stringify(store);
+  const existing = localStorage.getItem(STORAGE_KEY);
+  markOperatorMenuSyncedAt(updatedAt);
+
+  if (existing === serialized) {
+    return false;
+  }
+
+  localStorage.setItem(STORAGE_KEY, serialized);
+  notifyChange();
+  return true;
+}
+
 let editSessionStore: OperatorMenuStore | null = null;
 
 function readPersistedStore(): OperatorMenuStore {
@@ -239,6 +288,7 @@ function writeStore(store: OperatorMenuStore): void {
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
   notifyChange();
+  scheduleOperatorMenuServerSync();
 }
 
 export function beginOperatorMenuEditSession(): void {
@@ -256,6 +306,7 @@ export function commitOperatorMenuEditSession(): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(editSessionStore));
   editSessionStore = null;
   notifyChange();
+  scheduleOperatorMenuServerSync();
 }
 
 export function cancelOperatorMenuEditSession(): void {

@@ -1,6 +1,7 @@
 "use client";
 
 import MenuIcon from "@/components/MenuIcon";
+import CollapsibleSection from "@/components/home/CollapsibleSection";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useUserMenus } from "@/hooks/useUserMenus";
 import UserMenuCreateForm from "@/components/UserMenuCreateForm";
@@ -11,6 +12,8 @@ type UserMenusSectionProps = {
   onCreated?: (categoryId: string) => void;
   /** 세부카테고리 카드 안에 붙일 때 */
   embedded?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export default function UserMenusSection({
@@ -18,6 +21,8 @@ export default function UserMenusSection({
   onSelect,
   onCreated,
   embedded = false,
+  open = true,
+  onOpenChange,
 }: UserMenusSectionProps) {
   const { t, pick } = useLocale();
   const { userCategories } = useUserMenus();
@@ -27,19 +32,8 @@ export default function UserMenusSection({
     onCreated?.(categoryId);
   };
 
-  return (
-    <div
-      className={
-        embedded
-          ? "mt-5 border-t border-gray-200 pt-5"
-          : "social-surface mb-3 mt-4"
-      }
-    >
-      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-        <p className="menu-label !mb-0">{t("home.userMenus")}</p>
-        <span className="text-ui-caption">{t("home.userMenusHint")}</span>
-      </div>
-
+  const body = (
+    <>
       {userCategories.length > 0 ? (
         <div className="social-menu-grid mb-3">
           {userCategories.map((menu) => {
@@ -84,6 +78,23 @@ export default function UserMenusSection({
       )}
 
       <UserMenuCreateForm onCreated={handleCreated} />
-    </div>
+    </>
+  );
+
+  return (
+    <CollapsibleSection
+      className={
+        embedded
+          ? "mt-5 border-t border-gray-200 pt-5"
+          : "social-surface mb-3 mt-4"
+      }
+      title={t("home.userMenus")}
+      description={t("home.userMenusHint")}
+      open={open}
+      onOpenChange={onOpenChange!}
+      bodyClassName={embedded ? "!border-t-0 !pt-3" : ""}
+    >
+      {body}
+    </CollapsibleSection>
   );
 }

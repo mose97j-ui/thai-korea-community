@@ -1,3 +1,9 @@
+## Deploy
+
+After code changes in a session, run `npm run build` then `npm run deploy:prod` unless the user asked for no deploy.
+
+Production: https://thai-korea-community.vercel.app
+
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 

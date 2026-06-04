@@ -10,6 +10,7 @@ import PostCard from "@/components/PostCard";
 import { Card, SectionLabel, TopicCard, postFeedClassName, topicGridClassName } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useCategoryRegistryVersion } from "@/contexts/CategoryRegistryContext";
 import { usePremiumAccess } from "@/hooks/usePremiumAccess";
 import { getHomeCategoryById, isPremiumCategoryId } from "@/lib/categories/registry";
 import {
@@ -35,6 +36,7 @@ export default function SearchResultsContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q")?.trim() ?? "";
   const [refreshKey, setRefreshKey] = useState(0);
+  const menuVersion = useCategoryRegistryVersion();
   const [geocode, setGeocode] = useState<GeocodeResult | null>(null);
   const [classifying, setClassifying] = useState(false);
 
@@ -80,7 +82,7 @@ export default function SearchResultsContent() {
         includePremium: hasPremiumAccess,
         viewerId: user?.id,
       }),
-    [query, hasPremiumAccess, refreshKey, user?.id]
+    [query, hasPremiumAccess, refreshKey, user?.id, menuVersion]
   );
 
   const groupedPosts = useMemo(

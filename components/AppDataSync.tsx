@@ -1,0 +1,31 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOperatorView } from "@/hooks/useOperatorView";
+import { useMemberRegistrySync } from "@/hooks/useMemberRegistrySync";
+import { useOperatorMemberSync } from "@/hooks/useOperatorMemberSync";
+import { useOperatorMenuRegistrySync } from "@/hooks/useOperatorMenuRegistrySync";
+import { useDirectMessageSync } from "@/hooks/useDirectMessageSync";
+import { useSessionMemberBackfill } from "@/hooks/useSessionMemberBackfill";
+import { isAuthLayoutPath } from "@/lib/routes/auth";
+
+/** Keeps operator menus and member directory in sync across mobile/desktop tabs. */
+export default function AppDataSync() {
+  const pathname = usePathname();
+  const { user, isReady } = useAuth();
+  const { showOperatorUI } = useOperatorView();
+  const onAuthScreen = isAuthLayoutPath(pathname);
+
+  useOperatorMenuRegistrySync(!onAuthScreen);
+  const syncMembers = isReady && Boolean(user) && !onAuthScreen;
+
+  useSessionMemberBackfill(syncMembers, user);
+  useMemberRegistrySync({
+    enabled: syncMembers && !showOperatorUI,
+  });
+  useOperatorMemberSync(showOperatorUI && syncMembers);
+  useDirectMessageSync(syncMembers, user);
+
+  return null;
+}

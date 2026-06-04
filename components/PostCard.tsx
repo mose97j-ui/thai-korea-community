@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import OperatorPostAuthorInfo from "@/components/OperatorPostAuthorInfo";
 import PostAuthorActions from "@/components/PostAuthorActions";
@@ -12,6 +13,7 @@ import { Card } from "@/components/ui";
 import { siteNameClass } from "@/lib/i18n/typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useCategoryRegistryVersion } from "@/contexts/CategoryRegistryContext";
 import { useLocalizedPost } from "@/hooks/useLocalizedPost";
 import { useSecretPostAccess } from "@/hooks/useSecretPostAccess";
 import {
@@ -28,20 +30,29 @@ type PostCardProps = {
   post: Post;
   linkToDetail?: boolean;
   isDetailPage?: boolean;
+  justPublished?: boolean;
 };
 
 export default function PostCard({
   post,
   linkToDetail = false,
   isDetailPage = false,
+  justPublished = false,
 }: PostCardProps) {
   const { pick, t, locale } = useLocale();
   const { user } = useAuth();
   const { display, isTranslating, isTranslatedView, translationError } =
     useLocalizedPost(post);
   const { isSecret, canView, unlock } = useSecretPostAccess(post, user?.id);
-  const category = getHomeCategoryById(post.categoryId);
-  const subItem = getSubCategoryItem(post.categoryId, post.subId);
+  const menuVersion = useCategoryRegistryVersion();
+  const category = useMemo(
+    () => getHomeCategoryById(post.categoryId),
+    [post.categoryId, menuVersion]
+  );
+  const subItem = useMemo(
+    () => getSubCategoryItem(post.categoryId, post.subId),
+    [post.categoryId, post.subId, menuVersion]
+  );
   const formTemplate = getPostFormTemplate(post.categoryId);
   const isPlacePost = formTemplate.id === "place";
   const showPlaceReview = isReviewsCategory(post.categoryId) && post.placeReview;
@@ -68,9 +79,13 @@ export default function PostCard({
   const hasSecondaryTitle =
     Boolean(display.title && display.storeName && display.title !== display.storeName);
 
+  const publishedRingClass = justPublished
+    ? "post-card--just-published ring-2 ring-[#06C755]/50"
+    : "";
+
   if (isFeedPreview) {
     return (
-      <Card className="!overflow-hidden !p-0">
+      <Card className={`!overflow-hidden !p-0 ${publishedRingClass}`}>
         <div className="social-post-header !pb-3">
           <div className="flex flex-wrap items-start gap-3">
             <UserAvatar user={author} size="sm" />
@@ -88,6 +103,11 @@ export default function PostCard({
                 </p>
               ) : null}
             </div>
+            {justPublished ? (
+              <span className="shrink-0 rounded-full bg-[#06C755] px-2.5 py-1 text-xs font-bold text-white shadow-sm">
+                {t("post.publishedBadge")}
+              </span>
+            ) : null}
             {isSecret ? (
               <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">
                 🔒
@@ -256,7 +276,7 @@ export default function PostCard({
   );
 
   return (
-    <Card className="!overflow-hidden !p-0">
+    <Card className={`!overflow-hidden !p-0 ${publishedRingClass}`}>
       <div className="social-post-header">
         <div className="mb-4 flex items-start gap-3">
           <UserAvatar user={author} size="sm" />

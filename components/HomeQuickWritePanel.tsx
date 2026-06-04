@@ -5,6 +5,11 @@ import { useEffect, useMemo, useState } from "react";
 import CategoryPostForm from "@/components/CategoryPostForm";
 import PremiumPaywall from "@/components/PremiumPaywall";
 import { Card, SectionLabel } from "@/components/ui";
+import {
+  SYMBOL_CHEVRON_DOWN,
+  SYMBOL_CHEVRON_UP,
+  SYMBOL_WRITE,
+} from "@/lib/ui/symbols";
 import { useLocale } from "@/contexts/LocaleContext";
 import { usePremiumAccess } from "@/hooks/usePremiumAccess";
 import {
@@ -59,14 +64,19 @@ export default function HomeQuickWritePanel({
     onCategoryChange(nextCategoryId, nextSubId);
   };
 
-  const handlePostSuccess = (result: { categoryId: string; subId: string }) => {
+  const handlePostSuccess = (result: {
+    categoryId: string;
+    subId: string;
+    postId?: string;
+  }) => {
     setSuccessMessage(t("home.writeSuccess"));
     setFormVersion((version) => version + 1);
-    router.push(`/c/${result.categoryId}/${result.subId}`);
+    const hash = result.postId ? `#post-${result.postId}` : "";
+    router.push(`/c/${result.categoryId}/${result.subId}${hash}`);
   };
 
   return (
-    <Card className="mb-3 overflow-hidden !p-0">
+    <Card className="social-home-quick-write mb-3 overflow-hidden !p-0">
       {!expanded ? (
         <button
           type="button"
@@ -75,11 +85,11 @@ export default function HomeQuickWritePanel({
           className="flex w-full items-center justify-center gap-3 bg-white px-6 py-5 text-lg font-semibold text-gray-900 transition hover:bg-[#06C755]/5 hover:text-[#06C755] active:bg-[#06C755]/10"
         >
           <span className="text-xl" aria-hidden>
-            ✏️
+            {SYMBOL_WRITE}
           </span>
           <span>{t("home.quickWrite")}</span>
           <span className="text-base text-gray-400" aria-hidden>
-            ▾
+            {SYMBOL_CHEVRON_DOWN}
           </span>
         </button>
       ) : (
@@ -95,7 +105,7 @@ export default function HomeQuickWritePanel({
               aria-expanded
               className="shrink-0 rounded-full bg-[#F0F2F5] px-3 py-1.5 text-sm font-semibold text-gray-600 ring-1 ring-black/[0.06] transition hover:bg-gray-100"
             >
-              {t("home.quickWriteClose")} ▴
+              {t("home.quickWriteClose")} {SYMBOL_CHEVRON_UP}
             </button>
           </div>
         </div>

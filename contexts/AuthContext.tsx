@@ -7,6 +7,8 @@ import {
   useEffect,
   useMemo,
   useState,
+  type Dispatch,
+  type SetStateAction,
 } from "react";
 import { getInternationalAge } from "@/lib/auth/age";
 import {
@@ -47,7 +49,12 @@ import {
   SIGNUP_REFERRAL_CODE_ENABLED,
 } from "@/lib/auth/features";
 import { saveGoogleProfile } from "@/lib/auth/supabaseUser";
-import { scheduleMemberSync, syncMemberToServer } from "@/lib/auth/memberSync";
+import { MEMBERS_SYNC_EVENT, scheduleMemberSync } from "@/lib/auth/memberSync";
+import {
+  getPreferredLocalSessionUser,
+  shouldIgnoreSupabaseSessionSync,
+} from "@/lib/auth/sessionPreference";
+import { isSameSessionUser } from "@/lib/auth/sessionUser";
 import { tryCreateClient } from "@/utils/supabase/client";
 
 type AuthContextValue = {
@@ -92,6 +99,19 @@ function createUniqueCode(): string {
   return code;
 }
 
+function applySessionUser(
+  setUser: Dispatch<SetStateAction<User | null>>,
+  nextUser: User | null
+) {
+  setUser((previous) => {
+    if (isSameSessionUser(previous, nextUser)) {
+      return previous;
+    }
+    syncUiLocaleForUser(nextUser);
+    return nextUser;
+  });
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -108,12 +128,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     purgeExpiredRestrictions();
 
     async function initSession() {
+      const localSessionUser = getPreferredLocalSessionUser();
+      if (localSessionUser) {
+        applySessionUser(setUser, localSessionUser);
+        return;
+      }
+
       if (GOOGLE_AUTH_ENABLED) {
         try {
           const supabaseResult = await refreshSupabaseSessionWithRetry();
           if (supabaseResult.user) {
-            setUser(supabaseResult.user);
-            syncUiLocaleForUser(supabaseResult.user);
+            applySessionUser(setUser, supabaseResult.user);
             return;
           }
         } catch {
@@ -121,9 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      const sessionUser = getSessionUser();
-      setUser(sessionUser);
-      syncUiLocaleForUser(sessionUser);
+      applySessionUser(setUser, getSessionUser());
     }
 
     void initSession().finally(() => {
@@ -133,39 +156,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = GOOGLE_AUTH_ENABLED ? tryCreateClient() : null;
     const subscription = supabase
       ? supabase.auth.onAuthStateChange(() => {
+          if (shouldIgnoreSupabaseSessionSync()) {
+            const localUser = getPreferredLocalSessionUser();
+            if (localUser) {
+              applySessionUser(setUser, localUser);
+            }
+            return;
+          }
+
           void refreshSupabaseSessionWithRetry().then((result) => {
             purgeExpiredRestrictions();
             if (result.user) {
-              setUser(result.user);
-              syncUiLocaleForUser(result.user);
+              applySessionUser(setUser, result.user);
               return;
             }
-            const nextUser = getSessionUser();
-            setUser(nextUser);
-            syncUiLocaleForUser(nextUser);
+            applySessionUser(setUser, getSessionUser());
           });
         }).data.subscription
       : null;
 
     const refreshSession = () => {
       purgeExpiredRestrictions();
+
+      const localUser = getPreferredLocalSessionUser();
+      if (localUser) {
+        applySessionUser(setUser, localUser);
+        return;
+      }
+
       void refreshSupabaseSessionWithRetry().then((result) => {
         if (result.user) {
-          setUser(result.user);
-          syncUiLocaleForUser(result.user);
+          applySessionUser(setUser, result.user);
           return;
         }
-        const nextUser = getSessionUser();
-        setUser(nextUser);
-        syncUiLocaleForUser(nextUser);
+        applySessionUser(setUser, getSessionUser());
       });
     };
 
+    const refreshLocalSession = () => {
+      purgeExpiredRestrictions();
+      applySessionUser(setUser, getSessionUser());
+    };
+
     window.addEventListener(MODERATION_CHANGE_EVENT, refreshSession);
+    window.addEventListener(MEMBERS_SYNC_EVENT, refreshLocalSession);
     window.addEventListener("focus", refreshSession);
     return () => {
       subscription?.unsubscribe();
       window.removeEventListener(MODERATION_CHANGE_EVENT, refreshSession);
+      window.removeEventListener(MEMBERS_SYNC_EVENT, refreshLocalSession);
       window.removeEventListener("focus", refreshSession);
     };
   }, []);
@@ -238,6 +277,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSessionUserId(newUser.id);
     setUser(newUser);
     persistUiLocale("th");
+    scheduleMemberSync(newUser, true);
     return { ok: true as const };
   }, []);
 
@@ -245,14 +285,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (GOOGLE_AUTH_ENABLED) {
       const result = await refreshSupabaseSessionWithRetry();
       if (result.user) {
-        setUser(result.user);
-        syncUiLocaleForUser(result.user);
+        applySessionUser(setUser, result.user);
         return;
       }
     }
-    const sessionUser = getSessionUser();
-    setUser(sessionUser);
-    syncUiLocaleForUser(sessionUser);
+    applySessionUser(setUser, getSessionUser());
   }, []);
 
   const completeGoogleSignup = useCallback(async (input: GoogleSignupInput) => {
@@ -331,6 +368,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setUser(newUser);
     persistUiLocale("th");
+    scheduleMemberSync(newUser, true);
     return { ok: true as const };
   }, []);
 
@@ -347,10 +385,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isLoginBlocked(found)) {
       return authFail("ACCOUNT_BANNED");
     }
+
+    void (async () => {
+      try {
+        const supabase = tryCreateClient();
+        if (supabase) {
+          await supabase.auth.signOut();
+        }
+      } catch {
+        // Ignore — local session takes over.
+      }
+    })();
+
     setSessionUserId(found.id);
     setUser(found);
     syncUiLocaleForUser(found);
-    void syncMemberToServer(found);
+    scheduleMemberSync(found, true);
     return { ok: true as const };
   }, []);
 

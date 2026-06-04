@@ -1,3 +1,5 @@
+import { findOperatorAccount, isOperatorUser } from "@/lib/auth/operator";
+import { findUserById } from "@/lib/auth/storage";
 import { isMessagingBlocked } from "@/lib/social/blocks";
 import { hasOperatorPrivileges } from "@/lib/auth/operatorView";
 import { getConversationId } from "@/lib/social/conversation";
@@ -117,8 +119,14 @@ export function handleSendMessage(input: HandleSendMessageInput) {
         ? input.anonymousLabel
         : input.sender.nickname || input.sender.name;
 
+    const recipient = findUserById(input.recipientId);
+    const notifyUserId =
+      recipient && isOperatorUser(recipient)
+        ? (findOperatorAccount()?.id ?? input.recipientId)
+        : input.recipientId;
+
     createNotification({
-      userId: input.recipientId,
+      userId: notifyUserId,
       type: "message",
       actorId: input.sender.id,
       actorNickname,

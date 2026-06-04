@@ -1,5 +1,15 @@
-import { getConversationId } from "./conversation";
+import { findUserById } from "@/lib/auth/storage";
+import {
+  getConversationId,
+  getConversationIdBetweenUsers,
+  getPeerId,
+  messageInvolvesUser,
+  messageIsUnreadForUser,
+  resolveUserGmail,
+} from "./conversation";
+import type { User } from "@/lib/auth/types";
 import { emitSocialChange } from "./events";
+import { scheduleDirectMessageSync } from "./messageSync";
 import { formatMessagePreview } from "./messagePreview";
 import type {
   ConversationPreview,
@@ -21,13 +31,31 @@ function migrateMessage(raw: DirectMessage): DirectMessage {
   };
 }
 
+function normalizeConversationIds(messages: DirectMessage[]): DirectMessage[] {
+  return messages.map((message) => {
+    const sender = findUserById(message.senderId);
+    const recipient = findUserById(message.recipientId);
+    if (!sender || !recipient) {
+      return message;
+    }
+    return {
+      ...message,
+      conversationId: getConversationIdBetweenUsers(sender, recipient),
+    };
+  });
+}
+
 function readMessages(): DirectMessage[] {
   if (typeof window === "undefined") {
     return [];
   }
   try {
     const raw = localStorage.getItem(MESSAGES_KEY);
-    return raw ? (JSON.parse(raw) as DirectMessage[]).map(migrateMessage) : [];
+    return raw
+      ? normalizeConversationIds(
+          (JSON.parse(raw) as DirectMessage[]).map(migrateMessage)
+        )
+      : [];
   } catch {
     return [];
   }
@@ -40,32 +68,71 @@ function writeMessages(messages: DirectMessage[]): void {
 export function getMessagesForConversation(
   conversationId: string
 ): DirectMessage[] {
+  const keys = new Set(
+    conversationId.includes("\u0001")
+      ? conversationId.split("\u0001")
+      : [conversationId]
+  );
+
   return readMessages()
-    .filter((message) => message.conversationId === conversationId)
+    .filter((message) => {
+      if (message.conversationId === conversationId) {
+        return true;
+      }
+      if (!message.conversationId.includes("\u0001")) {
+        return false;
+      }
+      const parts = message.conversationId.split("\u0001");
+      return parts.length === 2 && keys.has(parts[0]) && keys.has(parts[1]);
+    })
     .sort(
       (a, b) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
 }
 
-export function getUnreadMessageCount(userId: string): number {
-  return readMessages().filter(
-    (message) => message.recipientId === userId && !message.readAt
-  ).length;
+export function getUnreadMessageCount(userId: string, gmail?: string): number {
+  const viewer: User = findUserById(userId) ?? {
+    id: userId,
+    name: "",
+    nickname: "",
+    birthDate: "",
+    hometown: "",
+    gmail: gmail ?? "",
+    koreanPhone: "",
+    personalCode: "",
+    password: "",
+    createdAt: new Date().toISOString(),
+  };
+  if (gmail && !viewer.gmail) {
+    viewer.gmail = gmail;
+  }
+  return readMessages().filter((message) => messageIsUnreadForUser(message, viewer))
+    .length;
 }
 
-export function markConversationRead(
-  conversationId: string,
-  userId: string
-): void {
+function conversationIdsMatch(storedId: string, activeId: string): boolean {
+  if (storedId === activeId) {
+    return true;
+  }
+  const keys = new Set(
+    activeId.includes("\u0001") ? activeId.split("\u0001") : [activeId]
+  );
+  if (!storedId.includes("\u0001")) {
+    return false;
+  }
+  const parts = storedId.split("\u0001");
+  return parts.length === 2 && keys.has(parts[0]) && keys.has(parts[1]);
+}
+
+export function markConversationRead(conversationId: string, viewer: User): void {
   const messages = readMessages();
   let changed = false;
 
   for (const message of messages) {
     if (
-      message.conversationId === conversationId &&
-      message.recipientId === userId &&
-      !message.readAt
+      conversationIdsMatch(message.conversationId, conversationId) &&
+      messageIsUnreadForUser(message, viewer)
     ) {
       message.readAt = new Date().toISOString();
       changed = true;
@@ -96,9 +163,21 @@ export function sendDirectMessage(input: SendMessageInput): DirectMessage {
       ? input.anonymousLabel
       : input.senderNickname.trim() || input.anonymousLabel;
 
+  const sender = findUserById(input.senderId);
+  const recipient = findUserById(input.recipientId);
+  const conversationId =
+    sender && recipient
+      ? getConversationIdBetweenUsers(sender, recipient)
+      : getConversationId(
+          input.senderId,
+          input.recipientId,
+          resolveUserGmail(input.senderId),
+          resolveUserGmail(input.recipientId)
+        );
+
   const message: DirectMessage = {
     id: crypto.randomUUID(),
-    conversationId: getConversationId(input.senderId, input.recipientId),
+    conversationId,
     senderId: input.senderId,
     recipientId: input.recipientId,
     content: input.content.trim(),
@@ -114,17 +193,17 @@ export function sendDirectMessage(input: SendMessageInput): DirectMessage {
   messages.push(message);
   writeMessages(messages);
   emitSocialChange();
+  scheduleDirectMessageSync(message);
   return message;
 }
 
 export function getConversationsForUser(
-  userId: string,
+  viewer: User,
   previewLabels: { photo: string; video: string; empty: string }
 ): ConversationPreview[] {
   const users = readUsers();
-  const messages = readMessages().filter(
-    (message) =>
-      message.senderId === userId || message.recipientId === userId
+  const messages = readMessages().filter((message) =>
+    messageInvolvesUser(message, viewer)
   );
 
   const map = new Map<string, DirectMessage[]>();
@@ -142,20 +221,18 @@ export function getConversationsForUser(
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
     const last = sorted[0];
-    const peerId =
-      last.senderId === userId ? last.recipientId : last.senderId;
+    const peerId = getPeerId(conversationId, viewer.id);
     const peer = users.find((user) => user.id === peerId);
 
     previews.push({
       conversationId,
       peerId,
-      peerNickname: peer?.nickname || peer?.name || "User",
+      peerNickname: peer?.nickname || peer?.name || last.senderDisplayName || "User",
       peerProfileImage: peer?.profileImage,
       lastMessage: formatMessagePreview(last, previewLabels),
       lastMessageAt: last.createdAt,
-      unreadCount: group.filter(
-        (message) => message.recipientId === userId && !message.readAt
-      ).length,
+      unreadCount: group.filter((message) => messageIsUnreadForUser(message, viewer))
+        .length,
     });
   }
 

@@ -272,12 +272,12 @@ export const settingsLinkClassName =
 
 export const inputClassName = "social-input";
 
-/** Write form panels (content, photos/video) — same rounded gray block. */
+/** Write form panels (content, photos/video). */
 export const postFormPanelClassName =
-  "rounded-2xl bg-[#F0F2F5] p-5 ring-1 ring-black/[0.06]";
+  "post-form-panel rounded-2xl bg-[#F0F2F5] p-4 ring-1 ring-black/[0.06] sm:p-5";
 
 export const postFormTextareaClassName =
-  "social-input !rounded-xl w-full resize-y !overflow-y-auto leading-relaxed";
+  "social-input !rounded-xl w-full resize-y !overflow-y-auto leading-relaxed !text-[#050505] !bg-white";
 
 export function FormField({
   label,

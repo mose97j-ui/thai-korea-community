@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import VerificationBlock from "@/components/VerificationBlock";
+import { CHANGE_PHONE_VERIFICATION_ENABLED } from "@/lib/auth/features";
 import {
   Card,
   ErrorMessage,
@@ -42,7 +43,7 @@ export default function ChangePhonePage() {
     setError("");
     setSuccess(false);
 
-    if (!verified) {
+    if (CHANGE_PHONE_VERIFICATION_ENABLED && !verified) {
       setError(te("VERIFY_PHONE_REQUIRED"));
       return;
     }
@@ -88,14 +89,16 @@ export default function ChangePhonePage() {
             />
           </FormField>
 
-          <VerificationBlock
-            target={newPhone}
-            method="phone"
-            purpose="change-phone"
-            verified={verified}
-            onVerified={() => setVerified(true)}
-            disabled={!newPhone.trim()}
-          />
+          {CHANGE_PHONE_VERIFICATION_ENABLED ? (
+            <VerificationBlock
+              target={newPhone}
+              method="phone"
+              purpose="change-phone"
+              verified={verified}
+              onVerified={() => setVerified(true)}
+              disabled={!newPhone.trim()}
+            />
+          ) : null}
 
           {error && <ErrorMessage message={error} />}
           {success && (

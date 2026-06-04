@@ -233,7 +233,7 @@ export default function MessageComposer({
           rows={compact ? 2 : 3}
           maxLength={1000}
           disabled={disabled || isSending}
-          className={`min-w-0 flex-1 resize-none ${inputClassName}`}
+          className={`min-w-0 flex-1 resize-none !bg-white !text-[#050505] ${inputClassName}`}
         />
 
         <button

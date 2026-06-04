@@ -7,6 +7,12 @@ export const SIGNUP_EMAIL_VERIFICATION_ENABLED = false;
 /** 회원가입 시 휴대폰 인증번호 — false면 번호만 입력 (인증 생략) */
 export const SIGNUP_PHONE_VERIFICATION_ENABLED = false;
 
+/** 전화번호 변경 시 인증번호 — false면 번호만 입력 */
+export const CHANGE_PHONE_VERIFICATION_ENABLED = false;
+
+/** 아이디 찾기·비밀번호 재설정 시 인증번호 — false면 본인 확인 생략 */
+export const ACCOUNT_RECOVERY_VERIFICATION_ENABLED = false;
+
 /** 회원가입 시 친구 추천 코드 — false면 입력란·검증 비활성 */
 export const SIGNUP_REFERRAL_CODE_ENABLED = false;
 

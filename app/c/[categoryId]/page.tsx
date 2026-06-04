@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useCategoryRegistryVersion } from "@/contexts/CategoryRegistryContext";
 import CategoryBoard from "@/components/CategoryBoard";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
@@ -22,10 +23,20 @@ type CategoryOverviewProps = {
 export default function CategoryOverviewPage({ params }: CategoryOverviewProps) {
   const { t, pick } = useLocale();
   const [categoryId, setCategoryId] = useState<string | null>(null);
+  const menuVersion = useCategoryRegistryVersion();
 
   useEffect(() => {
     void params.then((route) => setCategoryId(route.categoryId));
   }, [params]);
+
+  const category = useMemo(
+    () => (categoryId ? getHomeCategoryById(categoryId) : undefined),
+    [categoryId, menuVersion]
+  );
+  const subItems = useMemo(
+    () => (categoryId ? getCategorySubItems(categoryId) : []),
+    [categoryId, menuVersion]
+  );
 
   if (!categoryId) {
     return (
@@ -37,8 +48,6 @@ export default function CategoryOverviewPage({ params }: CategoryOverviewProps) 
     );
   }
 
-  const category = getHomeCategoryById(categoryId);
-  const subItems = getCategorySubItems(categoryId);
   const placeBased = isPlaceBasedCategory(categoryId);
 
   if (!category) {

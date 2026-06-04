@@ -29,10 +29,10 @@ import { formatPhone } from "@/lib/auth/phone";
 import { getUserNickname } from "@/lib/auth/profileImage";
 import { useOperatorView } from "@/hooks/useOperatorView";
 import UserAvatar from "@/components/UserAvatar";
-import MyCommentsPanel from "@/components/MyCommentsPanel";
-import MyPostsPanel from "@/components/MyPostsPanel";
+import MyActivityPanel from "@/components/MyActivityPanel";
 import OperatorPreviewChecklist from "@/components/OperatorPreviewChecklist";
 import OperatorAnalyticsPanel from "@/components/OperatorAnalyticsPanel";
+import OperatorRecentMembersPanel from "@/components/OperatorRecentMembersPanel";
 import OperatorModerationPanel from "@/components/OperatorModerationPanel";
 import OperatorRecentPostsPanel from "@/components/OperatorRecentPostsPanel";
 import OperatorReportsPanel from "@/components/OperatorReportsPanel";
@@ -41,7 +41,6 @@ import ModerationNotice from "@/components/ModerationNotice";
 import { getActiveRestriction } from "@/lib/auth/moderation";
 import { getCategoryOverviewHref } from "@/lib/i18n/content";
 import { usePremiumAccess } from "@/hooks/usePremiumAccess";
-import { useOperatorMemberSync } from "@/hooks/useOperatorMemberSync";
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
@@ -65,7 +64,6 @@ export default function MyPage() {
   const [profileError, setProfileError] = useState("");
   const [profileSuccess, setProfileSuccess] = useState("");
   const { showOperatorUI } = useOperatorView();
-  useOperatorMemberSync(Boolean(user) && showOperatorUI);
 
   if (!isReady) {
     return (
@@ -146,12 +144,12 @@ export default function MyPage() {
       <div className={sectionStackClassName}>
         <OperatorPreviewChecklist />
 
-        <MyPostsPanel />
-        <MyCommentsPanel />
+        <MyActivityPanel />
 
         {showOperatorUI && (
           <FeedSection tone="green" icon="👑" title={t("mypage.operator")} description={t("mypage.operatorDesc")}>
             <div className={sectionStackClassName}>
+              <OperatorRecentMembersPanel />
               <OperatorAnalyticsPanel />
               <OperatorRecentPostsPanel />
               <OperatorSupportPanel />

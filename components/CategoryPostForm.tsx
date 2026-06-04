@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useCategoryRegistryVersion } from "@/contexts/CategoryRegistryContext";
 import PostLinkImportField from "@/components/PostLinkImportField";
 import PostMediaField from "@/components/PostMediaField";
 import KakaoAddressField, { type KakaoAddressValue } from "@/components/KakaoAddressField";
@@ -47,6 +48,7 @@ import {
   savePostDraft,
 } from "@/lib/posts/drafts";
 import { hashSecretPassword, validateSecretPassword } from "@/lib/posts/secret";
+import { setPostPublishFlash } from "@/lib/posts/publishFlash";
 import {
   createPostWithTranslation,
   getPostById,
@@ -76,9 +78,16 @@ export default function CategoryPostForm({
   const router = useRouter();
   const { t, pick, locale } = useLocale();
   const { user } = useAuth();
+  const menuVersion = useCategoryRegistryVersion();
   const template = getPostFormTemplate(categoryId);
-  const category = getHomeCategoryById(categoryId);
-  const subItem = getSubCategoryItem(categoryId, subId);
+  const category = useMemo(
+    () => getHomeCategoryById(categoryId),
+    [categoryId, menuVersion]
+  );
+  const subItem = useMemo(
+    () => getSubCategoryItem(categoryId, subId),
+    [categoryId, subId, menuVersion]
+  );
 
   const [primary, setPrimary] = useState("");
   const [secondary, setSecondary] = useState("");
@@ -420,7 +429,7 @@ export default function CategoryPostForm({
           router.push(`/p/${postId}`);
         }
       } else {
-        await createPostWithTranslation({
+        const created = await createPostWithTranslation({
           categoryId,
           subId,
           authorId: user.id,
@@ -430,10 +439,18 @@ export default function CategoryPostForm({
         });
         clearPostDraft(user.id, categoryId, subId);
 
+        setPostPublishFlash({
+          postId: created.id,
+          categoryId,
+          subId,
+          title: created.title || created.storeName,
+          isSecret: Boolean(created.isSecret),
+        });
+
         if (onSuccess) {
-          onSuccess({ categoryId, subId });
+          onSuccess({ categoryId, subId, postId: created.id });
         } else {
-          router.push(`/c/${categoryId}/${subId}`);
+          router.push(`/c/${categoryId}/${subId}#post-${created.id}`);
         }
       }
     } catch {

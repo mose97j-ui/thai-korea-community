@@ -8,10 +8,11 @@ import {
   socialPlaceSidebarColumnClassName,
   socialPostFeedWrapClassName,
 } from "@/components/PageShell";
-import { useEffect, useMemo, useState } from "react";
-import PlaceBoardSidebar from "@/components/PlaceBoardSidebar";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import PlaceBoardSidebarMobileWrap from "@/components/PlaceBoardSidebarMobileWrap";
 import KakaoMapView, { getPostMapLabel } from "@/components/KakaoMapView";
 import PostCard from "@/components/PostCard";
+import PostPublishedNotice from "@/components/PostPublishedNotice";
 import {
   Card,
   pillButtonClassName,
@@ -40,6 +41,10 @@ import {
 import { isPlaceBasedCategory } from "@/lib/posts/formTemplates";
 import { fetchGeocode } from "@/lib/maps/clientGeocode";
 import { filterPostsForViewer } from "@/lib/posts/visibility";
+import {
+  parsePostHashId,
+  peekPostPublishFlashForBoard,
+} from "@/lib/posts/publishFlash";
 import {
   getPostsByCategory,
   getPostsBySubCategory,
@@ -73,16 +78,46 @@ export default function CategoryBoard({
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>();
   const [isEnriching, setIsEnriching] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [highlightPostId, setHighlightPostId] = useState<string | null>(null);
+
+  const clearAddressFilters = useCallback(() => {
+    setSelectedTreeKey(null);
+    setSearchQuery("");
+    setSearchClassification(null);
+    setMapCenter(undefined);
+  }, []);
 
   useEffect(() => {
-    const refresh = () => setRefreshKey((value) => value + 1);
+    const refresh = () => {
+      clearAddressFilters();
+      setRefreshKey((value) => value + 1);
+    };
     window.addEventListener(POSTS_CHANGE_EVENT, refresh);
     window.addEventListener("focus", refresh);
     return () => {
       window.removeEventListener(POSTS_CHANGE_EVENT, refresh);
       window.removeEventListener("focus", refresh);
     };
-  }, []);
+  }, [clearAddressFilters]);
+
+  useEffect(() => {
+    const syncHighlight = () => {
+      const flash =
+        subId != null ? peekPostPublishFlashForBoard(categoryId, subId) : null;
+      setHighlightPostId(parsePostHashId() ?? flash?.postId ?? null);
+    };
+    syncHighlight();
+    window.addEventListener("hashchange", syncHighlight);
+    return () => window.removeEventListener("hashchange", syncHighlight);
+  }, [categoryId, subId, refreshKey]);
+
+  useEffect(() => {
+    if (!highlightPostId) {
+      return;
+    }
+    const timer = window.setTimeout(() => setHighlightPostId(null), 12_000);
+    return () => window.clearTimeout(timer);
+  }, [highlightPostId]);
 
   useEffect(() => {
     const addressParam = searchParams.get("address")?.trim();
@@ -220,13 +255,16 @@ export default function CategoryBoard({
   );
 
   useEffect(() => {
-    const hash = window.location.hash.slice(1);
-    if (!hash.startsWith("post-")) {
-      return;
-    }
-    setSelectedTreeKey(null);
-    setSearchQuery("");
-  }, [categoryId, subId]);
+    const syncFiltersFromHash = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash.startsWith("post-")) {
+        clearAddressFilters();
+      }
+    };
+    syncFiltersFromHash();
+    window.addEventListener("hashchange", syncFiltersFromHash);
+    return () => window.removeEventListener("hashchange", syncFiltersFromHash);
+  }, [categoryId, subId, clearAddressFilters]);
 
   useEffect(() => {
     const scrollToHashPost = () => {
@@ -247,10 +285,23 @@ export default function CategoryBoard({
     return () => window.removeEventListener("hashchange", scrollToHashPost);
   }, [visiblePosts, refreshKey]);
 
+  const publishedNotice =
+    subId != null ? (
+      <PostPublishedNotice
+        categoryId={categoryId}
+        subId={subId}
+        highlightPostId={highlightPostId}
+      />
+    ) : null;
+
   const renderPosts = (posts: Post[]) =>
     posts.map((post) => (
       <div key={post.id} id={`post-${post.id}`} className="scroll-mt-28">
-        <PostCard post={post} linkToDetail />
+        <PostCard
+          post={post}
+          linkToDetail
+          justPublished={highlightPostId === post.id}
+        />
       </div>
     ));
 
@@ -310,12 +361,23 @@ export default function CategoryBoard({
               </span>
             )}
           </p>
-          {writeControl}
+          <div className="flex flex-wrap items-center gap-2">
+            {visiblePosts.length !== totalCount && totalCount > 0 ? (
+              <button
+                type="button"
+                onClick={clearAddressFilters}
+                className={pillSecondaryButtonClassName}
+              >
+                {t("post.clearAddressFilter")}
+              </button>
+            ) : null}
+            {writeControl}
+          </div>
         </div>
 
         <div className={socialPlaceBoardRowClassName}>
           <div className={socialPlaceSidebarColumnClassName}>
-            <PlaceBoardSidebar
+            <PlaceBoardSidebarMobileWrap
               categoryId={categoryId}
               addressTree={sidebarAddressTree}
               selectedTreeKey={selectedTreeKey}
@@ -330,6 +392,7 @@ export default function CategoryBoard({
           </div>
 
           <div className={`${socialPostFeedWrapClassName} ${socialPlaceFeedColumnClassName}`}>
+            {publishedNotice}
             {totalCount === 0 ? (
               <Card className="w-full py-12 text-center">
                 <p className="text-4xl">📝</p>
@@ -349,8 +412,19 @@ export default function CategoryBoard({
                     : t("post.emptyAddress")}
                 </p>
                 <p className="mt-2 text-sm text-gray-500">
-                  {t("post.addressBrowseHint")}
+                  {totalCount > 0
+                    ? t("post.filteredHiddenHint")
+                    : t("post.addressBrowseHint")}
                 </p>
+                {totalCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearAddressFilters}
+                    className={`mt-4 ${pillSecondaryButtonClassName}`}
+                  >
+                    {t("post.clearAddressFilter")}
+                  </button>
+                )}
               </Card>
             ) : (
               <div className="w-full">
@@ -429,6 +503,7 @@ export default function CategoryBoard({
         </Card>
       ) : (
         <div className={socialPostFeedWrapClassName}>
+          {publishedNotice}
           <div className={postFeedClassName}>{renderPosts(sourcePosts)}</div>
         </div>
       )}

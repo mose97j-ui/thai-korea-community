@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/storage";
 import { isOperatorUser } from "@/lib/auth/operator";
 import type { User } from "@/lib/auth/types";
+import { scheduleMemberSync } from "@/lib/auth/memberSync";
 import { fetchProfileById, profileRowToUser, upsertProfile } from "@/lib/supabase/profiles";
 import { createClient, isSupabaseConfigured } from "@/utils/supabase/client";
 
@@ -113,6 +114,9 @@ export async function syncSupabaseAuthUser(authUser: SupabaseAuthUser): Promise<
   const profileUser = profileRow ? profileRowToUser(profileRow) : null;
   const user = persistLocalUser(buildUserFromAuth(authUser, profileUser));
   setSessionUserId(user.id);
+  if (isProfileComplete(user)) {
+    scheduleMemberSync(user, true);
+  }
   return {
     user,
     profileComplete: isProfileComplete(user),
@@ -164,6 +168,7 @@ export async function saveGoogleProfile(user: User): Promise<{ ok: true } | { ok
   if (!result.ok) {
     return result;
   }
+  scheduleMemberSync(saved, true);
   return { ok: true };
 }
 

@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Noto_Sans_KR, Noto_Sans_Thai, Sarabun } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CategoryRegistryProvider } from "@/contexts/CategoryRegistryContext";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { OperatorViewProvider } from "@/contexts/OperatorViewContext";
+import AppDataSync from "@/components/AppDataSync";
 import PostsStorageInit from "@/components/PostsStorageInit";
 import "./globals.css";
 
@@ -54,10 +56,13 @@ export default function RootLayout({
       <body className="min-h-full">
         <AuthProvider>
           <OperatorViewProvider>
-            <LocaleProvider>
-              <PostsStorageInit />
-              {children}
-            </LocaleProvider>
+            <CategoryRegistryProvider>
+              <LocaleProvider>
+                <PostsStorageInit />
+                <AppDataSync />
+                {children}
+              </LocaleProvider>
+            </CategoryRegistryProvider>
           </OperatorViewProvider>
         </AuthProvider>
       </body>

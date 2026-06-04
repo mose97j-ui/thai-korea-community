@@ -16,6 +16,7 @@ import {
 } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import { ACCOUNT_RECOVERY_VERIFICATION_ENABLED } from "@/lib/auth/features";
 import type { VerificationMethod } from "@/lib/auth/verification";
 
 export default function FindIdPage() {
@@ -41,7 +42,7 @@ export default function FindIdPage() {
       return;
     }
 
-    if (!verified) {
+    if (ACCOUNT_RECOVERY_VERIFICATION_ENABLED && !verified) {
       setError(te("VERIFY_REQUIRED"));
       return;
     }
@@ -119,7 +120,7 @@ export default function FindIdPage() {
             <ErrorMessage message={te("ACCOUNT_NOT_FOUND")} />
           )}
 
-          {verifyTarget && (
+          {ACCOUNT_RECOVERY_VERIFICATION_ENABLED && verifyTarget ? (
             <VerificationBlock
               target={verifyTarget}
               method={method}
@@ -127,7 +128,7 @@ export default function FindIdPage() {
               verified={verified}
               onVerified={() => setVerified(true)}
             />
-          )}
+          ) : null}
 
           {error && <ErrorMessage message={error} />}
 

@@ -1,6 +1,7 @@
 import type { User } from "./types";
 import { getOperatorDefaults, isOperatorUser } from "./operator";
 import { normalizePhone } from "./phone";
+import { isSameSessionUser } from "./sessionUser";
 
 const USERS_KEY = "tkc_users";
 const SESSION_KEY = "tkc_session";
@@ -39,6 +40,8 @@ function readUsers(): User[] {
     return users.map((user) => ({
       ...user,
       nickname: user.nickname?.trim() || user.name,
+      createdAt: user.createdAt || "1970-01-01T00:00:00.000Z",
+      authProvider: user.authProvider ?? "local",
     }));
   } catch {
     return [];
@@ -113,12 +116,13 @@ export function saveUser(user: User): void {
 }
 
 /** Merge server-side member directory into local storage (keeps local passwords). */
-export function mergeRemoteMembers(remote: User[]): void {
+export function mergeRemoteMembers(remote: User[]): boolean {
   if (remote.length === 0) {
-    return;
+    return false;
   }
 
   const merged = new Map(readUsers().map((user) => [user.id, user]));
+  let changed = false;
 
   for (const remoteUser of remote) {
     const existing =
@@ -129,14 +133,18 @@ export function mergeRemoteMembers(remote: User[]): void {
 
     if (existing) {
       const preserveOperator = isOperatorUser(existing);
-      merged.set(existing.id, {
+      const next: User = {
         ...existing,
         ...remoteUser,
         id: existing.id,
         password: existing.password,
         role: preserveOperator ? existing.role : remoteUser.role ?? existing.role,
         authProvider: remoteUser.authProvider ?? existing.authProvider,
-      });
+      };
+      if (!isSameSessionUser(existing, next)) {
+        merged.set(existing.id, next);
+        changed = true;
+      }
       continue;
     }
 
@@ -144,9 +152,15 @@ export function mergeRemoteMembers(remote: User[]): void {
       ...remoteUser,
       password: "",
     });
+    changed = true;
+  }
+
+  if (!changed) {
+    return false;
   }
 
   writeUsers([...merged.values()]);
+  return true;
 }
 
 export function getSessionUserId(): string | null {

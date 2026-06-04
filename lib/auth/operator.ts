@@ -1,3 +1,4 @@
+import { findUserByGmail, findUserById } from "./storage";
 import type { User } from "./types";
 
 const OPERATOR_ID = "tkc-operator";
@@ -26,6 +27,16 @@ export function getOperatorDefaults(): Omit<User, "createdAt"> {
 
 export function isOperator(user: User | null | undefined): boolean {
   return isOperatorUser(user);
+}
+
+/** Resolved operator row in this browser (Gmail login may use a UUID, not tkc-operator). */
+export function findOperatorAccount(): User | undefined {
+  const defaults = getOperatorDefaults();
+  return (
+    findUserByGmail(defaults.gmail) ??
+    findUserById(defaults.id) ??
+    undefined
+  );
 }
 
 export function isOperatorUser(user: User | null | undefined): boolean {

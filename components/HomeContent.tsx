@@ -6,6 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import GlobalSearchBar from "@/components/GlobalSearchBar";
 import HomeQuickWritePanel from "@/components/HomeQuickWritePanel";
 import HomeSidebar from "@/components/HomeSidebar";
+import HomeMobileBoardStrip from "@/components/HomeMobileBoardStrip";
+import HomeMobileDiscoverPanel from "@/components/HomeMobileDiscoverPanel";
 import PremiumPaywall from "@/components/PremiumPaywall";
 import OperatorMenuAdminPanel, {
   OperatorMenuTileControls,
@@ -15,6 +17,7 @@ import OperatorMenuAdminPanel, {
   toggleOperatorCategoryHidden,
 } from "@/components/OperatorMenuAdminPanel";
 import SortableTileGrid, { SortableDragHandle, type SortableDragHandleProps } from "@/components/SortableTileGrid";
+import CollapsibleSection from "@/components/home/CollapsibleSection";
 import UserMenusSection from "@/components/UserMenusSection";
 import { Card, SectionLabel, TopicCard, pillSecondaryButtonClassName, primaryButtonClassName } from "@/components/ui";
 import {
@@ -41,6 +44,7 @@ import MenuIcon from "@/components/MenuIcon";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOperatorView } from "@/hooks/useOperatorView";
+import { categoryListSignature } from "@/lib/categories/categoryListSignature";
 import { useOperatorMenus } from "@/hooks/useOperatorMenus";
 import { useCategoryFavorites } from "@/hooks/useCategoryFavorites";
 import { usePremiumAccess } from "@/hooks/usePremiumAccess";
@@ -53,7 +57,20 @@ import { getAllPosts, POSTS_CHANGE_EVENT } from "@/lib/posts/storage";
 import { filterPublicPosts } from "@/lib/posts/visibility";
 import { getHotPosts, getPopularPosts } from "@/lib/social/hot";
 import { SOCIAL_CHANGE_EVENT } from "@/lib/social/types";
+import {
+  createDefaultHomeSectionOpens,
+  isAllHomeSectionsOpen,
+  setAllHomeSectionsOpen,
+  type HomeSectionCollapseState,
+} from "@/lib/home/sectionCollapse";
 import { siteNameClass } from "@/lib/i18n/typography";
+import {
+  SYMBOL_ARROW_RIGHT,
+  SYMBOL_BOARD,
+  SYMBOL_LOCK,
+  SYMBOL_STAR_OFF,
+  SYMBOL_STAR_ON,
+} from "@/lib/ui/symbols";
 
 export default function HomeContent() {
   const { user } = useAuth();
@@ -71,11 +88,33 @@ export default function HomeContent() {
   const [writeCategoryId, setWriteCategoryId] = useState("reviews");
   const [writeSubId, setWriteSubId] = useState("reviews-0");
   const [statsVersion, setStatsVersion] = useState(0);
+  const [sectionOpens, setSectionOpens] = useState(createDefaultHomeSectionOpens);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const selectedCategory = selectedId ? getHomeCategoryById(selectedId) : null;
-  const subItems = selectedId ? getCategorySubItems(selectedId, showOperatorUI) : [];
+  const patchHomeSection = useCallback(
+    <K extends keyof HomeSectionCollapseState>(key: K, open: boolean) => {
+      setSectionOpens((prev) => ({ ...prev, [key]: open }));
+    },
+    []
+  );
+
+  const allMenusExpanded = isAllHomeSectionsOpen(sectionOpens);
+
+  const toggleAllHomeMenus = useCallback(() => {
+    setSectionOpens(setAllHomeSectionsOpen(!allMenusExpanded));
+  }, [allMenusExpanded]);
+
   const menuItems = showOperatorUI ? operatorCategoriesForEdit : operatorCategories;
+  const menuListSignature = categoryListSignature(menuItems);
+
+  const selectedCategory = useMemo(
+    () => (selectedId ? getHomeCategoryById(selectedId) : null),
+    [selectedId, menuListSignature]
+  );
+  const subItems = useMemo(
+    () => (selectedId ? getCategorySubItems(selectedId, showOperatorUI) : []),
+    [selectedId, showOperatorUI, menuListSignature]
+  );
 
   const popular = useMemo(
     () => getPopularCategories(6),
@@ -201,7 +240,7 @@ export default function HomeContent() {
         <button
           type="button"
           onClick={() => handleCategorySelect(item.id)}
-          className={`group flex w-full flex-col items-center rounded-2xl px-1.5 py-3.5 transition active:scale-[0.96] sm:py-4 ${
+          className={`social-menu-tile-btn group flex w-full flex-col items-center rounded-2xl px-1 py-2 transition active:scale-[0.96] sm:px-1.5 sm:py-3.5 lg:py-4 ${
             hidden
               ? "bg-gray-100 opacity-60 ring-1 ring-dashed ring-gray-300"
               : active
@@ -212,12 +251,15 @@ export default function HomeContent() {
           }`}
         >
           {lockedPremium ? (
-            <span className="absolute left-2 top-2 rounded-md bg-gray-900/80 px-1.5 py-0.5 text-xs font-bold text-amber-200">
-              🔒
+            <span
+              className="absolute left-2 top-2 rounded-md bg-gray-900/80 px-1.5 py-0.5 text-xs font-bold text-amber-200"
+              aria-hidden
+            >
+              {SYMBOL_LOCK}
             </span>
           ) : null}
           <div
-            className={`mb-2 flex h-16 w-16 items-center justify-center overflow-hidden rounded-[20px] sm:mb-3 sm:h-20 sm:w-20 sm:rounded-[22px] ${item.tint} shadow-sm ring-1 ring-black/[0.04]`}
+            className={`social-menu-tile-icon mb-2 flex h-16 w-16 items-center justify-center overflow-hidden rounded-[20px] sm:mb-3 sm:h-20 sm:w-20 sm:rounded-[22px] ${item.tint} shadow-sm ring-1 ring-black/[0.04]`}
           >
             <MenuIcon
               icon={item.icon}
@@ -226,7 +268,7 @@ export default function HomeContent() {
             />
           </div>
           <p
-            className={`text-ui-chip line-clamp-2 w-full px-0.5 font-semibold ${
+            className={`social-menu-tile-label text-ui-chip line-clamp-2 w-full px-0.5 font-semibold ${
               hidden
                 ? "text-gray-500 underline decoration-gray-400 underline-offset-2"
                 : active
@@ -241,11 +283,11 @@ export default function HomeContent() {
           type="button"
           onClick={() => toggle(item.id)}
           aria-label={starred ? t("home.removeFavorite") : t("home.addFavorite")}
-          className={`absolute right-1 top-1 flex h-9 w-9 items-center justify-center rounded-full text-xl transition hover:bg-white/90 ${
+          className={`social-menu-tile-star absolute right-1 top-1 flex h-9 w-9 items-center justify-center rounded-full text-xl transition hover:bg-white/90 ${
             starred ? "text-amber-400" : "text-gray-300 hover:text-amber-300"
           }`}
         >
-          {starred ? "★" : "☆"}
+          {starred ? SYMBOL_STAR_ON : SYMBOL_STAR_OFF}
         </button>
       </div>
     );
@@ -378,16 +420,43 @@ export default function HomeContent() {
     ? subItems.find((item) => item.id === editingSubId) ?? null
     : null;
 
-  const userMenuProps = {
-    selectedId,
-    onSelect: handleCategorySelect,
-    onCreated: (id: string) => {
-      setWriteCategoryId(id);
-      const subs = getCategorySubItems(id);
-      if (subs[0]) {
-        setWriteSubId(subs[0].id);
-      }
-    },
+  const userMenuProps = useMemo(
+    () => ({
+      selectedId,
+      onSelect: handleCategorySelect,
+      onCreated: (id: string) => {
+        setWriteCategoryId(id);
+        const subs = getCategorySubItems(id);
+        if (subs[0]) {
+          setWriteSubId(subs[0].id);
+        }
+      },
+      open: sectionOpens.userMenus,
+      onOpenChange: (open: boolean) => patchHomeSection("userMenus", open),
+    }),
+    [selectedId, handleCategorySelect, sectionOpens.userMenus, patchHomeSection]
+  );
+
+  const sidebarSectionOpens = useMemo(
+    () => ({
+      favorites: sectionOpens.favorites,
+      popular: sectionOpens.popular,
+      popularPosts: sectionOpens.popularPosts,
+      hotBoard: sectionOpens.hotBoard,
+    }),
+    [
+      sectionOpens.favorites,
+      sectionOpens.popular,
+      sectionOpens.popularPosts,
+      sectionOpens.hotBoard,
+    ]
+  );
+
+  const handleSidebarSectionOpenChange = (
+    key: keyof typeof sidebarSectionOpens,
+    open: boolean
+  ) => {
+    patchHomeSection(key, open);
   };
 
   return (
@@ -399,10 +468,39 @@ export default function HomeContent() {
         hotPosts={hotPosts}
         selectedId={selectedId}
         onSelect={handleCategorySelect}
+        sectionOpens={sidebarSectionOpens}
+        onSectionOpenChange={handleSidebarSectionOpenChange}
       />
 
       <div className={socialMainColumnClassName}>
-        <div className="mb-3 flex flex-col gap-3 xl:flex-row xl:items-end">
+        <header className="social-mobile-home-header lg:hidden">
+          <div className="social-mobile-home-header__bar">
+            <Link
+              href="/"
+              aria-label={t("nav.home")}
+              className="shrink-0 rounded-2xl transition active:scale-[0.97]"
+            >
+              <Image
+                src="/logo.png"
+                alt="Thai Korea Community"
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-2xl object-cover ring-1 ring-black/5"
+              />
+            </Link>
+            <div className="min-w-0 flex-1">
+              <p className={`${siteNameClass} truncate text-base font-bold`}>
+                Thai Korea Community
+              </p>
+              <p className="text-ui-caption mt-0.5 line-clamp-1">{t("welcome.subtitle")}</p>
+            </div>
+          </div>
+          <div className="social-mobile-home-header__search">
+            <GlobalSearchBar className="mb-0" />
+          </div>
+        </header>
+
+        <div className="mb-3 hidden flex-col gap-3 lg:flex xl:flex-row xl:items-end">
           <div className="social-home-brand-row">
             <Link
               href="/"
@@ -414,18 +512,38 @@ export default function HomeContent() {
                 alt="Thai Korea Community"
                 width={88}
                 height={88}
-                className="h-16 w-16 rounded-[22px] object-cover shadow-sm ring-1 ring-black/5 sm:h-[110px] sm:w-[110px] sm:rounded-[30px]"
+                className="h-[110px] w-[110px] rounded-[30px] object-cover shadow-sm ring-1 ring-black/5"
               />
             </Link>
             <div className="social-home-brand-title">
-              <h1 className={`${siteNameClass} text-lg leading-tight sm:text-2xl lg:text-3xl`}>
-                Thai Korea Community
-              </h1>
-              <p className="text-ui-caption mt-1 sm:mt-2.5">{t("welcome.subtitle")}</p>
+              <h1 className={`${siteNameClass} text-2xl lg:text-3xl`}>Thai Korea Community</h1>
+              <p className="text-ui-caption mt-2.5">{t("welcome.subtitle")}</p>
             </div>
           </div>
           <GlobalSearchBar className="mb-0 w-full xl:min-w-[min(100%,28rem)] xl:flex-1" />
         </div>
+
+        <HomeMobileBoardStrip
+          favoriteIds={favorites}
+          popular={popular}
+          selectedId={selectedId}
+          onSelect={handleCategorySelect}
+          open={sectionOpens.mobileStrip}
+          onOpenChange={(open) => patchHomeSection("mobileStrip", open)}
+        />
+
+        <HomeMobileDiscoverPanel
+          favoriteIds={favorites}
+          popular={popular}
+          popularPosts={popularPosts}
+          hotPosts={hotPosts}
+          selectedId={selectedId}
+          onSelect={handleCategorySelect}
+          open={sectionOpens.mobileDiscover}
+          onOpenChange={(open) => patchHomeSection("mobileDiscover", open)}
+          sectionOpens={sidebarSectionOpens}
+          onSectionOpenChange={handleSidebarSectionOpenChange}
+        />
 
         <HomeQuickWritePanel
           categoryId={writeCategoryId}
@@ -433,64 +551,77 @@ export default function HomeContent() {
           onCategoryChange={handleWriteCategoryChange}
         />
 
-        <div className="social-surface mb-3">
-          <p className="menu-label">{t("common.menu")}</p>
-
-          {showOperatorUI ? (
-            <OperatorMenuAdminPanel
-              editingCategoryId={editingCategoryId}
-              menuEditMode={menuEditMode}
-              onClose={() => setEditingCategoryId(null)}
-              onSaved={refreshOperatorMenus}
-              onStartEdit={handleStartMenuEdit}
-              onSaveEdit={handleSaveMenuEdit}
-              onCancelEdit={handleCancelMenuEdit}
-            />
-          ) : null}
-
-          {menuEditMode ? (
-            <SortableTileGrid
-              items={visibleMenuItems}
-              enabled
-              className={menuGridClassName}
-              dragLabel={t("operatorMenu.dragToReorder")}
-              onReorder={handleReorderVisibleMenus}
-              renderItem={(item, { dragHandleProps }) =>
-                renderMenuTile(item, false, dragHandleProps)
-              }
-            />
-          ) : (
-            <div className={menuGridClassName}>
-              {visibleMenuItems.map((item) => renderMenuTile(item, false))}
-            </div>
-          )}
-
-          {hiddenMenuItems.length > 0 ? (
-            <div className="mt-4 border-t border-gray-200 pt-4">
-              <p className="menu-label mb-3 text-gray-500">
-                {t("operatorMenu.hiddenBadge")}
-              </p>
-              {menuEditMode ? (
-                <SortableTileGrid
-                  items={hiddenMenuItems}
-                  enabled
-                  className={menuGridClassName}
-                  dragLabel={t("operatorMenu.dragToReorder")}
-                  onReorder={handleReorderHiddenMenus}
-                  renderItem={(item, { dragHandleProps }) =>
-                    renderMenuTile(item, true, dragHandleProps)
-                  }
-                />
-              ) : (
-                <div className={menuGridClassName}>
-                  {hiddenMenuItems.map((item) => renderMenuTile(item, true))}
-                </div>
-              )}
-            </div>
-          ) : null}
+        <div className="mb-2 flex justify-end">
+          <button
+            type="button"
+            onClick={toggleAllHomeMenus}
+            className={pillSecondaryButtonClassName}
+          >
+            {allMenusExpanded ? t("home.collapseAllMenus") : t("home.expandAllMenus")}
+          </button>
         </div>
 
-        <div ref={panelRef} className="mt-6 scroll-mt-8">
+        <section className="social-surface social-home-menu-card mb-3 rounded-2xl ring-1 ring-black/[0.06]">
+          <div className="px-4 pt-4">
+            <SectionLabel>{t("common.menu")}</SectionLabel>
+          </div>
+          <div className="px-2 pb-3 pt-1 sm:px-3">
+            {showOperatorUI ? (
+              <OperatorMenuAdminPanel
+                editingCategoryId={editingCategoryId}
+                menuEditMode={menuEditMode}
+                onClose={() => setEditingCategoryId(null)}
+                onSaved={refreshOperatorMenus}
+                onStartEdit={handleStartMenuEdit}
+                onSaveEdit={handleSaveMenuEdit}
+                onCancelEdit={handleCancelMenuEdit}
+              />
+            ) : null}
+
+            {menuEditMode ? (
+              <SortableTileGrid
+                items={visibleMenuItems}
+                enabled
+                className={menuGridClassName}
+                dragLabel={t("operatorMenu.dragToReorder")}
+                onReorder={handleReorderVisibleMenus}
+                renderItem={(item, { dragHandleProps }) =>
+                  renderMenuTile(item, false, dragHandleProps)
+                }
+              />
+            ) : (
+              <div className={menuGridClassName}>
+                {visibleMenuItems.map((item) => renderMenuTile(item, false))}
+              </div>
+            )}
+
+            {hiddenMenuItems.length > 0 ? (
+              <div className="mt-4 border-t border-gray-200 pt-4">
+                <p className="menu-label mb-3 text-gray-500">
+                  {t("operatorMenu.hiddenBadge")}
+                </p>
+                {menuEditMode ? (
+                  <SortableTileGrid
+                    items={hiddenMenuItems}
+                    enabled
+                    className={menuGridClassName}
+                    dragLabel={t("operatorMenu.dragToReorder")}
+                    onReorder={handleReorderHiddenMenus}
+                    renderItem={(item, { dragHandleProps }) =>
+                      renderMenuTile(item, true, dragHandleProps)
+                    }
+                  />
+                ) : (
+                  <div className={menuGridClassName}>
+                    {hiddenMenuItems.map((item) => renderMenuTile(item, true))}
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        <div ref={panelRef} className="mt-4 scroll-mt-8 lg:mt-6">
           {selectedCategory ? (
             isPremiumCategoryId(selectedCategory.id) && !hasPremiumAccess ? (
               <>
@@ -498,21 +629,13 @@ export default function HomeContent() {
                 <UserMenusSection {...userMenuProps} />
               </>
             ) : (
-            <Card>
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[18px] ${selectedCategory.tint} ring-1 ring-black/[0.04]`}
-                  >
-                    <MenuIcon icon={selectedCategory.icon} emojiClassName="text-3xl" />
-                  </div>
-                  <div className="min-w-0">
-                    <h2 className="text-ui-title text-lg sm:text-xl">
-                      {pick(selectedCategory.label)}
-                    </h2>
-                    <p className="text-ui-caption mt-1">{t("home.scrollHint")}</p>
-                  </div>
-                </div>
+            <CollapsibleSection
+              className="social-home-category-panel rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.05]"
+              title={pick(selectedCategory.label)}
+              description={t("home.subcategories")}
+              open={sectionOpens.subPanel}
+              onOpenChange={(open) => patchHomeSection("subPanel", open)}
+              headerExtra={
                 <Link
                   href={
                     isPremiumCategoryId(selectedCategory.id) && !hasPremiumAccess
@@ -523,11 +646,19 @@ export default function HomeContent() {
                 >
                   {isPremiumCategoryId(selectedCategory.id) && !hasPremiumAccess
                     ? t("premium.viewPlans")
-                    : `${t("home.viewAll")} ›`}
+                    : `${t("home.viewAll")} ${SYMBOL_ARROW_RIGHT}`}
                 </Link>
+              }
+              bodyClassName="space-y-4"
+            >
+              <div className="flex items-center gap-2.5 lg:gap-3">
+                <div
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl lg:h-14 lg:w-14 lg:rounded-[18px] ${selectedCategory.tint} ring-1 ring-black/[0.04]`}
+                >
+                  <MenuIcon icon={selectedCategory.icon} emojiClassName="text-2xl lg:text-3xl" />
+                </div>
+                <p className="text-ui-caption">{t("home.scrollHint")}</p>
               </div>
-
-              <SectionLabel>{t("home.subcategories")}</SectionLabel>
 
               {canManageSubs && selectedId ? (
                 <OperatorSubCategoryAddForm
@@ -601,7 +732,7 @@ export default function HomeContent() {
               ) : null}
 
               <UserMenusSection embedded {...userMenuProps} />
-            </Card>
+            </CollapsibleSection>
             )
           ) : (
             <>
@@ -615,9 +746,9 @@ export default function HomeContent() {
 
         <Link
           href="/board"
-          className={`mt-5 flex w-full items-center justify-center gap-2 ${primaryButtonClassName}`}
+          className={`social-page-bottom-safe mt-4 flex w-full items-center justify-center gap-2 lg:mt-5 ${primaryButtonClassName}`}
         >
-          <span>📋</span>
+          <span aria-hidden>{SYMBOL_BOARD}</span>
           <span>{t("home.board")}</span>
         </Link>
       </div>

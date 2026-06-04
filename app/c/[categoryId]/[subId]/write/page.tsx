@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useCategoryRegistryVersion } from "@/contexts/CategoryRegistryContext";
 import CategoryPostForm from "@/components/CategoryPostForm";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
@@ -27,10 +28,21 @@ export default function CategoryWritePage({ params }: WritePageProps) {
   const [route, setRoute] = useState<{ categoryId: string; subId: string } | null>(
     null
   );
+  const menuVersion = useCategoryRegistryVersion();
 
   useEffect(() => {
     void params.then(setRoute);
   }, [params]);
+
+  const category = useMemo(
+    () => (route ? getHomeCategoryById(route.categoryId) : undefined),
+    [route, menuVersion]
+  );
+  const subItem = useMemo(
+    () =>
+      route ? getSubCategoryItem(route.categoryId, route.subId) : undefined,
+    [route, menuVersion]
+  );
 
   useEffect(() => {
     if (isReady && !user && route) {
@@ -52,8 +64,6 @@ export default function CategoryWritePage({ params }: WritePageProps) {
     );
   }
 
-  const category = getHomeCategoryById(route.categoryId);
-  const subItem = getSubCategoryItem(route.categoryId, route.subId);
   const template = getPostFormTemplate(route.categoryId);
 
   if (!category || !subItem) {

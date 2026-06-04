@@ -6,7 +6,6 @@ import { useState } from "react";
 import AuthPageShell from "@/components/AuthPageShell";
 import PageHeader from "@/components/PageHeader";
 import ProfilePhotoField from "@/components/ProfilePhotoField";
-import VerificationBlock from "@/components/VerificationBlock";
 import AccountLinks from "@/components/AccountLinks";
 import {
   Card,
@@ -19,9 +18,8 @@ import {
 } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import { validateGmail } from "@/lib/auth/gmail";
 import {
-  SIGNUP_EMAIL_VERIFICATION_ENABLED,
-  SIGNUP_PHONE_VERIFICATION_ENABLED,
   SIGNUP_PROFILE_PHOTO_REQUIRED,
   SIGNUP_REFERRAL_CODE_ENABLED,
 } from "@/lib/auth/features";
@@ -43,8 +41,6 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [referralCode, setReferralCode] = useState("");
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [phoneVerified, setPhoneVerified] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -52,11 +48,8 @@ export default function SignupPage() {
     event.preventDefault();
     setError("");
 
-    if (
-      (SIGNUP_EMAIL_VERIFICATION_ENABLED && !emailVerified) ||
-      (SIGNUP_PHONE_VERIFICATION_ENABLED && !phoneVerified)
-    ) {
-      setError(te("VERIFY_REQUIRED"));
+    if (!validateGmail(gmail).ok) {
+      setError(te("GMAIL_INVALID"));
       return;
     }
 
@@ -114,6 +107,7 @@ export default function SignupPage() {
 
       <Card className="mb-4">
         <p className="text-base leading-relaxed text-gray-600">{t("signup.note")}</p>
+        <p className="mt-2 text-sm text-gray-500">{t("signup.gmailOnlyNote")}</p>
       </Card>
 
       <Card>
@@ -123,10 +117,7 @@ export default function SignupPage() {
             <input
               type="email"
               value={gmail}
-              onChange={(e) => {
-                setGmail(e.target.value);
-                setEmailVerified(false);
-              }}
+              onChange={(e) => setGmail(e.target.value)}
               autoComplete="email"
               placeholder="example@gmail.com"
               inputMode="email"
@@ -136,16 +127,27 @@ export default function SignupPage() {
             <p className="mt-1 text-sm text-gray-500">{t("signup.gmailHint")}</p>
           </FormField>
 
-          {SIGNUP_EMAIL_VERIFICATION_ENABLED ? (
-            <VerificationBlock
-              target={gmail}
-              method="email"
-              purpose="signup"
-              verified={emailVerified}
-              onVerified={() => setEmailVerified(true)}
-              disabled={!gmail.trim()}
+          <FormField label={t("signup.password")}>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+              className={inputClassName}
+              required
             />
-          ) : null}
+          </FormField>
+
+          <FormField label={t("signup.passwordConfirm")}>
+            <input
+              type="password"
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
+              autoComplete="new-password"
+              className={inputClassName}
+              required
+            />
+          </FormField>
 
           <FormField
             label={
@@ -226,48 +228,13 @@ export default function SignupPage() {
             <input
               type="tel"
               value={koreanPhone}
-              onChange={(e) => {
-                setKoreanPhone(e.target.value);
-                setPhoneVerified(false);
-              }}
+              onChange={(e) => setKoreanPhone(e.target.value)}
               placeholder="01012345678"
               autoComplete="tel"
               className={inputClassName}
               required
             />
-          </FormField>
-
-          {SIGNUP_PHONE_VERIFICATION_ENABLED ? (
-          <VerificationBlock
-            target={koreanPhone}
-            method="phone"
-            purpose="signup"
-            verified={phoneVerified}
-            onVerified={() => setPhoneVerified(true)}
-            disabled={!koreanPhone.trim()}
-          />
-          ) : null}
-
-          <FormField label={t("signup.password")}>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              className={inputClassName}
-              required
-            />
-          </FormField>
-
-          <FormField label={t("signup.passwordConfirm")}>
-            <input
-              type="password"
-              value={passwordConfirm}
-              onChange={(e) => setPasswordConfirm(e.target.value)}
-              autoComplete="new-password"
-              className={inputClassName}
-              required
-            />
+            <p className="mt-1 text-sm text-gray-500">{t("signup.phoneHint")}</p>
           </FormField>
 
           {SIGNUP_REFERRAL_CODE_ENABLED ? (

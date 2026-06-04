@@ -15,7 +15,6 @@ import {
   readViewAsUser,
   writeViewAsUser,
 } from "@/lib/auth/operatorView";
-import { syncUiLocaleForUser } from "@/lib/i18n/locale";
 
 type OperatorViewContextValue = {
   isOperator: boolean;
@@ -54,14 +53,10 @@ export function OperatorViewProvider({ children }: { children: React.ReactNode }
   const showOperatorUI = isOperator && !viewAsUser;
   const hasPrivileges = showOperatorUI;
 
-  const setViewAsUser = useCallback(
-    (value: boolean) => {
-      writeViewAsUser(value);
-      setViewAsUserState(value);
-      syncUiLocaleForUser(user);
-    },
-    [user]
-  );
+  const setViewAsUser = useCallback((value: boolean) => {
+    writeViewAsUser(value);
+    setViewAsUserState(value);
+  }, []);
 
   const toggleViewAsUser = useCallback(() => {
     setViewAsUser(!viewAsUser);

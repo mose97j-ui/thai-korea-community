@@ -18,7 +18,7 @@ export const navReserveRightClassName =
 
 /** Content area padding (nav reserve handled by AppShell grid). */
 export const shellPaddingClassName =
-  "pl-[var(--social-shell-pl)] pt-[var(--social-shell-pt)] pb-[var(--social-shell-pb)]";
+  "pl-[var(--social-shell-pl)] pt-[var(--social-shell-pt)] pb-[var(--social-shell-pb)] max-lg:px-3 max-lg:pt-2";
 
 /** Grid shell: main column + dedicated nav column (no fixed overlap). */
 export const socialAppShellClassName =

@@ -11,6 +11,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { formatPostDate } from "@/lib/posts/format";
 import { getConversationsForUser } from "@/lib/social/messages";
 import type { ConversationPreview } from "@/lib/social/types";
+import { MESSAGES_SYNC_EVENT } from "@/lib/social/messageSync";
 import { SOCIAL_CHANGE_EVENT } from "@/lib/social/types";
 
 export default function MessagesPage() {
@@ -28,7 +29,7 @@ export default function MessagesPage() {
   const refresh = () => {
     if (user) {
       setConversations(
-        getConversationsForUser(user.id, {
+        getConversationsForUser(user, {
           photo: t("social.previewPhoto"),
           video: t("social.previewVideo"),
           empty: t("social.previewEmpty"),
@@ -40,7 +41,11 @@ export default function MessagesPage() {
   useEffect(() => {
     refresh();
     window.addEventListener(SOCIAL_CHANGE_EVENT, refresh);
-    return () => window.removeEventListener(SOCIAL_CHANGE_EVENT, refresh);
+    window.addEventListener(MESSAGES_SYNC_EVENT, refresh);
+    return () => {
+      window.removeEventListener(SOCIAL_CHANGE_EVENT, refresh);
+      window.removeEventListener(MESSAGES_SYNC_EVENT, refresh);
+    };
   }, [user?.id, locale]);
 
   if (!isReady || !user) {

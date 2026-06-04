@@ -74,12 +74,17 @@ export default function MessageThreadContent({ params }: MessageThreadContentPro
   );
 
   const refresh = () => {
-    if (!user || !peerId) {
+    if (!user || !peerId || !peer) {
       return;
     }
-    const conversationId = getConversationId(user.id, peerId);
+    const conversationId = getConversationId(
+      user.id,
+      peer.id,
+      user.gmail,
+      peer.gmail
+    );
     setMessages(getMessagesForConversation(conversationId));
-    markConversationRead(conversationId, user.id);
+    markConversationRead(conversationId, user);
   };
 
   useEffect(() => {

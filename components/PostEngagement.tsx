@@ -373,7 +373,7 @@ export default function PostEngagement({
               value={commentText}
               onChange={(event) => setCommentText(event.target.value)}
               placeholder={t("social.commentPlaceholder")}
-              className={`min-w-0 flex-1 ${inputClassName}`}
+              className={`min-w-0 flex-1 !bg-white !text-[#050505] ${inputClassName}`}
               maxLength={500}
               disabled={commentBlocked}
             />

@@ -38,8 +38,11 @@ export function subscribeMemberRegistryChanges(
 
         const row = payload.new as MemberRegistryRow | null;
         if (row?.id) {
-          mergeRemoteMembers([memberRowToUser(row)]);
-          notifyMembersChanged();
+          const changed = mergeRemoteMembers([memberRowToUser(row)]);
+          if (changed) {
+            notifyMembersChanged();
+          }
+          onChange();
           return;
         }
 

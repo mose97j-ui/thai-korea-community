@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { CategoryItem } from "@/lib/i18n/content";
+import { categoryListSignature } from "@/lib/categories/categoryListSignature";
 import {
   OPERATOR_MENUS_CHANGE_EVENT,
   getEffectiveHomeCategories,
@@ -12,17 +13,24 @@ export function useOperatorMenus() {
   const [editCategories, setEditCategories] = useState<CategoryItem[]>([]);
 
   const refresh = useCallback(() => {
-    setCategories(getEffectiveHomeCategories(false));
-    setEditCategories(getEffectiveHomeCategories(true));
+    const next = getEffectiveHomeCategories(false);
+    const nextEdit = getEffectiveHomeCategories(true);
+    const nextSig = categoryListSignature(next);
+    const nextEditSig = categoryListSignature(nextEdit);
+
+    setCategories((previous) =>
+      categoryListSignature(previous) === nextSig ? previous : next
+    );
+    setEditCategories((previous) =>
+      categoryListSignature(previous) === nextEditSig ? previous : nextEdit
+    );
   }, []);
 
   useEffect(() => {
     refresh();
     window.addEventListener(OPERATOR_MENUS_CHANGE_EVENT, refresh);
-    window.addEventListener("focus", refresh);
     return () => {
       window.removeEventListener(OPERATOR_MENUS_CHANGE_EVENT, refresh);
-      window.removeEventListener("focus", refresh);
     };
   }, [refresh]);
 

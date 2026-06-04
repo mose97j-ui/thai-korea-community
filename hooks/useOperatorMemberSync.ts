@@ -2,12 +2,9 @@
 
 import { useEffect } from "react";
 import { subscribeMemberRegistryChanges } from "@/lib/auth/memberRealtime";
-import {
-  MEMBERS_SYNC_EVENT,
-  fetchAndMergeMembersFromServer,
-} from "@/lib/auth/memberSync";
+import { fetchAndMergeMembersFromServer } from "@/lib/auth/memberSync";
 
-const POLL_MS = 5_000;
+const POLL_MS = 3_000;
 
 /** Operator dashboards — realtime + fast polling for member directory. */
 export function useOperatorMemberSync(enabled: boolean) {
@@ -16,11 +13,11 @@ export function useOperatorMemberSync(enabled: boolean) {
       return;
     }
 
-    const refresh = () => {
-      void fetchAndMergeMembersFromServer();
+    const refresh = async () => {
+      await fetchAndMergeMembersFromServer();
     };
 
-    refresh();
+    void refresh();
 
     const unsubscribeRealtime = subscribeMemberRegistryChanges(refresh);
 
@@ -32,7 +29,6 @@ export function useOperatorMemberSync(enabled: boolean) {
 
     window.addEventListener("focus", refresh);
     window.addEventListener("visibilitychange", onVisible);
-    window.addEventListener(MEMBERS_SYNC_EVENT, refresh);
 
     const interval = window.setInterval(refresh, POLL_MS);
 
@@ -40,7 +36,6 @@ export function useOperatorMemberSync(enabled: boolean) {
       unsubscribeRealtime();
       window.removeEventListener("focus", refresh);
       window.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener(MEMBERS_SYNC_EVENT, refresh);
       window.clearInterval(interval);
     };
   }, [enabled]);

@@ -13,7 +13,7 @@ import {
   type AddressTreeNode,
 } from "@/lib/posts/addressParse";
 
-type PlaceBoardSidebarProps = {
+export type PlaceBoardSidebarProps = {
   categoryId: string;
   addressTree: AddressTreeNode[];
   selectedTreeKey: string | null;
