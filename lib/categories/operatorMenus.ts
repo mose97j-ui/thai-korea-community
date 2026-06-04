@@ -303,10 +303,24 @@ export function commitOperatorMenuEditSession(): void {
   if (typeof window === "undefined" || !editSessionStore) {
     return;
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(editSessionStore));
+  persistOperatorMenuEditSession();
   editSessionStore = null;
   notifyChange();
+}
+
+/** Persist in-progress edit session without leaving edit mode (idle auto-save). */
+export function persistOperatorMenuEditSession(): boolean {
+  if (typeof window === "undefined" || !editSessionStore) {
+    return false;
+  }
+  const serialized = JSON.stringify(editSessionStore);
+  const existing = localStorage.getItem(STORAGE_KEY);
+  if (existing === serialized) {
+    return false;
+  }
+  localStorage.setItem(STORAGE_KEY, serialized);
   scheduleOperatorMenuServerSync();
+  return true;
 }
 
 export function cancelOperatorMenuEditSession(): void {

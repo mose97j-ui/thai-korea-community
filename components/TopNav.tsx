@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useSocialBadges } from "@/hooks/useSocialBadges";
+import { useSupportBadges } from "@/hooks/useSupportBadges";
 import { useReportBadges } from "@/hooks/useReportBadges";
 import { useOperatorView } from "@/hooks/useOperatorView";
 import { useMobileNavDock } from "@/hooks/useMobileNavDock";
@@ -62,6 +63,7 @@ export default function TopNav() {
   const { t } = useLocale();
   const { user } = useAuth();
   const { unreadMessages, unreadNotifications } = useSocialBadges();
+  const { unreadSupport } = useSupportBadges();
   const { pendingReports } = useReportBadges();
   const { expanded: dockExpanded, toggle: toggleDock, collapse: collapseDock } =
     useMobileNavDock();
@@ -72,7 +74,9 @@ export default function TopNav() {
     enterOperatorMode,
     enterMemberPreviewMode,
   } = useOperatorView();
-  const operatorBadge = user && showOperatorUI ? pendingReports : 0;
+  const operatorBadge =
+    user && showOperatorUI ? pendingReports + unreadSupport : 0;
+  const supportBadge = user ? unreadSupport : 0;
 
   const mobileItems: MobileNavItem[] = [
     {
@@ -137,10 +141,15 @@ export default function TopNav() {
             <Link
               href="/support"
               onClick={collapseDock}
-              className="social-mobile-dock-link"
+              className="social-mobile-dock-link relative"
             >
               <span aria-hidden>{SYMBOL_NAV_SUPPORT}</span>
               <span>{t("nav.support")}</span>
+              {supportBadge > 0 ? (
+                <span className="absolute right-2 top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white">
+                  {supportBadge > 99 ? "99+" : supportBadge}
+                </span>
+              ) : null}
             </Link>
 
             {isOperator ? (

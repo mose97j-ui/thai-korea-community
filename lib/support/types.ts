@@ -29,9 +29,8 @@ export type SupportRequest = {
 };
 
 export type CreateSupportInput = {
-  category: SupportCategory;
-  title: string;
   content: string;
+  locale?: "ko" | "th";
 };
 
 export const SUPPORT_CHANGE_EVENT = "tkc-support-change";

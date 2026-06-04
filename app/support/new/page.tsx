@@ -10,49 +10,17 @@ import {
   ErrorMessage,
   FormField,
   SubmitButton,
-  inputClassName,
+  textareaClassName,
 } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOperatorView } from "@/hooks/useOperatorView";
-import type { MessageKey } from "@/lib/i18n/messages";
 import { createSupportRequest } from "@/lib/support/storage";
-import type { SupportCategory } from "@/lib/support/types";
-
-const categories: SupportCategory[] = ["board", "feature", "qa", "other"];
-
-function categoryLabelKey(category: SupportCategory): MessageKey {
-  switch (category) {
-    case "board":
-      return "support.catBoard";
-    case "feature":
-      return "support.catFeature";
-    case "qa":
-      return "support.catQa";
-    default:
-      return "support.catOther";
-  }
-}
-
-function categoryDescKey(category: SupportCategory): MessageKey {
-  switch (category) {
-    case "board":
-      return "support.catBoardDesc";
-    case "feature":
-      return "support.catFeatureDesc";
-    case "qa":
-      return "support.catQaDesc";
-    default:
-      return "support.catOtherDesc";
-  }
-}
 
 export default function SupportNewPage() {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { user, isReady } = useAuth();
-  const [category, setCategory] = useState<SupportCategory>("board");
-  const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,10 +45,6 @@ export default function SupportNewPage() {
     event.preventDefault();
     setError("");
 
-    if (!title.trim()) {
-      setError(t("support.errorTitle"));
-      return;
-    }
     if (!content.trim()) {
       setError(t("support.errorContent"));
       return;
@@ -89,9 +53,8 @@ export default function SupportNewPage() {
     setIsSubmitting(true);
     try {
       const request = createSupportRequest(user, {
-        category,
-        title,
         content,
+        locale,
       });
       router.push(`/support/${request.id}`);
     } finally {
@@ -109,61 +72,23 @@ export default function SupportNewPage() {
 
       <Card className="mb-4">
         <p className="text-sm leading-relaxed text-gray-600">{t("support.newDesc")}</p>
+        <p className="mt-2 text-xs leading-relaxed text-gray-400">
+          {t("support.newDescAutoClassify")}
+        </p>
       </Card>
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <FormField label={t("support.category")}>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {categories.map((item) => (
-                <label
-                  key={item}
-                  className={`cursor-pointer rounded-xl border p-4 transition ${
-                    category === item
-                      ? "border-[#06C755] bg-[#06C755]/5 ring-2 ring-[#06C755]/30"
-                      : "border-gray-100 bg-[#F8F9FA] hover:bg-white"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="category"
-                    value={item}
-                    checked={category === item}
-                    onChange={() => setCategory(item)}
-                    className="sr-only"
-                  />
-                  <span className="block text-base font-bold text-gray-900">
-                    {t(categoryLabelKey(item))}
-                  </span>
-                  <span className="mt-1 block text-sm leading-relaxed text-gray-500">
-                    {t(categoryDescKey(item))}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </FormField>
-
-          <FormField label={t("support.requestTitle")}>
-            <input
-              type="text"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder={t("support.requestTitlePlaceholder")}
-              maxLength={80}
-              className={inputClassName}
-              required
-            />
-          </FormField>
-
           <FormField label={t("support.requestContent")}>
             <textarea
               value={content}
               onChange={(event) => setContent(event.target.value)}
               placeholder={t("support.requestContentPlaceholder")}
-              rows={8}
+              rows={10}
               maxLength={2000}
-              className={`${inputClassName} min-h-[220px] resize-y`}
+              className={`${textareaClassName} min-h-[260px]`}
               required
+              autoFocus
             />
           </FormField>
 

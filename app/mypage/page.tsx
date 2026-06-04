@@ -32,6 +32,7 @@ import UserAvatar from "@/components/UserAvatar";
 import MyActivityPanel from "@/components/MyActivityPanel";
 import OperatorPreviewChecklist from "@/components/OperatorPreviewChecklist";
 import OperatorAnalyticsPanel from "@/components/OperatorAnalyticsPanel";
+import OperatorMessagesPanel from "@/components/OperatorMessagesPanel";
 import OperatorRecentMembersPanel from "@/components/OperatorRecentMembersPanel";
 import OperatorModerationPanel from "@/components/OperatorModerationPanel";
 import OperatorRecentPostsPanel from "@/components/OperatorRecentPostsPanel";
@@ -150,6 +151,7 @@ export default function MyPage() {
           <FeedSection tone="green" icon="👑" title={t("mypage.operator")} description={t("mypage.operatorDesc")}>
             <div className={sectionStackClassName}>
               <OperatorRecentMembersPanel />
+              <OperatorMessagesPanel />
               <OperatorAnalyticsPanel />
               <OperatorRecentPostsPanel />
               <OperatorSupportPanel />

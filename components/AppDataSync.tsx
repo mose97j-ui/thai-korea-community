@@ -7,6 +7,7 @@ import { useMemberRegistrySync } from "@/hooks/useMemberRegistrySync";
 import { useOperatorMemberSync } from "@/hooks/useOperatorMemberSync";
 import { useOperatorMenuRegistrySync } from "@/hooks/useOperatorMenuRegistrySync";
 import { useDirectMessageSync } from "@/hooks/useDirectMessageSync";
+import { useSupportSync } from "@/hooks/useSupportSync";
 import { useSessionMemberBackfill } from "@/hooks/useSessionMemberBackfill";
 import { isAuthLayoutPath } from "@/lib/routes/auth";
 
@@ -26,6 +27,7 @@ export default function AppDataSync() {
   });
   useOperatorMemberSync(showOperatorUI && syncMembers);
   useDirectMessageSync(syncMembers, user);
+  useSupportSync(syncMembers, user);
 
   return null;
 }

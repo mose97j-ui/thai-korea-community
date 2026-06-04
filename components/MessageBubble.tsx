@@ -13,6 +13,8 @@ type MessageBubbleProps = {
   senderLabel: string;
   showModeration?: boolean;
   showReport?: boolean;
+  canDelete?: boolean;
+  onDelete?: () => void;
   relatedPostId?: string;
   reportedUserId: string;
 };
@@ -23,6 +25,8 @@ export default function MessageBubble({
   senderLabel,
   showModeration = false,
   showReport = false,
+  canDelete = false,
+  onDelete,
   relatedPostId,
   reportedUserId,
 }: MessageBubbleProps) {
@@ -60,6 +64,21 @@ export default function MessageBubble({
               : "self-start bg-white text-gray-900 ring-1 ring-black/[0.06]"
           }`}
         >
+          {canDelete && onDelete ? (
+            <div className={`mb-1 flex ${mine ? "justify-end" : "justify-start"}`}>
+              <button
+                type="button"
+                onClick={onDelete}
+                className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                  mine
+                    ? "bg-white/20 text-white hover:bg-white/30"
+                    : "text-gray-500 ring-1 ring-black/[0.08] hover:bg-rose-50 hover:text-rose-600"
+                }`}
+              >
+                {t("common.delete")}
+              </button>
+            </div>
+          ) : null}
           {message.content ? (
             <p className="whitespace-pre-wrap text-base leading-relaxed">
               {message.content}

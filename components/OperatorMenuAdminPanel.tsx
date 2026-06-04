@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { HomeSubItem } from "@/lib/i18n/content";
 import {
   Card,
@@ -37,6 +37,8 @@ import {
 } from "@/lib/categories/operatorMenus";
 import { homeCategories, homeCategoryItems } from "@/lib/i18n/content";
 import type { PostFormTemplateId } from "@/lib/posts/formTemplateTypes";
+import { useIdleEffect } from "@/hooks/useIdleEffect";
+import { IDLE_AUTOSAVE_MS } from "@/lib/ui/idleAutosave";
 
 export function OperatorSubCategoryTileControls({
   subId,
@@ -108,6 +110,7 @@ export function OperatorSubCategoryTileControls({
 type OperatorMenuAdminPanelProps = {
   editingCategoryId: string | null;
   menuEditMode: boolean;
+  menuAutoSavedAt?: string | null;
   onClose: () => void;
   onSaved: () => void;
   onStartEdit: () => void;
@@ -158,6 +161,7 @@ export function OperatorMenuTileControls({
 export default function OperatorMenuAdminPanel({
   editingCategoryId,
   menuEditMode,
+  menuAutoSavedAt,
   onClose,
   onSaved,
   onStartEdit,
@@ -186,6 +190,12 @@ export default function OperatorMenuAdminPanel({
             <p className="text-ui-caption mt-1 text-amber-800/90">
               {menuEditMode ? t("operatorMenu.unsavedEditHint") : t("operatorMenu.editModeHint")}
             </p>
+            {menuEditMode && menuAutoSavedAt ? (
+              <p className="text-ui-caption mt-1 font-medium text-[#06C755]">
+                {t("operatorMenu.autoSaved")} ·{" "}
+                {new Date(menuAutoSavedAt).toLocaleTimeString()}
+              </p>
+            ) : null}
           </div>
           {menuEditMode ? (
             <div className="flex shrink-0 flex-wrap gap-2">
@@ -258,6 +268,11 @@ export default function OperatorMenuAdminPanel({
                 onSaved();
                 window.setTimeout(() => setMessage(""), 2500);
               }}
+              onAutoSaved={() => {
+                setMessage(t("operatorMenu.autoSaved"));
+                onSaved();
+                window.setTimeout(() => setMessage(""), 2500);
+              }}
             />
           ) : null}
         </>
@@ -270,10 +285,12 @@ function OperatorCategoryEditForm({
   categoryId,
   onClose,
   onSaved,
+  onAutoSaved,
 }: {
   categoryId: string;
   onClose: () => void;
   onSaved: () => void;
+  onAutoSaved?: () => void;
 }) {
   const { t, pick } = useLocale();
   const [error, setError] = useState("");
@@ -318,7 +335,29 @@ function OperatorCategoryEditForm({
     setFormTemplate(source.formTemplate);
   }, [categoryId, source.label, source.icon, source.tint, source.premium, source.formTemplate]);
 
-  const persistCategory = () => {
+  const isDirty = useMemo(
+    () =>
+      label !== source.label ||
+      icon !== source.icon ||
+      tint !== source.tint ||
+      premium !== source.premium ||
+      (!builtIn && formTemplate !== source.formTemplate),
+    [
+      label,
+      icon,
+      tint,
+      premium,
+      formTemplate,
+      source.label,
+      source.icon,
+      source.tint,
+      source.premium,
+      source.formTemplate,
+      builtIn,
+    ]
+  );
+
+  const persistCategory = useCallback(() => {
     const result = builtIn
       ? updateBuiltInCategory({
           categoryId,
@@ -342,7 +381,27 @@ function OperatorCategoryEditForm({
     }
     setError("");
     return true;
-  };
+  }, [
+    builtIn,
+    categoryId,
+    label,
+    icon,
+    tint,
+    premium,
+    formTemplate,
+    iconImagePolicyAccepted,
+    t,
+  ]);
+
+  useIdleEffect(
+    () => {
+      if (persistCategory()) {
+        (onAutoSaved ?? onSaved)();
+      }
+    },
+    [categoryId, label, icon, tint, premium, formTemplate, iconImagePolicyAccepted, builtIn],
+    { enabled: isDirty, idleMs: IDLE_AUTOSAVE_MS }
+  );
 
   return (
     <Card className="space-y-4">
@@ -525,11 +584,13 @@ export function OperatorSubEditForm({
   categoryId,
   subItem,
   onSaved,
+  onAutoSaved,
   onCancel,
 }: {
   categoryId: string;
   subItem: HomeSubItem;
   onSaved: () => void;
+  onAutoSaved?: () => void;
   onCancel: () => void;
 }) {
   const { t } = useLocale();
@@ -552,7 +613,19 @@ export function OperatorSubEditForm({
   );
   const [iconManual, setIconManual] = useState(true);
 
-  const persistSub = () => {
+  const initialTitle =
+    added?.title.th ?? override?.title?.th ?? base?.title.th ?? subItem.title.th;
+  const initialDescription =
+    added?.description.th ??
+      override?.description?.th ??
+      base?.description.th ??
+      subItem.description.th;
+  const initialIcon = added?.icon ?? override?.icon ?? base?.icon ?? subItem.icon;
+
+  const isDirty =
+    title !== initialTitle || description !== initialDescription || icon !== initialIcon;
+
+  const persistSub = useCallback(() => {
     const result = updateSubCategory({
       categoryId,
       subId: subItem.id,
@@ -567,7 +640,17 @@ export function OperatorSubEditForm({
     }
     setError("");
     return true;
-  };
+  }, [categoryId, subItem.id, subItem.tint, title, description, icon, t]);
+
+  useIdleEffect(
+    () => {
+      if (persistSub()) {
+        (onAutoSaved ?? onSaved)();
+      }
+    },
+    [categoryId, subItem.id, title, description, icon],
+    { enabled: isDirty, idleMs: IDLE_AUTOSAVE_MS }
+  );
 
   return (
     <div className="mt-3 space-y-3 border-t border-black/[0.06] pt-3">

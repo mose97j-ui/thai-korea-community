@@ -279,6 +279,9 @@ export const postFormPanelClassName =
 export const postFormTextareaClassName =
   "social-input !rounded-xl w-full resize-y !overflow-y-auto leading-relaxed !text-[#050505] !bg-white";
 
+/** Multi-line fields — pill radius clips text on tall textareas. */
+export const textareaClassName = postFormTextareaClassName;
+
 export function FormField({
   label,
   children,

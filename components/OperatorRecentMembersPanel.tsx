@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import UserAvatar from "@/components/UserAvatar";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui";
 import { useLocale } from "@/contexts/LocaleContext";
 import { formatAgeLabel, getUserBirthDate } from "@/lib/auth/age";
@@ -16,6 +18,7 @@ import { mergeRemoteMembers } from "@/lib/auth/storage";
 import { formatPhone } from "@/lib/auth/phone";
 import { getUserNickname } from "@/lib/auth/profileImage";
 import type { User } from "@/lib/auth/types";
+import { getMessageThreadHref } from "@/lib/social/actions";
 import type { MessageKey } from "@/lib/i18n/messages";
 import type { Locale } from "@/lib/i18n/types";
 
@@ -36,13 +39,23 @@ function MemberDetail({
   member,
   locale,
   t,
+  messageHref,
 }: {
   member: User;
   locale: Locale;
   t: (key: MessageKey) => string;
+  messageHref: string;
 }) {
   return (
-    <dl className="mt-3 grid gap-1.5 border-t border-black/[0.06] pt-3 sm:grid-cols-2">
+    <div className="mt-3 border-t border-black/[0.06] pt-3">
+      <Link
+        href={messageHref}
+        onClick={() => mergeRemoteMembers([member])}
+        className="mb-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#06C755] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#05b34c]"
+      >
+        ✉️ {t("admin.recentMembersSendMessage")}
+      </Link>
+    <dl className="grid gap-1.5 sm:grid-cols-2">
       <DetailRow label="Gmail" value={member.gmail} />
       <DetailRow label={t("mypage.phone")} value={formatPhone(member.koreanPhone) || "—"} />
       <DetailRow label={t("mypage.personalCode")} value={member.personalCode} />
@@ -53,6 +66,7 @@ function MemberDetail({
         <DetailRow label={t("mypage.referrer")} value={member.referredBy} />
       ) : null}
     </dl>
+    </div>
   );
 }
 
@@ -67,6 +81,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 export default function OperatorRecentMembersPanel() {
   const { t, locale } = useLocale();
+  const { user: operator } = useAuth();
   const [serverMembers, setServerMembers] = useState<User[]>([]);
   const [directoryConfigured, setDirectoryConfigured] = useState<boolean | null>(null);
   const [syncConfigured, setSyncConfigured] = useState<boolean | null>(null);
@@ -199,8 +214,13 @@ export default function OperatorRecentMembersPanel() {
                       {formatJoinedAt(member.createdAt, locale)}
                     </span>
                   </span>
-                  {expanded ? (
-                    <MemberDetail member={member} locale={locale} t={t} />
+                  {expanded && operator ? (
+                    <MemberDetail
+                      member={member}
+                      locale={locale}
+                      t={t}
+                      messageHref={getMessageThreadHref(operator.id, member.id)}
+                    />
                   ) : null}
                 </button>
               </li>

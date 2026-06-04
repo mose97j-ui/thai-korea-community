@@ -28,6 +28,7 @@ type CreateNotificationInput = {
   postId?: string;
   commentId?: string;
   messageId?: string;
+  supportId?: string;
 };
 
 export function createNotification(input: CreateNotificationInput): Notification {
@@ -42,6 +43,7 @@ export function createNotification(input: CreateNotificationInput): Notification
       postId: input.postId,
       commentId: input.commentId,
       messageId: input.messageId,
+      supportId: input.supportId,
       read: true,
       createdAt: new Date().toISOString(),
     };
@@ -57,6 +59,7 @@ export function createNotification(input: CreateNotificationInput): Notification
     postId: input.postId,
     commentId: input.commentId,
     messageId: input.messageId,
+    supportId: input.supportId,
     read: false,
     createdAt: new Date().toISOString(),
   };
@@ -115,6 +118,9 @@ export function markAllNotificationsRead(userId: string): void {
 export function getNotificationHref(notification: Notification): string {
   if (notification.type === "message") {
     return `/messages/${notification.actorId}`;
+  }
+  if (notification.type === "support" && notification.supportId) {
+    return `/support/${notification.supportId}`;
   }
   if (notification.postId) {
     return `/p/${notification.postId}`;

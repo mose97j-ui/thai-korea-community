@@ -7,6 +7,7 @@ import SocialPageShell from "@/components/SocialPageShell";
 import { compactSecondaryButtonClassName } from "@/components/ui";
 import { pageStickyHeaderClassName } from "@/components/PageShell";
 import { useAuth } from "@/contexts/AuthContext";
+import { resolveNotificationUserId } from "@/lib/social/notificationRecipient";
 import { useLocale } from "@/contexts/LocaleContext";
 import { formatPostDate } from "@/lib/posts/format";
 import {
@@ -21,6 +22,7 @@ import { SOCIAL_CHANGE_EVENT } from "@/lib/social/types";
 function notificationIcon(type: Notification["type"]) {
   if (type === "like") return "❤️";
   if (type === "comment") return "💬";
+  if (type === "support") return "📮";
   return "✉️";
 }
 
@@ -38,7 +40,7 @@ export default function NotificationsPage() {
 
   const refresh = () => {
     if (user) {
-      setItems(getNotifications(user.id));
+      setItems(getNotifications(resolveNotificationUserId(user)));
     }
   };
 
@@ -72,7 +74,7 @@ export default function NotificationsPage() {
           <button
             type="button"
             onClick={() => {
-              markAllNotificationsRead(user.id);
+              markAllNotificationsRead(resolveNotificationUserId(user));
               refresh();
             }}
             className={`shrink-0 ${compactSecondaryButtonClassName}`}
@@ -92,7 +94,9 @@ export default function NotificationsPage() {
             <Link
               key={item.id}
               href={getNotificationHref(item)}
-              onClick={() => markNotificationRead(item.id, user.id)}
+              onClick={() =>
+                markNotificationRead(item.id, resolveNotificationUserId(user))
+              }
               className={`flex items-start gap-3 px-3 py-3.5 transition active:bg-gray-50 ${
                 item.read ? "" : "bg-[#06C755]/5"
               }`}
@@ -105,7 +109,9 @@ export default function NotificationsPage() {
                       ? "social.notifLike"
                       : item.type === "comment"
                         ? "social.notifComment"
-                        : "social.notifMessage"
+                        : item.type === "support"
+                          ? "social.notifSupport"
+                          : "social.notifMessage"
                   ).replace("{name}", item.actorNickname)}
                 </p>
                 <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-gray-600">

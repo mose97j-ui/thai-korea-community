@@ -1,4 +1,5 @@
 import { findOperatorAccount, isOperatorUser } from "@/lib/auth/operator";
+import { resolveNotificationUserId } from "@/lib/social/notificationRecipient";
 import { findUserById } from "@/lib/auth/storage";
 import { isMessagingBlocked } from "@/lib/social/blocks";
 import { hasOperatorPrivileges } from "@/lib/auth/operatorView";
@@ -120,10 +121,13 @@ export function handleSendMessage(input: HandleSendMessageInput) {
         : input.sender.nickname || input.sender.name;
 
     const recipient = findUserById(input.recipientId);
-    const notifyUserId =
+    const notifyTarget =
       recipient && isOperatorUser(recipient)
-        ? (findOperatorAccount()?.id ?? input.recipientId)
-        : input.recipientId;
+        ? findOperatorAccount() ?? recipient
+        : recipient;
+    const notifyUserId = notifyTarget
+      ? resolveNotificationUserId(notifyTarget)
+      : input.recipientId;
 
     createNotification({
       userId: notifyUserId,

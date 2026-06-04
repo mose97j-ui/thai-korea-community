@@ -39,6 +39,11 @@ export function findOperatorAccount(): User | undefined {
   );
 }
 
+/** Id to use when a member sends a direct message to the operator. */
+export function getOperatorRecipientId(): string {
+  return findOperatorAccount()?.id ?? getOperatorDefaults().id;
+}
+
 export function isOperatorUser(user: User | null | undefined): boolean {
   if (!user) {
     return false;

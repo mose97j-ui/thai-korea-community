@@ -4,43 +4,38 @@ import { notFound, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
-import UserAvatar from "@/components/UserAvatar";
+import SupportMessageRow from "@/components/SupportMessageRow";
 import {
   Card,
-  inputClassName,
+  textareaClassName,
   pillSecondaryButtonClassName,
   primaryButtonClassName,
+  dangerButtonClassName,
 } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOperatorView } from "@/hooks/useOperatorView";
-import type { MessageKey } from "@/lib/i18n/messages";
 import { formatPostDate } from "@/lib/posts/format";
+import { supportCategoryLabelKey } from "@/lib/support/categoryDisplay";
+import {
+  canDeleteSupportMessage,
+  deleteSupportMessage,
+  deleteSupportRequest,
+} from "@/lib/support/actions";
+import { blockUser, isUserBlocked, unblockUser } from "@/lib/social/blocks";
 import {
   addSupportReply,
   getSupportRequestById,
   markSupportRequestRead,
   updateSupportStatus,
 } from "@/lib/support/storage";
-import type { SupportCategory, SupportRequest, SupportStatus } from "@/lib/support/types";
+import type { SupportRequest, SupportStatus } from "@/lib/support/types";
 import { SUPPORT_CHANGE_EVENT } from "@/lib/support/types";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 type SupportDetailPageProps = {
   params: Promise<{ id: string }>;
 };
-
-function categoryLabelKey(category: SupportCategory): MessageKey {
-  switch (category) {
-    case "board":
-      return "support.catBoard";
-    case "feature":
-      return "support.catFeature";
-    case "qa":
-      return "support.catQa";
-    default:
-      return "support.catOther";
-  }
-}
 
 function statusLabelKey(status: SupportStatus): MessageKey {
   switch (status) {
@@ -97,7 +92,7 @@ export default function SupportDetailPage({ params }: SupportDetailPageProps) {
 
   if (!isReady || !user || request === undefined) {
     return (
-    <PageShell maxWidth="full">
+      <PageShell maxWidth="full">
         <Card className="py-10 text-center text-base text-gray-500">
           {t("common.loading")}
         </Card>
@@ -115,6 +110,9 @@ export default function SupportDetailPage({ params }: SupportDetailPageProps) {
   }
 
   const closed = request.status === "closed";
+  const blockedByMe = Boolean(
+    showOperatorUI && isUserBlocked(user.id, request.userId)
+  );
 
   const handleReply = (event: React.FormEvent) => {
     event.preventDefault();
@@ -134,6 +132,41 @@ export default function SupportDetailPage({ params }: SupportDetailPageProps) {
     refresh();
   };
 
+  const handleDeleteRequest = () => {
+    if (!window.confirm(t("support.deleteRequestConfirm"))) {
+      return;
+    }
+    if (deleteSupportRequest(request.id, user)) {
+      router.push("/support");
+    }
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    if (!window.confirm(t("support.deleteMessageConfirm"))) {
+      return;
+    }
+    if (deleteSupportMessage(request.id, messageId, user)) {
+      const remaining = getSupportRequestById(request.id);
+      if (!remaining) {
+        router.push("/support");
+        return;
+      }
+      refresh();
+    }
+  };
+
+  const toggleBlockMember = () => {
+    if (!showOperatorUI) {
+      return;
+    }
+    if (blockedByMe) {
+      unblockUser(user.id, request.userId);
+    } else {
+      blockUser(user.id, request.userId);
+    }
+    refresh();
+  };
+
   return (
     <PageShell maxWidth="full">
       <PageHeader
@@ -144,9 +177,11 @@ export default function SupportDetailPage({ params }: SupportDetailPageProps) {
 
       <Card className="mb-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-sky-50 px-3 py-1.5 text-sm font-semibold text-sky-700 ring-1 ring-sky-100">
-            {t(categoryLabelKey(request.category))}
-          </span>
+          {showOperatorUI ? (
+            <span className="rounded-full bg-sky-50 px-3 py-1.5 text-sm font-semibold text-sky-700 ring-1 ring-sky-100">
+              {t("support.operatorCategory")}: {t(supportCategoryLabelKey(request.category))}
+            </span>
+          ) : null}
           <span className="rounded-full bg-[#F0F2F5] px-3 py-1.5 text-sm font-semibold text-gray-700 ring-1 ring-black/[0.06]">
             {t(statusLabelKey(request.status))}
           </span>
@@ -161,83 +196,62 @@ export default function SupportDetailPage({ params }: SupportDetailPageProps) {
         </p>
       </Card>
 
-      {showOperatorUI && (
-        <Card className="mb-4 flex flex-wrap gap-2 p-4">
-          <button
-            type="button"
-            onClick={() => handleStatus("answered")}
-            className={pillSecondaryButtonClassName}
-          >
-            {t("support.markAnswered")}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleStatus("closed")}
-            className={pillSecondaryButtonClassName}
-          >
-            {t("support.markClosed")}
-          </button>
-          {request.status === "closed" && (
+      <Card className="mb-4 flex flex-wrap gap-2 p-4">
+        {showOperatorUI ? (
+          <>
             <button
               type="button"
-              onClick={() => handleStatus("open")}
+              onClick={() => handleStatus("answered")}
               className={pillSecondaryButtonClassName}
             >
-              {t("support.reopen")}
+              {t("support.markAnswered")}
             </button>
-          )}
-        </Card>
-      )}
+            <button
+              type="button"
+              onClick={() => handleStatus("closed")}
+              className={pillSecondaryButtonClassName}
+            >
+              {t("support.markClosed")}
+            </button>
+            {request.status === "closed" ? (
+              <button
+                type="button"
+                onClick={() => handleStatus("open")}
+                className={pillSecondaryButtonClassName}
+              >
+                {t("support.reopen")}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={toggleBlockMember}
+              className={pillSecondaryButtonClassName}
+            >
+              {blockedByMe ? t("social.unblockUser") : t("support.blockMember")}
+            </button>
+          </>
+        ) : null}
+        <button
+          type="button"
+          onClick={handleDeleteRequest}
+          className={`${dangerButtonClassName} !px-4 !py-2 text-sm`}
+        >
+          {t("support.deleteRequest")}
+        </button>
+      </Card>
 
       <Card className="mb-4">
         <div className="space-y-3">
-          {request.messages.map((message) => {
-            const authorUser = {
-              id: message.authorId,
-              name: message.authorNickname,
-              nickname: message.authorNickname,
-              profileImage: message.authorProfileImage,
-              birthDate: "2000-01-01",
-              hometown: "",
-              gmail: "",
-              koreanPhone: "",
-              personalCode: "",
-              password: "",
-              createdAt: message.createdAt,
-            };
-
-            return (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${message.isOperator ? "flex-row-reverse" : ""}`}
-              >
-                <UserAvatar user={authorUser} size="sm" shape="square" />
-                <div
-                  className={`min-w-0 max-w-[85%] rounded-2xl px-4 py-3 ${
-                    message.isOperator
-                      ? "bg-[#06C755] text-white"
-                      : "bg-[#F0F2F5] text-gray-900 ring-1 ring-black/[0.06]"
-                  }`}
-                >
-                  <p className="text-xs font-semibold opacity-80">
-                    {message.isOperator
-                      ? t("support.operatorReply")
-                      : message.authorNickname}
-                  </p>
-                  <p className="mt-1 whitespace-pre-wrap text-base leading-relaxed">
-                    {message.content}
-                  </p>
-                  <p
-                    className={`mt-1 text-xs ${
-                      message.isOperator ? "text-white/70" : "text-gray-400"
-                    }`}
-                  >
-                    {formatPostDate(message.createdAt, locale)}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+          {request.messages.map((message) => (
+            <SupportMessageRow
+              key={message.id}
+              message={message}
+              locale={locale}
+              operatorLabel={t("support.operatorReply")}
+              canDelete={canDeleteSupportMessage(request, message, user)}
+              onDelete={() => handleDeleteMessage(message.id)}
+            />
+          ))}
           <div ref={bottomRef} />
         </div>
       </Card>
@@ -247,8 +261,8 @@ export default function SupportDetailPage({ params }: SupportDetailPageProps) {
           {t("support.closedNotice")}
         </Card>
       ) : (
-        <form onSubmit={handleReply} className="flex gap-2">
-          <input
+        <form onSubmit={handleReply} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <textarea
             value={reply}
             onChange={(event) => setReply(event.target.value)}
             placeholder={
@@ -256,7 +270,8 @@ export default function SupportDetailPage({ params }: SupportDetailPageProps) {
                 ? t("support.operatorReplyPlaceholder")
                 : t("support.replyPlaceholder")
             }
-            className={inputClassName}
+            rows={3}
+            className={`${textareaClassName} min-h-[5rem] flex-1`}
             maxLength={2000}
           />
           <button type="submit" className={`shrink-0 ${primaryButtonClassName} px-5`}>

@@ -642,6 +642,12 @@ html.locale-ko body {
     padding: 0.625rem 0.875rem;
   }
 
+  textarea.social-input {
+    border-radius: var(--social-radius-lg);
+    overflow-y: auto;
+    vertical-align: top;
+  }
+
   .social-input {
     width: 100%;
     border-radius: var(--social-radius-pill);

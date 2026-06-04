@@ -7,6 +7,14 @@ import type {
   SupportRequest,
   SupportStatus,
 } from "./types";
+import { classifySupportCategory } from "./classify";
+import {
+  notifyMemberSupportReply,
+  notifyOperatorNewSupportRequest,
+  notifyOperatorSupportFollowUp,
+} from "./notify";
+import { scheduleSupportRequestSync } from "./supportSync";
+import { deriveSupportTitle } from "./title";
 import { SUPPORT_CHANGE_EVENT } from "./types";
 
 const SUPPORT_KEY = "tkc_support_requests";
@@ -34,6 +42,10 @@ function writeRequests(requests: SupportRequest[]): void {
   notifyChange();
 }
 
+function syncRequestToServer(request: SupportRequest): void {
+  scheduleSupportRequestSync(request);
+}
+
 function sortRequests(requests: SupportRequest[]): SupportRequest[] {
   return [...requests].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
@@ -57,13 +69,17 @@ export function createSupportRequest(
   input: CreateSupportInput
 ): SupportRequest {
   const now = new Date().toISOString();
+  const body = input.content.trim();
+  const category = classifySupportCategory(body);
+  const title = deriveSupportTitle(body, input.locale);
+
   const initialMessage: SupportMessage = {
     id: crypto.randomUUID(),
     authorId: user.id,
     authorNickname: getUserNickname(user),
     authorProfileImage: user.profileImage,
     isOperator: false,
-    content: input.content.trim(),
+    content: body,
     createdAt: now,
   };
 
@@ -73,8 +89,8 @@ export function createSupportRequest(
     userNickname: getUserNickname(user),
     userProfileImage: user.profileImage,
     userGmail: user.gmail,
-    category: input.category,
-    title: input.title.trim(),
+    category,
+    title,
     status: "open",
     messages: [initialMessage],
     unreadByUser: false,
@@ -86,6 +102,8 @@ export function createSupportRequest(
   const requests = readRequests();
   requests.push(request);
   writeRequests(requests);
+  syncRequestToServer(request);
+  notifyOperatorNewSupportRequest(user, request);
   return request;
 }
 
@@ -136,6 +154,14 @@ export function addSupportReply(
 
   requests[index] = updated;
   writeRequests(requests);
+  syncRequestToServer(updated);
+
+  if (operator) {
+    notifyMemberSupportReply(updated, author, trimmed);
+  } else {
+    notifyOperatorSupportFollowUp(updated, author, trimmed);
+  }
+
   return updated;
 }
 
@@ -164,6 +190,7 @@ export function updateSupportStatus(
 
   requests[index] = updated;
   writeRequests(requests);
+  syncRequestToServer(updated);
   return updated;
 }
 
@@ -200,6 +227,7 @@ export function markSupportRequestRead(
 
   requests[index] = updated;
   writeRequests(requests);
+  syncRequestToServer(updated);
   return updated;
 }
 

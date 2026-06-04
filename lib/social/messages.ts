@@ -5,10 +5,13 @@ import {
   getPeerId,
   messageInvolvesUser,
   messageIsUnreadForUser,
+  remapPeerIdForViewer,
   resolveUserGmail,
 } from "./conversation";
 import type { User } from "@/lib/auth/types";
 import { emitSocialChange } from "./events";
+import { isConversationHiddenForUser } from "./conversationHide";
+import { conversationIdsMatch } from "./messageFilters";
 import { scheduleDirectMessageSync } from "./messageSync";
 import { formatMessagePreview } from "./messagePreview";
 import type {
@@ -111,20 +114,6 @@ export function getUnreadMessageCount(userId: string, gmail?: string): number {
     .length;
 }
 
-function conversationIdsMatch(storedId: string, activeId: string): boolean {
-  if (storedId === activeId) {
-    return true;
-  }
-  const keys = new Set(
-    activeId.includes("\u0001") ? activeId.split("\u0001") : [activeId]
-  );
-  if (!storedId.includes("\u0001")) {
-    return false;
-  }
-  const parts = storedId.split("\u0001");
-  return parts.length === 2 && keys.has(parts[0]) && keys.has(parts[1]);
-}
-
 export function markConversationRead(conversationId: string, viewer: User): void {
   const messages = readMessages();
   let changed = false;
@@ -216,12 +205,16 @@ export function getConversationsForUser(
   const previews: ConversationPreview[] = [];
 
   for (const [conversationId, group] of map.entries()) {
+    if (isConversationHiddenForUser(viewer.id, conversationId)) {
+      continue;
+    }
     const sorted = [...group].sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
     const last = sorted[0];
-    const peerId = getPeerId(conversationId, viewer.id);
+    const rawPeerId = getPeerId(conversationId, viewer.id);
+    const peerId = remapPeerIdForViewer(rawPeerId, viewer);
     const peer = users.find((user) => user.id === peerId);
 
     previews.push({

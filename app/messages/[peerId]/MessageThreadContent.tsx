@@ -4,17 +4,16 @@ import Link from "next/link";
 import { notFound, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import MessageBubble from "@/components/MessageBubble";
+import ThreadActionBar from "@/components/ThreadActionBar";
 import MessageComposer, {
   type MessageComposerPayload,
 } from "@/components/MessageComposer";
 import SocialPageShell from "@/components/SocialPageShell";
 import UserAvatar from "@/components/UserAvatar";
-import { compactSecondaryButtonClassName } from "@/components/ui";
 import { pageStickyHeaderClassName } from "@/components/PageShell";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOperatorView } from "@/hooks/useOperatorView";
-import { findUserById } from "@/lib/auth/storage";
 import { canSendMessage } from "@/lib/auth/moderation";
 import ModerationNotice from "@/components/ModerationNotice";
 import { validateMessageContent } from "@/lib/moderation/autoModeration";
@@ -25,8 +24,18 @@ import {
   isUserBlocked,
   unblockUser,
 } from "@/lib/social/blocks";
+import { hasOperatorPrivileges } from "@/lib/auth/operatorView";
 import { handleSendMessage } from "@/lib/social/actions";
-import { getConversationId } from "@/lib/social/conversation";
+import {
+  canDeleteMessage,
+  deleteConversationForUser,
+  deleteDirectMessage,
+} from "@/lib/social/messageActions";
+import {
+  getConversationId,
+  remapPeerIdForViewer,
+  resolveThreadPeer,
+} from "@/lib/social/conversation";
 import {
   getMessageSenderLabel,
   getMessagesForConversation,
@@ -48,6 +57,7 @@ export default function MessageThreadContent({ params }: MessageThreadContentPro
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [messageError, setMessageError] = useState("");
   const [sendSuccess, setSendSuccess] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const relatedPostId = searchParams.get("post");
 
@@ -63,18 +73,23 @@ export default function MessageThreadContent({ params }: MessageThreadContentPro
     }
   }, [isReady, user, router]);
 
-  const peer = peerId ? findUserById(peerId) : undefined;
+  const resolvedPeerId =
+    peerId && user ? remapPeerIdForViewer(peerId, user) : peerId;
+  const peer = resolvedPeerId ? resolveThreadPeer(resolvedPeerId) : undefined;
   const relatedPost = relatedPostId ? getPostById(relatedPostId) : null;
   const { showOperatorUI } = useOperatorView();
   const blockedByMe = Boolean(
-    user && peerId && isUserBlocked(user.id, peerId)
+    user && resolvedPeerId && isUserBlocked(user.id, resolvedPeerId)
   );
   const messagingBlocked = Boolean(
-    user && peerId && !showOperatorUI && isMessagingBlocked(user.id, peerId)
+    user &&
+      resolvedPeerId &&
+      !showOperatorUI &&
+      isMessagingBlocked(user.id, resolvedPeerId)
   );
 
   const refresh = () => {
-    if (!user || !peerId || !peer) {
+    if (!user || !resolvedPeerId || !peer) {
       return;
     }
     const conversationId = getConversationId(
@@ -83,6 +98,7 @@ export default function MessageThreadContent({ params }: MessageThreadContentPro
       user.gmail,
       peer.gmail
     );
+    setConversationId(conversationId);
     setMessages(getMessagesForConversation(conversationId));
     markConversationRead(conversationId, user);
   };
@@ -91,7 +107,7 @@ export default function MessageThreadContent({ params }: MessageThreadContentPro
     refresh();
     window.addEventListener(SOCIAL_CHANGE_EVENT, refresh);
     return () => window.removeEventListener(SOCIAL_CHANGE_EVENT, refresh);
-  }, [user?.id, peerId]);
+  }, [user?.id, resolvedPeerId, peer?.id]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -154,16 +170,45 @@ export default function MessageThreadContent({ params }: MessageThreadContentPro
   };
 
   const toggleBlock = () => {
-    if (!user || !peerId) {
+    if (!user || !resolvedPeerId) {
       return;
     }
     if (blockedByMe) {
-      unblockUser(user.id, peerId);
+      unblockUser(user.id, resolvedPeerId);
     } else {
-      blockUser(user.id, peerId);
+      blockUser(user.id, resolvedPeerId);
     }
     refresh();
   };
+
+  const handleDeleteThread = () => {
+    if (!user || !conversationId) {
+      return;
+    }
+    const confirmKey = hasOperatorPrivileges(user)
+      ? "social.deleteConversationConfirm"
+      : "social.hideConversationConfirm";
+    if (!window.confirm(t(confirmKey))) {
+      return;
+    }
+    deleteConversationForUser(conversationId, user);
+    router.push("/messages");
+  };
+
+  const handleDeleteMessage = (message: DirectMessage) => {
+    if (!user || !canDeleteMessage(message, user)) {
+      return;
+    }
+    if (!window.confirm(t("social.deleteMessageConfirm"))) {
+      return;
+    }
+    deleteDirectMessage(message.id, user);
+    refresh();
+  };
+
+  const deleteThreadLabel = hasOperatorPrivileges(user)
+    ? t("social.deleteConversation")
+    : t("social.hideConversation");
 
   return (
     <SocialPageShell>
@@ -182,14 +227,14 @@ export default function MessageThreadContent({ params }: MessageThreadContentPro
           </p>
           <p className="text-xs text-gray-500">{t("social.directMessage")}</p>
         </div>
-        <button
-          type="button"
-          onClick={toggleBlock}
-          className={`shrink-0 ${compactSecondaryButtonClassName}`}
-        >
-          {blockedByMe ? t("social.unblockUser") : t("social.blockUser")}
-        </button>
       </div>
+
+      <ThreadActionBar
+        blockedByMe={blockedByMe}
+        onToggleBlock={toggleBlock}
+        onDeleteThread={handleDeleteThread}
+        deleteLabel={deleteThreadLabel}
+      />
 
       {relatedPost ? (
         <div className="border-b border-gray-200 bg-[#F0F2F5] px-3 py-2 text-sm text-gray-700">
@@ -233,6 +278,8 @@ export default function MessageThreadContent({ params }: MessageThreadContentPro
                   senderLabel={senderLabel}
                   showReport={!mine}
                   showModeration={!mine && showOperatorUI}
+                  canDelete={canDeleteMessage(message, user)}
+                  onDelete={() => handleDeleteMessage(message)}
                   relatedPostId={relatedPostId ?? undefined}
                   reportedUserId={message.senderId}
                 />

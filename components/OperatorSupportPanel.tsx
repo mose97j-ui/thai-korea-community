@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Card, SectionLabel, pillButtonClassName } from "@/components/ui";
 import { useLocale } from "@/contexts/LocaleContext";
+import { supportCategoryLabelKey } from "@/lib/support/categoryDisplay";
 import {
   getAllSupportRequests,
   getOpenSupportCount,
@@ -72,6 +73,10 @@ export default function OperatorSupportPanel() {
               >
                 <p className="truncate text-sm font-bold text-gray-900">{item.title}</p>
                 <p className="mt-1 truncate text-xs text-gray-500">
+                  <span className="font-semibold text-sky-700">
+                    {t(supportCategoryLabelKey(item.category))}
+                  </span>
+                  {" · "}
                   {item.userNickname} · {item.userGmail}
                 </p>
               </Link>

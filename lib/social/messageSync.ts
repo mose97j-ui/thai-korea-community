@@ -1,3 +1,4 @@
+import { findOperatorAccount, getOperatorDefaults } from "@/lib/auth/operator";
 import { findUserByGmail, findUserById } from "@/lib/auth/storage";
 import type { User } from "@/lib/auth/types";
 import type { DirectMessage } from "@/lib/social/types";
@@ -72,7 +73,18 @@ export function mergeRemoteMessages(remote: DirectMessage[]): boolean {
 function resolveGmail(userId: string): string | null {
   const user = findUserById(userId);
   const gmail = user?.gmail?.trim().toLowerCase();
-  return gmail || null;
+  if (gmail) {
+    return gmail;
+  }
+  const operator = findOperatorAccount();
+  if (operator && operator.id === userId) {
+    return operator.gmail.trim().toLowerCase();
+  }
+  const defaults = getOperatorDefaults();
+  if (userId === defaults.id) {
+    return defaults.gmail.toLowerCase();
+  }
+  return null;
 }
 
 export async function syncDirectMessageToServer(
@@ -169,8 +181,44 @@ export async function fetchDirectMessagesFromSupabase(user: User): Promise<numbe
   }
 }
 
+export async function pushAllLocalMessagesToServer(): Promise<number> {
+  let synced = 0;
+  for (const message of readMessages()) {
+    if (await syncDirectMessageToServer(message)) {
+      synced += 1;
+    }
+  }
+  return synced;
+}
+
 export async function pullMessagesForUser(user: User): Promise<number> {
+  await pushAllLocalMessagesToServer();
   const fromApi = await fetchDirectMessagesForUser(user);
   const fromClient = await fetchDirectMessagesFromSupabase(user);
   return Math.max(fromApi, fromClient);
+}
+
+export async function syncMessageDeletionsToServer(ids: string[]): Promise<void> {
+  if (ids.length === 0 || typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    await fetch("/api/messages/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+      cache: "no-store",
+    });
+    dispatchMessagesSyncEvent();
+  } catch {
+    // Local delete still applies.
+  }
+}
+
+export function scheduleMessageDeletionsSync(ids: string[]): void {
+  if (typeof window === "undefined" || ids.length === 0) {
+    return;
+  }
+  void syncMessageDeletionsToServer(ids);
 }

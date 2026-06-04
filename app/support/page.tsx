@@ -8,7 +8,6 @@ import PageShell from "@/components/PageShell";
 import {
   Card,
   FilterChip,
-  SectionLabel,
   pillButtonClassName,
   topicGridClassName,
 } from "@/components/ui";
@@ -18,37 +17,18 @@ import { useOperatorView } from "@/hooks/useOperatorView";
 import { formatPostDate } from "@/lib/posts/format";
 import type { MessageKey } from "@/lib/i18n/messages";
 import {
+  supportCategoryIcon,
+  supportCategoryLabelKey,
+} from "@/lib/support/categoryDisplay";
+import SupportMemberGroupList from "@/components/SupportMemberGroupList";
+import { groupSupportRequestsByMember } from "@/lib/support/groupByMember";
+import {
   getAllSupportRequests,
   getSupportRequestsForUser,
 } from "@/lib/support/storage";
-import type { SupportCategory, SupportRequest, SupportStatus } from "@/lib/support/types";
+import type { SupportRequest, SupportStatus } from "@/lib/support/types";
 import { SUPPORT_CHANGE_EVENT } from "@/lib/support/types";
-
-function categoryLabelKey(category: SupportCategory): MessageKey {
-  switch (category) {
-    case "board":
-      return "support.catBoard";
-    case "feature":
-      return "support.catFeature";
-    case "qa":
-      return "support.catQa";
-    default:
-      return "support.catOther";
-  }
-}
-
-function categoryIcon(category: SupportCategory): string {
-  switch (category) {
-    case "board":
-      return "📋";
-    case "feature":
-      return "✨";
-    case "qa":
-      return "❓";
-    default:
-      return "📝";
-  }
-}
+import { SUPPORT_SYNC_EVENT } from "@/lib/support/supportSync";
 
 function statusLabelKey(status: SupportStatus): MessageKey {
   switch (status) {
@@ -96,7 +76,7 @@ function SupportRequestCard({
     >
       <div className="flex items-start gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#F0F2F5] text-xl ring-1 ring-black/[0.04]">
-          {categoryIcon(request.category)}
+          {operatorView ? supportCategoryIcon(request.category) : "📮"}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -105,14 +85,16 @@ function SupportRequestCard({
             >
               {t(statusLabelKey(request.status))}
             </span>
-            <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-100">
-              {t(categoryLabelKey(request.category))}
-            </span>
-            {hasUnread && (
-              <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
-                NEW
+            {operatorView ? (
+              <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-100">
+                {t(supportCategoryLabelKey(request.category))}
               </span>
-            )}
+            ) : null}
+            {hasUnread ? (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                1
+              </span>
+            ) : null}
           </div>
           <p className="mt-2 text-lg font-bold leading-snug text-gray-900">
             {request.title}
@@ -161,7 +143,11 @@ export default function SupportPage() {
   useEffect(() => {
     refresh();
     window.addEventListener(SUPPORT_CHANGE_EVENT, refresh);
-    return () => window.removeEventListener(SUPPORT_CHANGE_EVENT, refresh);
+    window.addEventListener(SUPPORT_SYNC_EVENT, refresh);
+    return () => {
+      window.removeEventListener(SUPPORT_CHANGE_EVENT, refresh);
+      window.removeEventListener(SUPPORT_SYNC_EVENT, refresh);
+    };
   }, [user?.id, showOperatorUI]);
 
   const filtered = useMemo(() => {
@@ -170,6 +156,11 @@ export default function SupportPage() {
     }
     return requests.filter((item) => item.status === statusFilter);
   }, [requests, statusFilter]);
+
+  const memberGroups = useMemo(
+    () => (showOperatorUI ? groupSupportRequestsByMember(filtered) : []),
+    [showOperatorUI, filtered]
+  );
 
   if (!isReady || !user) {
     return null;
@@ -220,20 +211,16 @@ export default function SupportPage() {
             </Link>
           )}
         </Card>
+      ) : showOperatorUI ? (
+        <SupportMemberGroupList groups={memberGroups} locale={locale} />
       ) : (
         <div className={topicGridClassName}>
-          {showOperatorUI && (
-            <div className="col-span-full">
-              <SectionLabel>{t("support.requestList")}</SectionLabel>
-            </div>
-          )}
           {filtered.map((request) => (
             <SupportRequestCard
               key={request.id}
               request={request}
               locale={locale}
-              showUser={showOperatorUI}
-              operatorView={showOperatorUI}
+              operatorView={false}
             />
           ))}
         </div>

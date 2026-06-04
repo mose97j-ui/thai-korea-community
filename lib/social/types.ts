@@ -1,4 +1,4 @@
-export type NotificationType = "comment" | "like" | "message";
+export type NotificationType = "comment" | "like" | "message" | "support";
 
 export type MessageSendMode = "nickname" | "anonymous";
 
@@ -48,6 +48,7 @@ export type Notification = {
   postId?: string;
   commentId?: string;
   messageId?: string;
+  supportId?: string;
   preview: string;
   read: boolean;
   createdAt: string;

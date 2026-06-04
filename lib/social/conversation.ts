@@ -1,4 +1,10 @@
-import { getOperatorDefaults, isOperatorUser } from "@/lib/auth/operator";
+import {
+  findOperatorAccount,
+  getOperatorDefaults,
+  getOperatorRecipientId,
+  isOperatorUser,
+} from "@/lib/auth/operator";
+import { hasOperatorPrivileges } from "@/lib/auth/operatorView";
 import { findUserByGmail, findUserById } from "@/lib/auth/storage";
 import type { User } from "@/lib/auth/types";
 import type { DirectMessage } from "@/lib/social/types";
@@ -39,6 +45,17 @@ export function resolveUserGmail(userId: string): string | undefined {
   return user?.gmail?.trim().toLowerCase();
 }
 
+export function resolveThreadPeer(peerId: string): User | undefined {
+  const direct = findUserById(peerId);
+  if (direct) {
+    return direct;
+  }
+  if (peerId.startsWith("gmail:")) {
+    return findUserByGmail(peerId.slice(6));
+  }
+  return undefined;
+}
+
 export function resolvePeerUserId(peerId: string): string {
   const user = findUserById(peerId);
   if (user) {
@@ -53,19 +70,45 @@ export function resolvePeerUserId(peerId: string): string {
   return peerId;
 }
 
-/** Map legacy conversation ids to the current viewer's id for inbox links. */
+/** Map legacy conversation ids to stable inbox / thread links. */
 export function remapPeerIdForViewer(peerId: string, viewer: User): string {
   const peer = findUserById(peerId);
-  if (peer && isOperatorUser(peer) && isOperatorUser(viewer)) {
-    return viewer.id;
+
+  if (hasOperatorPrivileges(viewer)) {
+    if (peer && isOperatorUser(peer)) {
+      return viewer.id;
+    }
+    const peerGmail =
+      peer?.gmail?.toLowerCase() ??
+      (peerId.startsWith("gmail:") ? peerId.slice(6).toLowerCase() : resolveUserGmail(peerId));
+    if (peerGmail === OPERATOR_GMAIL) {
+      return viewer.id;
+    }
+    if (peer) {
+      return peer.id;
+    }
+    if (peerId.startsWith("gmail:")) {
+      return findUserByGmail(peerId.slice(6))?.id ?? peerId;
+    }
+    return peerId;
   }
+
   if (peer) {
     return peer.id;
   }
 
-  const gmail = resolveUserGmail(peerId);
-  if (gmail && gmail === OPERATOR_GMAIL) {
-    return viewer.id;
+  if (peerId.startsWith("gmail:")) {
+    return findUserByGmail(peerId.slice(6))?.id ?? peerId;
+  }
+
+  const operatorId = getOperatorRecipientId();
+  if (
+    peerId === operatorId ||
+    peerId === getOperatorDefaults().id ||
+    resolveUserGmail(peerId) === OPERATOR_GMAIL ||
+    findOperatorAccount()?.id === peerId
+  ) {
+    return operatorId;
   }
 
   return peerId;

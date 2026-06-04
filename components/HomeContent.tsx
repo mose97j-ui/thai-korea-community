@@ -39,6 +39,7 @@ import {
   setCategoryGroupOrder,
   setSubCategoryGroupOrder,
 } from "@/lib/categories/operatorMenus";
+import { useOperatorMenuIdleAutoSave } from "@/hooks/useOperatorMenuIdleAutoSave";
 import { isUserCategoryId } from "@/lib/categories/userMenus";
 import MenuIcon from "@/components/MenuIcon";
 import { useAuth } from "@/contexts/AuthContext";
@@ -85,6 +86,7 @@ export default function HomeContent() {
   const [editingSubId, setEditingSubId] = useState<string | null>(null);
   const [subManageError, setSubManageError] = useState("");
   const [menuEditMode, setMenuEditMode] = useState(false);
+  const [menuAutoSavedAt, setMenuAutoSavedAt] = useState<string | null>(null);
   const [writeCategoryId, setWriteCategoryId] = useState("reviews");
   const [writeSubId, setWriteSubId] = useState("reviews-0");
   const [statsVersion, setStatsVersion] = useState(0);
@@ -312,12 +314,14 @@ export default function HomeContent() {
   const handleStartMenuEdit = useCallback(() => {
     beginOperatorMenuEditSession();
     setMenuEditMode(true);
+    setMenuAutoSavedAt(null);
     refreshOperatorMenus();
   }, [refreshOperatorMenus]);
 
   const handleSaveMenuEdit = useCallback(() => {
     commitOperatorMenuEditSession();
     setMenuEditMode(false);
+    setMenuAutoSavedAt(null);
     setEditingCategoryId(null);
     setEditingSubId(null);
     setSubManageError("");
@@ -327,11 +331,23 @@ export default function HomeContent() {
   const handleCancelMenuEdit = useCallback(() => {
     cancelOperatorMenuEditSession();
     setMenuEditMode(false);
+    setMenuAutoSavedAt(null);
     setEditingCategoryId(null);
     setEditingSubId(null);
     setSubManageError("");
     refreshOperatorMenus();
   }, [refreshOperatorMenus]);
+
+  const handleMenuIdleAutoSave = useCallback(() => {
+    setMenuAutoSavedAt(new Date().toISOString());
+    refreshOperatorMenus();
+  }, [refreshOperatorMenus]);
+
+  useOperatorMenuIdleAutoSave(
+    menuEditMode && showOperatorUI,
+    handleMenuIdleAutoSave,
+    menuListSignature
+  );
 
   const handleReorderVisibleMenus = useCallback(
     (newGroupOrder: string[]) => {
@@ -570,6 +586,7 @@ export default function HomeContent() {
               <OperatorMenuAdminPanel
                 editingCategoryId={editingCategoryId}
                 menuEditMode={menuEditMode}
+                menuAutoSavedAt={menuAutoSavedAt}
                 onClose={() => setEditingCategoryId(null)}
                 onSaved={refreshOperatorMenus}
                 onStartEdit={handleStartMenuEdit}
@@ -677,6 +694,7 @@ export default function HomeContent() {
                   <OperatorSubEditForm
                     categoryId={selectedId}
                     subItem={editingSubItem}
+                    onAutoSaved={refreshOperatorMenus}
                     onSaved={() => {
                       setEditingSubId(null);
                       setSubManageError("");
