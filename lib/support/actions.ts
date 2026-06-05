@@ -4,6 +4,7 @@ import type { SupportMessage, SupportRequest } from "./types";
 import { SUPPORT_CHANGE_EVENT } from "./types";
 import { deriveSupportTitle } from "./title";
 import {
+  rememberDeletedSupportIds,
   scheduleSupportDeletionsSync,
   scheduleSupportRequestSync,
 } from "./supportSync";
@@ -62,6 +63,7 @@ export function deleteSupportRequest(
   }
 
   writeRequests(requests.filter((item) => item.id !== requestId));
+  rememberDeletedSupportIds([requestId]);
   scheduleSupportDeletionsSync([requestId]);
   return true;
 }
@@ -80,6 +82,7 @@ export function deleteSupportRequestsByMember(
   }
   const targetIds = targets.map((item) => item.id);
   writeRequests(requests.filter((item) => item.userId !== memberId));
+  rememberDeletedSupportIds(targetIds);
   scheduleSupportDeletionsSync(targetIds);
   return targetIds.length;
 }

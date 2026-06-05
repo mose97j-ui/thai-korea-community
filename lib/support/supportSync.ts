@@ -6,6 +6,8 @@ import { SUPPORT_CHANGE_EVENT } from "@/lib/support/types";
 export const SUPPORT_SYNC_EVENT = "tkc-support-sync";
 
 const SUPPORT_KEY = "tkc_support_requests";
+const SUPPORT_DELETE_TOMBSTONES_KEY = "tkc_support_delete_tombstones";
+const DELETE_TOMBSTONE_TTL_MS = 24 * 60 * 60 * 1000;
 
 function dispatchSupportSyncEvent() {
   if (typeof window === "undefined") {
@@ -28,6 +30,72 @@ function readRequests(): SupportRequest[] {
 
 function writeRequests(requests: SupportRequest[]): void {
   localStorage.setItem(SUPPORT_KEY, JSON.stringify(requests));
+}
+
+function readDeleteTombstones(): Record<string, number> {
+  if (typeof window === "undefined") {
+    return {};
+  }
+  try {
+    const raw = localStorage.getItem(SUPPORT_DELETE_TOMBSTONES_KEY);
+    const parsed = raw ? (JSON.parse(raw) as Record<string, number>) : {};
+    const now = Date.now();
+    const next: Record<string, number> = {};
+    for (const [id, expiresAt] of Object.entries(parsed)) {
+      if (typeof expiresAt === "number" && expiresAt > now) {
+        next[id] = expiresAt;
+      }
+    }
+    return next;
+  } catch {
+    return {};
+  }
+}
+
+function writeDeleteTombstones(tombstones: Record<string, number>): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  localStorage.setItem(
+    SUPPORT_DELETE_TOMBSTONES_KEY,
+    JSON.stringify(tombstones)
+  );
+}
+
+function isDeletedTombstone(id: string): boolean {
+  const tombstones = readDeleteTombstones();
+  return typeof tombstones[id] === "number";
+}
+
+export function rememberDeletedSupportIds(ids: string[]): void {
+  if (typeof window === "undefined" || ids.length === 0) {
+    return;
+  }
+  const tombstones = readDeleteTombstones();
+  const expiresAt = Date.now() + DELETE_TOMBSTONE_TTL_MS;
+  for (const id of ids) {
+    if (id) {
+      tombstones[id] = expiresAt;
+    }
+  }
+  writeDeleteTombstones(tombstones);
+}
+
+function clearDeletedSupportIds(ids: string[]): void {
+  if (typeof window === "undefined" || ids.length === 0) {
+    return;
+  }
+  const tombstones = readDeleteTombstones();
+  let changed = false;
+  for (const id of ids) {
+    if (id in tombstones) {
+      delete tombstones[id];
+      changed = true;
+    }
+  }
+  if (changed) {
+    writeDeleteTombstones(tombstones);
+  }
 }
 
 function isSameRequest(a: SupportRequest, b: SupportRequest): boolean {
@@ -58,10 +126,15 @@ export function mergeRemoteSupportRequests(remote: SupportRequest[]): boolean {
     return false;
   }
 
+  const filteredRemote = remote.filter((request) => !isDeletedTombstone(request.id));
+  if (filteredRemote.length === 0) {
+    return false;
+  }
+
   const merged = new Map(readRequests().map((item) => [item.id, item]));
   let changed = false;
 
-  for (const request of remote) {
+  for (const request of filteredRemote) {
     const existing = merged.get(request.id);
     const next = existing ? pickNewerSupportRequest(existing, request) : request;
     if (!existing || !isSameRequest(existing, next)) {
@@ -89,6 +162,7 @@ export async function syncSupportRequestToServer(
   }
 
   try {
+    clearDeletedSupportIds([request.id]);
     const response = await fetch("/api/support/sync", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -203,14 +277,18 @@ export async function syncSupportDeletionsToServer(ids: string[]): Promise<void>
     return;
   }
 
+  rememberDeletedSupportIds(ids);
+
   try {
-    await fetch("/api/support/delete", {
+    const response = await fetch("/api/support/delete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids }),
       cache: "no-store",
     });
-    dispatchSupportSyncEvent();
+    if (response.ok) {
+      dispatchSupportSyncEvent();
+    }
   } catch {
     // Local delete still applies.
   }
