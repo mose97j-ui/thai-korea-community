@@ -31,10 +31,28 @@ export function canDeleteMessage(message: DirectMessage, viewer: User): boolean 
   return message.senderId === viewer.id;
 }
 
+/** Sender can recall their own message for both sides. */
+export function canRecallMessage(message: DirectMessage, viewer: User): boolean {
+  return message.senderId === viewer.id;
+}
+
 export function deleteDirectMessage(messageId: string, viewer: User): boolean {
   const messages = readMessages();
   const message = messages.find((item) => item.id === messageId);
   if (!message || !canDeleteMessage(message, viewer)) {
+    return false;
+  }
+
+  writeMessages(messages.filter((item) => item.id !== messageId));
+  scheduleMessageDeletionsSync([messageId]);
+  emitSocialChange();
+  return true;
+}
+
+export function recallDirectMessage(messageId: string, viewer: User): boolean {
+  const messages = readMessages();
+  const message = messages.find((item) => item.id === messageId);
+  if (!message || !canRecallMessage(message, viewer)) {
     return false;
   }
 

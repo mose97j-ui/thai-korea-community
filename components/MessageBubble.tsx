@@ -13,6 +13,8 @@ type MessageBubbleProps = {
   senderLabel: string;
   showModeration?: boolean;
   showReport?: boolean;
+  canRecall?: boolean;
+  onRecall?: () => void;
   canDelete?: boolean;
   onDelete?: () => void;
   relatedPostId?: string;
@@ -25,6 +27,8 @@ export default function MessageBubble({
   senderLabel,
   showModeration = false,
   showReport = false,
+  canRecall = false,
+  onRecall,
   canDelete = false,
   onDelete,
   relatedPostId,
@@ -64,19 +68,34 @@ export default function MessageBubble({
               : "self-start bg-white text-gray-900 ring-1 ring-black/[0.06]"
           }`}
         >
-          {canDelete && onDelete ? (
-            <div className={`mb-1 flex ${mine ? "justify-end" : "justify-start"}`}>
-              <button
-                type="button"
-                onClick={onDelete}
-                className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                  mine
-                    ? "bg-white/20 text-white hover:bg-white/30"
-                    : "text-gray-500 ring-1 ring-black/[0.08] hover:bg-rose-50 hover:text-rose-600"
-                }`}
-              >
-                {t("common.delete")}
-              </button>
+          {canRecall || (canDelete && onDelete) ? (
+            <div className={`mb-1 flex flex-wrap gap-1 ${mine ? "justify-end" : "justify-start"}`}>
+              {canRecall && onRecall ? (
+                <button
+                  type="button"
+                  onClick={onRecall}
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    mine
+                      ? "bg-white/20 text-white hover:bg-white/30"
+                      : "text-gray-500 ring-1 ring-black/[0.08] hover:bg-amber-50 hover:text-amber-700"
+                  }`}
+                >
+                  {t("social.recallMessage")}
+                </button>
+              ) : null}
+              {canDelete && onDelete ? (
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    mine
+                      ? "bg-white/20 text-white hover:bg-white/30"
+                      : "text-gray-500 ring-1 ring-black/[0.08] hover:bg-rose-50 hover:text-rose-600"
+                  }`}
+                >
+                  {t("common.delete")}
+                </button>
+              ) : null}
             </div>
           ) : null}
           {message.content ? (
@@ -101,6 +120,12 @@ export default function MessageBubble({
             ) : null}
           </p>
         </div>
+
+        {mine ? (
+          <p className="mt-1 px-1 text-[11px] font-semibold text-gray-500">
+            {message.readAt ? t("common.read") : t("common.unread")}
+          </p>
+        ) : null}
 
         {!mine && (showReport || showModeration) ? (
           <div className="mt-2 w-full max-w-[92%] space-y-2">

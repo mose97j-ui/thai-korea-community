@@ -27,9 +27,11 @@ import {
 import { hasOperatorPrivileges } from "@/lib/auth/operatorView";
 import { handleSendMessage } from "@/lib/social/actions";
 import {
+  canRecallMessage,
   canDeleteMessage,
   deleteConversationForUser,
   deleteDirectMessage,
+  recallDirectMessage,
 } from "@/lib/social/messageActions";
 import {
   getConversationId,
@@ -211,6 +213,17 @@ export default function MessageThreadContent({ params }: MessageThreadContentPro
     refresh();
   };
 
+  const handleRecallMessage = (message: DirectMessage) => {
+    if (!user || !canRecallMessage(message, user)) {
+      return;
+    }
+    if (!window.confirm(t("social.recallMessageConfirm"))) {
+      return;
+    }
+    recallDirectMessage(message.id, user);
+    refresh();
+  };
+
   const deleteThreadLabel = hasOperatorPrivileges(user)
     ? t("social.deleteConversation")
     : t("social.hideConversation");
@@ -283,6 +296,8 @@ export default function MessageThreadContent({ params }: MessageThreadContentPro
                   senderLabel={senderLabel}
                   showReport={!mine}
                   showModeration={!mine && showOperatorUI}
+                  canRecall={mine && canRecallMessage(message, user)}
+                  onRecall={() => handleRecallMessage(message)}
                   canDelete={canDeleteMessage(message, user)}
                   onDelete={() => handleDeleteMessage(message)}
                   relatedPostId={relatedPostId ?? undefined}
