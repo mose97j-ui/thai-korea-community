@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import TopNav from "@/components/TopNav";
 import SiteBrandHeader from "@/components/SiteBrandHeader";
+import SignupWelcomeModal from "@/components/SignupWelcomeModal";
 import { isAuthLayoutPath } from "@/lib/routes/auth";
 import {
   socialAppContentClassName,
@@ -30,6 +31,7 @@ export default function AppShell({ children, layout = "app" }: AppShellProps) {
         {!useAuthLayout ? <SiteBrandHeader /> : null}
         {children}
       </div>
+      {!useAuthLayout ? <SignupWelcomeModal /> : null}
       {!useAuthLayout ? (
         <aside className={socialAppNavClassName} aria-label="Site navigation">
           <TopNav />

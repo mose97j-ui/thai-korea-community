@@ -50,6 +50,7 @@ import {
 } from "@/lib/auth/features";
 import { saveGoogleProfile } from "@/lib/auth/supabaseUser";
 import { MEMBERS_SYNC_EVENT, scheduleMemberSync } from "@/lib/auth/memberSync";
+import { markSignupWelcomePending } from "@/lib/auth/signupWelcome";
 import {
   getPreferredLocalSessionUser,
   shouldIgnoreSupabaseSessionSync,
@@ -276,6 +277,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     saveUser(newUser);
     setSessionUserId(newUser.id);
     setUser(newUser);
+    markSignupWelcomePending(newUser.id);
     persistUiLocale("th");
     scheduleMemberSync(newUser, true);
     return { ok: true as const };
@@ -367,6 +369,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setUser(newUser);
+    markSignupWelcomePending(newUser.id);
     persistUiLocale("th");
     scheduleMemberSync(newUser, true);
     return { ok: true as const };
