@@ -66,6 +66,24 @@ export function deleteSupportRequest(
   return true;
 }
 
+export function deleteSupportRequestsByMember(
+  memberId: string,
+  viewer: User
+): number {
+  if (!hasOperatorPrivileges(viewer)) {
+    return 0;
+  }
+  const requests = readRequests();
+  const targets = requests.filter((item) => item.userId === memberId);
+  if (targets.length === 0) {
+    return 0;
+  }
+  const targetIds = targets.map((item) => item.id);
+  writeRequests(requests.filter((item) => item.userId !== memberId));
+  scheduleSupportDeletionsSync(targetIds);
+  return targetIds.length;
+}
+
 export function deleteSupportMessage(
   requestId: string,
   messageId: string,

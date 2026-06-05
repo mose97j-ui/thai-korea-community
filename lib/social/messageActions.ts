@@ -89,3 +89,28 @@ export function deleteConversationForUser(
   emitSocialChange();
   return { mode: "hidden", count: messages.length };
 }
+
+export function deleteMessagesByPeerForOperator(
+  peerId: string,
+  viewer: User
+): number {
+  if (!hasOperatorPrivileges(viewer)) {
+    return 0;
+  }
+  const all = readMessages();
+  const targets = all.filter(
+    (message) => message.senderId === peerId || message.recipientId === peerId
+  );
+  if (targets.length === 0) {
+    return 0;
+  }
+  const targetIds = targets.map((message) => message.id);
+  writeMessages(
+    all.filter(
+      (message) => message.senderId !== peerId && message.recipientId !== peerId
+    )
+  );
+  scheduleMessageDeletionsSync(targetIds);
+  emitSocialChange();
+  return targetIds.length;
+}

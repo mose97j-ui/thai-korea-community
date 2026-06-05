@@ -769,6 +769,11 @@ const th = {
   "support.deleteRequest": "ลบคำขอ",
   "support.deleteRequestConfirm": "ลบคำขอทั้งหมดนี้หรือไม่?",
   "support.deleteMessageConfirm": "ลบข้อความนี้หรือไม่?",
+  "support.deleteMemberAll": "ลบทั้งหมด",
+  "support.deleteMemberAllConfirm":
+    "{member} ของสมาชิกนี้ทั้งหมด (คำขอ+ข้อความ) จะถูกลบ ดำเนินการต่อหรือไม่?",
+  "support.deleteMemberAllDone":
+    "ลบคำขอ {supportCount} รายการ และข้อความ {messageCount} รายการเรียบร้อย",
   "support.blockMember": "บล็อกสมาชิก",
   "support.groupedByMember": "จัดกลุ่มตามสมาชิก",
   "support.requestCount": "{count} คำขอ",
@@ -1700,6 +1705,11 @@ const ko: Record<keyof typeof th, string> = {
   "support.deleteRequest": "요청 삭제",
   "support.deleteRequestConfirm": "이 요청 전체를 삭제할까요?",
   "support.deleteMessageConfirm": "이 메시지를 삭제할까요?",
+  "support.deleteMemberAll": "전체삭제",
+  "support.deleteMemberAllConfirm":
+    "{member} 회원의 전체 내역(요청+쪽지)을 삭제할까요?",
+  "support.deleteMemberAllDone":
+    "요청 {supportCount}건, 쪽지 {messageCount}건을 삭제했습니다.",
   "support.blockMember": "회원 차단",
   "support.groupedByMember": "회원별 요청",
   "support.requestCount": "요청 {count}건",

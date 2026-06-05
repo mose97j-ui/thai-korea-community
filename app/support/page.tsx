@@ -21,7 +21,11 @@ import {
   supportCategoryIcon,
   supportCategoryLabelKey,
 } from "@/lib/support/categoryDisplay";
-import { deleteSupportRequest } from "@/lib/support/actions";
+import {
+  deleteSupportRequest,
+  deleteSupportRequestsByMember,
+} from "@/lib/support/actions";
+import { deleteMessagesByPeerForOperator } from "@/lib/social/messageActions";
 import {
   getAllSupportRequests,
   getSupportRequestsForUser,
@@ -58,12 +62,14 @@ function SupportRequestCard({
   showUser,
   operatorView,
   onDelete,
+  onDeleteMemberAll,
 }: {
   request: SupportRequest;
   locale: string;
   showUser?: boolean;
   operatorView?: boolean;
   onDelete?: () => void;
+  onDeleteMemberAll?: (request: SupportRequest) => void;
 }) {
   const { t } = useLocale();
   const [dragX, setDragX] = useState(0);
@@ -190,9 +196,24 @@ function SupportRequestCard({
                 {request.title}
               </p>
               {showUser && (
-                <p className="mt-1 text-sm text-gray-500">
-                  {request.userNickname} · {request.userGmail}
-                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <p className="text-sm text-gray-500">
+                    {request.userNickname} · {request.userGmail}
+                  </p>
+                  {operatorView && onDeleteMemberAll ? (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        onDeleteMemberAll(request);
+                      }}
+                      className={`${dangerButtonClassName} !rounded-lg !px-2.5 !py-1 text-[11px]`}
+                    >
+                      {t("support.deleteMemberAll")}
+                    </button>
+                  ) : null}
+                </div>
               )}
               <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-600">
                 {lastMessage?.content}
@@ -261,6 +282,28 @@ export default function SupportPage() {
     }
   };
 
+  const handleDeleteAllByMember = (request: SupportRequest) => {
+    if (!user || !showOperatorUI) {
+      return;
+    }
+    const memberLabel = request.userNickname || request.userGmail || request.userId;
+    if (
+      !window.confirm(
+        t("support.deleteMemberAllConfirm").replace("{member}", memberLabel)
+      )
+    ) {
+      return;
+    }
+    const deletedSupportCount = deleteSupportRequestsByMember(request.userId, user);
+    const deletedMessageCount = deleteMessagesByPeerForOperator(request.userId, user);
+    refresh();
+    window.alert(
+      t("support.deleteMemberAllDone")
+        .replace("{supportCount}", String(deletedSupportCount))
+        .replace("{messageCount}", String(deletedMessageCount))
+    );
+  };
+
   if (!isReady || !user) {
     return null;
   }
@@ -322,6 +365,7 @@ export default function SupportPage() {
               onDelete={
                 showOperatorUI ? () => handleDeleteRequest(request) : undefined
               }
+              onDeleteMemberAll={showOperatorUI ? handleDeleteAllByMember : undefined}
             />
           ))}
         </div>
