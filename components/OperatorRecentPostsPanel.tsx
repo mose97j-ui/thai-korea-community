@@ -39,6 +39,10 @@ export default function OperatorRecentPostsPanel() {
 
   const recentCount = useMemo(() => posts.length, [posts]);
   const [exporting, setExporting] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [region, setRegion] = useState("");
+  const [item, setItem] = useState("");
 
   if (!user || !showOperatorUI) {
     return null;
@@ -47,7 +51,23 @@ export default function OperatorRecentPostsPanel() {
   const handleExportPurchaseAgency = async () => {
     setExporting(true);
     try {
-      const response = await fetch("/api/operator/purchase-agency-export");
+      const params = new URLSearchParams();
+      if (dateFrom) {
+        params.set("dateFrom", dateFrom);
+      }
+      if (dateTo) {
+        params.set("dateTo", dateTo);
+      }
+      if (region.trim()) {
+        params.set("region", region.trim());
+      }
+      if (item.trim()) {
+        params.set("item", item.trim());
+      }
+      const query = params.toString();
+      const response = await fetch(
+        `/api/operator/purchase-agency-export${query ? `?${query}` : ""}`
+      );
       if (!response.ok) {
         return;
       }
@@ -89,6 +109,36 @@ export default function OperatorRecentPostsPanel() {
             {t("operator.recentPostsCount").replace("{count}", String(recentCount))}
           </span>
         </div>
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-4">
+        <input
+          type="date"
+          value={dateFrom}
+          onChange={(event) => setDateFrom(event.target.value)}
+          className="rounded-xl border border-black/[0.12] bg-white px-3 py-2 text-sm"
+          placeholder={t("operator.purchaseDateFrom")}
+        />
+        <input
+          type="date"
+          value={dateTo}
+          onChange={(event) => setDateTo(event.target.value)}
+          className="rounded-xl border border-black/[0.12] bg-white px-3 py-2 text-sm"
+          placeholder={t("operator.purchaseDateTo")}
+        />
+        <input
+          type="text"
+          value={region}
+          onChange={(event) => setRegion(event.target.value)}
+          className="rounded-xl border border-black/[0.12] bg-white px-3 py-2 text-sm"
+          placeholder={t("operator.purchaseRegionFilter")}
+        />
+        <input
+          type="text"
+          value={item}
+          onChange={(event) => setItem(event.target.value)}
+          className="rounded-xl border border-black/[0.12] bg-white px-3 py-2 text-sm"
+          placeholder={t("operator.purchaseItemFilter")}
+        />
       </div>
 
       {posts.length === 0 ? (
