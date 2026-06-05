@@ -66,6 +66,7 @@ export const homeCategories: CategoryItem[] = [
   { id: "hotitems", label: { th: "ไอเทมฮอต&ข้อมูล", ko: "핫한아이템&정보" }, icon: "🔥", href: "/c/hotitems/hotitems-0", tint: "bg-pink-100" },
   { id: "jobs", label: { th: "หางาน", ko: "구인구직" }, icon: "💼", href: "/c/jobs/jobs-0", tint: "bg-emerald-100" },
   { id: "reviews", label: { th: "รีวิวสถานที่", ko: "장소리뷰" }, icon: "📍", href: "/c/reviews/reviews-0", tint: "bg-rose-100" },
+  { id: "krculture", label: { th: "ไทย/เกาหลีแนะนำ", ko: "태국/한국 추천" }, icon: "🌏", href: "/c/krculture/krculture-0", tint: "bg-cyan-100" },
   { id: "purchase", label: { th: "รับหิ้ว", ko: "구매대행" }, icon: "🛍️", href: "/c/purchase/purchase-0", tint: "bg-violet-100" },
   { id: "food", label: { th: "ส่งอาหาร", ko: "음식배달" }, icon: "🍜", href: "/c/food/food-0", tint: "bg-orange-100" },
   { id: "premium", label: { th: "พรีเมียม", ko: "프리미엄" }, icon: "👑", href: "/c/premium/premium-0", tint: "bg-amber-100", premium: true },
@@ -445,6 +446,51 @@ const foodDeliveryItems: TopicItem[] = [
   },
 ];
 
+const krCultureItems: TopicItem[] = [
+  {
+    title: { th: "태국 관련 · ร้านอาหารไทย", ko: "태국 관련 · 태국음식점" },
+    description: { th: "รวมร้านอาหารไทยในเกาหลี", ko: "한국 내 태국음식점 추천" },
+    icon: "🍲",
+    tint: "bg-orange-100",
+  },
+  {
+    title: { th: "태국 관련 · ร้านคาราโอเกะไทย", ko: "태국 관련 · 태국노래방" },
+    description: { th: "แนะนำร้านคาราโอเกะสไตล์ไทย", ko: "태국 분위기 노래방 추천" },
+    icon: "🎤",
+    tint: "bg-purple-100",
+  },
+  {
+    title: { th: "태국 관련 · คลับไทย", ko: "태국 관련 · 태국클럽" },
+    description: { th: "รวมคลับ/บาร์ที่คนไทยชอบ", ko: "태국 커뮤니티가 자주 가는 클럽" },
+    icon: "🪩",
+    tint: "bg-fuchsia-100",
+  },
+  {
+    title: { th: "한국 관련 · ร้านอาหารเกาหลี", ko: "한국 관련 · 한국음식점" },
+    description: { th: "ร้านอาหารเกาหลีที่แนะนำ", ko: "현지 한국음식점 추천" },
+    icon: "🍜",
+    tint: "bg-rose-100",
+  },
+  {
+    title: { th: "한국 관련 · คลับเกาหลี", ko: "한국 관련 · 한국클럽" },
+    description: { th: "คลับเกาหลีโซนยอดนิยม", ko: "한국 인기 클럽 정보" },
+    icon: "🎧",
+    tint: "bg-indigo-100",
+  },
+  {
+    title: { th: "한국 관련 · สถานที่ท่องเที่ยว", ko: "한국 관련 · 관광지" },
+    description: { th: "สถานที่เที่ยวที่ควรไปในเกาหลี", ko: "한국 필수 관광지 추천" },
+    icon: "🏞️",
+    tint: "bg-emerald-100",
+  },
+  {
+    title: { th: "한국 관련 · บาร์/เหล้าอร่อย", ko: "한국 관련 · 맛있는 술집" },
+    description: { th: "ร้านเหล้าและบาร์ที่บรรยากาศดี", ko: "안주 맛있는 술집 추천" },
+    icon: "🍻",
+    tint: "bg-amber-100",
+  },
+];
+
 const premiumItems: TopicItem[] = [
   {
     title: { th: "แบรนด์เนม", ko: "명품" },
@@ -640,6 +686,7 @@ export const homeCategoryItems: Record<string, HomeSubItem[]> = {
   hotitems: topicLinks(hotItemsTopics, "hotitems"),
   jobs: topicLinks(jobTopics, "jobs"),
   reviews: withRoutes("reviews", reviewPlaceItems),
+  krculture: withRoutes("krculture", krCultureItems),
   purchase: purchaseLinks("purchase", purchaseItems),
   food: withRoutes("food", foodDeliveryItems),
   premium: withRoutes("premium", premiumItems),
