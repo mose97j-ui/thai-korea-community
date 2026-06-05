@@ -114,7 +114,17 @@ export default function HomeContent() {
     [selectedId, menuListSignature]
   );
   const subItems = useMemo(
-    () => (selectedId ? getCategorySubItems(selectedId, showOperatorUI) : []),
+    () => {
+      if (!selectedId) {
+        return [];
+      }
+      const visible = getCategorySubItems(selectedId, showOperatorUI);
+      if (visible.length > 0) {
+        return visible;
+      }
+      // Safety fallback: if all subcategories were hidden accidentally, still allow opening.
+      return getCategorySubItems(selectedId, true);
+    },
     [selectedId, showOperatorUI, menuListSignature]
   );
 
@@ -433,7 +443,8 @@ export default function HomeContent() {
 
   const handleCategorySelect = useCallback((id: string) => {
     setSelectedId(id);
-    const subs = getCategorySubItems(id);
+    const visibleSubs = getCategorySubItems(id);
+    const subs = visibleSubs.length > 0 ? visibleSubs : getCategorySubItems(id, true);
     if (subs[0]) {
       setWriteCategoryId(id);
       setWriteSubId(subs[0].id);
