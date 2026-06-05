@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import UserAvatar from "@/components/UserAvatar";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import OperatorMemberGroupHeader from "@/components/operator/OperatorMemberGroupHeader";
 import { Card, SectionLabel, pillButtonClassName } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { formatPostDate } from "@/lib/posts/format";
 import { getMessageThreadHref } from "@/lib/social/actions";
+import { groupConversationsByMember } from "@/lib/social/groupConversationsByMember";
 import { getConversationsForUser } from "@/lib/social/messages";
 import { MESSAGES_SYNC_EVENT } from "@/lib/social/messageSync";
 import type { ConversationPreview } from "@/lib/social/types";
@@ -28,7 +29,7 @@ export default function OperatorMessagesPanel() {
         photo: t("social.previewPhoto"),
         video: t("social.previewVideo"),
         empty: t("social.previewEmpty"),
-      }).slice(0, 6)
+      })
     );
   }, [user, t]);
 
@@ -41,6 +42,11 @@ export default function OperatorMessagesPanel() {
       window.removeEventListener(MESSAGES_SYNC_EVENT, refresh);
     };
   }, [refresh]);
+
+  const memberGroups = useMemo(
+    () => (user ? groupConversationsByMember(conversations, user).slice(0, 5) : []),
+    [conversations, user]
+  );
 
   const unreadTotal = conversations.reduce((sum, item) => sum + item.unreadCount, 0);
 
@@ -59,60 +65,58 @@ export default function OperatorMessagesPanel() {
         </Link>
       </div>
 
-      {conversations.length === 0 ? (
+      {memberGroups.length === 0 ? (
         <p className="mt-4 text-sm text-gray-500">{t("admin.operatorMessagesEmpty")}</p>
       ) : (
-        <ul className="mt-4 space-y-2">
-          <SectionLabel>{t("admin.operatorMessagesRecent")}</SectionLabel>
-          {conversations.map((conversation) => {
-            const peerUser = {
-              id: conversation.peerId,
-              name: conversation.peerNickname,
-              nickname: conversation.peerNickname,
-              profileImage: conversation.peerProfileImage,
+        <div className="mt-4 space-y-3">
+          <SectionLabel>{t("admin.inboxGroupedByMember")}</SectionLabel>
+          {memberGroups.map((group) => {
+            const thread = group.threads[0];
+            const memberUser = {
+              id: group.peerId,
+              name: group.peerNickname,
+              nickname: group.peerNickname,
+              profileImage: group.peerProfileImage,
               birthDate: "2000-01-01",
               hometown: "",
-              gmail: "",
+              gmail: group.peerGmail,
               koreanPhone: "",
-              personalCode: "",
+              personalCode: group.peerPersonalCode,
               password: "",
-              createdAt: conversation.lastMessageAt,
+              createdAt: group.latestMessageAt,
             };
 
             return (
-              <li key={conversation.conversationId}>
-                <Link
-                  href={
-                    user
-                      ? getMessageThreadHref(user.id, conversation.peerId)
-                      : `/messages/${conversation.peerId}`
-                  }
-                  className="flex items-center gap-3 rounded-xl bg-[#F0F2F5] px-3 py-3 ring-1 ring-black/[0.06] transition hover:bg-white"
-                >
-                  <UserAvatar user={peerUser} size="sm" shape="square" />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="truncate text-sm font-bold text-gray-900">
-                        {conversation.peerNickname}
-                      </span>
-                      <span className="shrink-0 text-[10px] text-gray-400">
-                        {formatPostDate(conversation.lastMessageAt, locale)}
-                      </span>
+              <Link
+                key={group.peerId}
+                href={
+                  user && thread
+                    ? getMessageThreadHref(user.id, thread.peerId)
+                    : `/messages/${group.peerId}`
+                }
+                className="block overflow-hidden rounded-2xl bg-[#F0F2F5] ring-1 ring-black/[0.06] transition hover:ring-[#06C755]/30"
+              >
+                <OperatorMemberGroupHeader
+                  member={memberUser}
+                  countLabel={t("social.threadCount").replace(
+                    "{count}",
+                    String(group.threads.length)
+                  )}
+                  unreadCount={group.unreadCount}
+                  compact
+                />
+                {thread ? (
+                  <p className="line-clamp-2 px-3 pb-3 text-xs leading-relaxed text-gray-600">
+                    {thread.lastMessage}
+                    <span className="mt-1 block text-[10px] text-gray-400">
+                      {formatPostDate(thread.lastMessageAt, locale)}
                     </span>
-                    <span className="mt-0.5 line-clamp-1 block text-xs text-gray-600">
-                      {conversation.lastMessage}
-                    </span>
-                  </span>
-                  {conversation.unreadCount > 0 ? (
-                    <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-                      {conversation.unreadCount}
-                    </span>
-                  ) : null}
-                </Link>
-              </li>
+                  </p>
+                ) : null}
+              </Link>
             );
           })}
-        </ul>
+        </div>
       )}
     </Card>
   );

@@ -1,9 +1,11 @@
+import { findUserById } from "@/lib/auth/storage";
 import type { SupportRequest } from "./types";
 
 export type SupportMemberGroup = {
   userId: string;
   userNickname: string;
   userGmail: string;
+  userPersonalCode: string;
   userProfileImage?: string;
   requests: SupportRequest[];
   unreadCount: number;
@@ -19,11 +21,13 @@ export function groupSupportRequestsByMember(
   for (const request of requests) {
     let group = map.get(request.userId);
     if (!group) {
+      const member = findUserById(request.userId);
       group = {
         userId: request.userId,
         userNickname: request.userNickname,
         userGmail: request.userGmail,
-        userProfileImage: request.userProfileImage,
+        userPersonalCode: member?.personalCode ?? "",
+        userProfileImage: request.userProfileImage ?? member?.profileImage,
         requests: [],
         unreadCount: 0,
         latestUpdatedAt: request.updatedAt,

@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import OperatorMemberGroupHeader from "@/components/operator/OperatorMemberGroupHeader";
 import { Card, SectionLabel, pillButtonClassName } from "@/components/ui";
 import { useLocale } from "@/contexts/LocaleContext";
 import { supportCategoryLabelKey } from "@/lib/support/categoryDisplay";
+import { groupSupportRequestsByMember } from "@/lib/support/groupByMember";
 import {
   getAllSupportRequests,
   getOpenSupportCount,
@@ -18,17 +20,18 @@ export default function OperatorSupportPanel() {
   const { t } = useLocale();
   const [openCount, setOpenCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [recent, setRecent] = useState<SupportRequest[]>([]);
+  const [requests, setRequests] = useState<SupportRequest[]>([]);
 
   const refresh = useCallback(() => {
     setOpenCount(getOpenSupportCount());
     setUnreadCount(getUnreadSupportCountForOperator());
-    setRecent(
-      getAllSupportRequests()
-        .filter((item) => item.status !== "closed")
-        .slice(0, 4)
-    );
+    setRequests(getAllSupportRequests().filter((item) => item.status !== "closed"));
   }, []);
+
+  const memberGroups = useMemo(
+    () => groupSupportRequestsByMember(requests).slice(0, 4),
+    [requests]
+  );
 
   useEffect(() => {
     refresh();
@@ -66,27 +69,50 @@ export default function OperatorSupportPanel() {
         </div>
       </div>
 
-      {recent.length > 0 && (
-        <div className="mt-5">
-          <SectionLabel>{t("support.recentRequests")}</SectionLabel>
-          <div className="space-y-2">
-            {recent.map((item) => (
+      {memberGroups.length > 0 && (
+        <div className="mt-5 space-y-3">
+          <SectionLabel>{t("admin.inboxGroupedByMember")}</SectionLabel>
+          {memberGroups.map((group) => {
+            const latest = group.requests[0];
+            const memberUser = {
+              id: group.userId,
+              name: group.userNickname,
+              nickname: group.userNickname,
+              profileImage: group.userProfileImage,
+              birthDate: "2000-01-01",
+              hometown: "",
+              gmail: group.userGmail,
+              koreanPhone: "",
+              personalCode: group.userPersonalCode,
+              password: "",
+              createdAt: group.latestUpdatedAt,
+            };
+
+            return (
               <Link
-                key={item.id}
-                href={`/support/${item.id}`}
-                className="block rounded-xl bg-[#F0F2F5] px-3 py-3 ring-1 ring-black/[0.06] transition hover:bg-white"
+                key={group.userId}
+                href={`/support/${latest.id}`}
+                className="block overflow-hidden rounded-2xl bg-[#F0F2F5] ring-1 ring-black/[0.06] transition hover:ring-[#06C755]/30"
               >
-                <p className="truncate text-sm font-bold text-gray-900">{item.title}</p>
-                <p className="mt-1 truncate text-xs text-gray-500">
+                <OperatorMemberGroupHeader
+                  member={memberUser}
+                  countLabel={t("support.requestCount").replace(
+                    "{count}",
+                    String(group.requests.length)
+                  )}
+                  unreadCount={group.unreadCount}
+                  compact
+                />
+                <p className="line-clamp-2 px-3 pb-3 text-xs leading-relaxed text-gray-600">
                   <span className="font-semibold text-sky-700">
-                    {t(supportCategoryLabelKey(item.category))}
+                    {t(supportCategoryLabelKey(latest.category))}
                   </span>
                   {" · "}
-                  {item.userNickname} · {item.userGmail}
+                  {latest.title}
                 </p>
               </Link>
-            ))}
-          </div>
+            );
+          })}
         </div>
       )}
     </Card>

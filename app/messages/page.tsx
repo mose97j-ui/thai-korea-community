@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import MessageMemberGroupList from "@/components/MessageMemberGroupList";
 import SocialPageShell from "@/components/SocialPageShell";
 import UserAvatar from "@/components/UserAvatar";
 import { pageStickyHeaderClassName } from "@/components/PageShell";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useOperatorView } from "@/hooks/useOperatorView";
 import { formatPostDate } from "@/lib/posts/format";
+import { groupConversationsByMember } from "@/lib/social/groupConversationsByMember";
 import { getConversationsForUser } from "@/lib/social/messages";
 import type { ConversationPreview } from "@/lib/social/types";
 import { MESSAGES_SYNC_EVENT } from "@/lib/social/messageSync";
@@ -18,6 +21,7 @@ export default function MessagesPage() {
   const router = useRouter();
   const { t, locale } = useLocale();
   const { user, isReady } = useAuth();
+  const { showOperatorUI } = useOperatorView();
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
 
   useEffect(() => {
@@ -48,6 +52,11 @@ export default function MessagesPage() {
     };
   }, [user?.id, locale]);
 
+  const memberGroups = useMemo(
+    () => (user && showOperatorUI ? groupConversationsByMember(conversations, user) : []),
+    [conversations, showOperatorUI, user]
+  );
+
   if (!isReady || !user) {
     return null;
   }
@@ -66,13 +75,19 @@ export default function MessagesPage() {
           <h1 className="truncate text-lg font-bold text-gray-900">
             {t("social.messages")}
           </h1>
-          <p className="text-xs text-gray-500">{t("social.messagesDesc")}</p>
+          <p className="text-xs text-gray-500">
+            {showOperatorUI ? t("admin.operatorMessagesDesc") : t("social.messagesDesc")}
+          </p>
         </div>
       </div>
 
       {conversations.length === 0 ? (
         <div className="px-3 py-16 text-center text-base text-gray-500">
-          {t("social.noMessages")}
+          {showOperatorUI ? t("admin.operatorMessagesEmpty") : t("social.noMessages")}
+        </div>
+      ) : showOperatorUI ? (
+        <div className="px-3 pb-6">
+          <MessageMemberGroupList groups={memberGroups} locale={locale} />
         </div>
       ) : (
         <div className="divide-y divide-gray-200/80 bg-white">

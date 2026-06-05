@@ -1,6 +1,6 @@
 "use client";
 
-import UserAvatar from "@/components/UserAvatar";
+import OperatorMemberGroupHeader from "@/components/operator/OperatorMemberGroupHeader";
 import { SectionLabel } from "@/components/ui";
 import { useLocale } from "@/contexts/LocaleContext";
 import { formatPostDate } from "@/lib/posts/format";
@@ -91,7 +91,7 @@ export default function SupportMemberGroupList({
 
   return (
     <div className="space-y-4">
-      <SectionLabel>{t("support.groupedByMember")}</SectionLabel>
+      <SectionLabel>{t("admin.inboxGroupedByMember")}</SectionLabel>
       {groups.map((group) => {
         const memberUser = {
           id: group.userId,
@@ -102,7 +102,7 @@ export default function SupportMemberGroupList({
           hometown: "",
           gmail: group.userGmail,
           koreanPhone: "",
-          personalCode: "",
+          personalCode: group.userPersonalCode,
           password: "",
           createdAt: group.latestUpdatedAt,
         };
@@ -112,28 +112,14 @@ export default function SupportMemberGroupList({
             key={group.userId}
             className="overflow-hidden rounded-2xl bg-[#F0F2F5] ring-1 ring-black/[0.06]"
           >
-            <div className="flex items-center gap-3 border-b border-black/[0.06] bg-white px-4 py-3">
-              <UserAvatar user={memberUser} size="sm" shape="square" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold text-gray-900">
-                  {group.userNickname}
-                </p>
-                <p className="truncate text-xs text-gray-500">{group.userGmail}</p>
-              </div>
-              <div className="shrink-0 text-right">
-                <p className="text-[10px] font-semibold text-gray-400">
-                  {t("support.requestCount").replace(
-                    "{count}",
-                    String(group.requests.length)
-                  )}
-                </p>
-                {group.unreadCount > 0 ? (
-                  <span className="mt-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
-                    {group.unreadCount > 99 ? "99+" : group.unreadCount}
-                  </span>
-                ) : null}
-              </div>
-            </div>
+            <OperatorMemberGroupHeader
+              member={memberUser}
+              countLabel={t("support.requestCount").replace(
+                "{count}",
+                String(group.requests.length)
+              )}
+              unreadCount={group.unreadCount}
+            />
             <div className="space-y-2 p-3">
               {group.requests.map((request) => (
                 <GroupRequestRow key={request.id} request={request} locale={locale} />
