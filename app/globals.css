@@ -1436,33 +1436,33 @@ html.locale-ko body {
     }
 
     .social-menu-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.75rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
     }
 
     @media (min-width: 640px) and (max-width: 1023px) {
       .social-menu-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 0.7rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.9rem;
       }
     }
 
     .social-menu-tile-icon {
-      margin-bottom: 0.45rem !important;
-      height: 3.85rem !important;
-      width: 3.85rem !important;
-      border-radius: 1.2rem !important;
+      margin-bottom: 0.5rem !important;
+      height: 4.35rem !important;
+      width: 4.35rem !important;
+      border-radius: 1.35rem !important;
     }
 
     .social-menu-tile-btn {
-      min-height: 6.65rem;
-      padding-top: 0.78rem !important;
-      padding-bottom: 0.72rem !important;
+      min-height: 7.6rem;
+      padding-top: 0.95rem !important;
+      padding-bottom: 0.88rem !important;
     }
 
     .social-menu-tile-label {
-      font-size: 0.8rem !important;
-      line-height: 1.32 !important;
+      font-size: 0.86rem !important;
+      line-height: 1.35 !important;
     }
 
     .social-menu-tile-star {
