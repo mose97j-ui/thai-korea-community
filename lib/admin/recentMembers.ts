@@ -1,4 +1,3 @@
-import { isOperatorUser } from "@/lib/auth/operator";
 import { getAllUsers } from "@/lib/auth/storage";
 import type { User } from "@/lib/auth/types";
 
@@ -6,9 +5,6 @@ function mergeMemberDirectory(server: User[], local: User[]): User[] {
   const byGmail = new Map<string, User>();
 
   for (const member of [...server, ...local]) {
-    if (isOperatorUser(member)) {
-      continue;
-    }
     const gmail = member.gmail?.trim().toLowerCase();
     if (!gmail) {
       continue;
@@ -38,6 +34,6 @@ export function listRecentMembersForOperator(
   limit = 20,
   serverMembers: User[] = []
 ): User[] {
-  const local = getAllUsers().filter((user) => !isOperatorUser(user));
+  const local = getAllUsers();
   return mergeMemberDirectory(serverMembers, local).slice(0, limit);
 }
