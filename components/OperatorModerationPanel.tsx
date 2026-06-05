@@ -17,10 +17,12 @@ import {
   applyUserRestriction,
   clearUserRestriction,
   getActiveRestriction,
+  getRestrictionForOperator,
   listRestrictedUsers,
   searchUsersForModeration,
   type RestrictionScope,
 } from "@/lib/auth/moderation";
+import { clearViolationsByUser } from "@/lib/moderation/violations";
 import { MEMBERS_SYNC_EVENT } from "@/lib/auth/memberSync";
 import { useOperatorView } from "@/hooks/useOperatorView";
 import { findUserById } from "@/lib/auth/storage";
@@ -121,7 +123,7 @@ export default function OperatorModerationPanel() {
   }, [query, restricted, membersVersion]);
 
   const activeRestriction = useMemo(
-    () => (selected ? getActiveRestriction(selected) : null),
+    () => (selected ? getRestrictionForOperator(selected) : null),
     [selected]
   );
 
@@ -179,6 +181,31 @@ export default function OperatorModerationPanel() {
 
     setSelected(result.user);
     setSuccess(t("moderation.cleared"));
+    refreshRestricted();
+  };
+
+  const handleResetAllModerationState = () => {
+    if (!selected) {
+      setError(t("moderation.selectUser"));
+      return;
+    }
+    setError("");
+    setSuccess("");
+    const result = clearUserRestriction(selected.id, operator);
+    const clearedViolations = clearViolationsByUser(selected.id);
+    if (!result.ok && result.error !== "OPERATOR_TARGET") {
+      setError(t("moderation.userNotFound"));
+      return;
+    }
+    setSelected((current) =>
+      current ? { ...current, restriction: undefined } : current
+    );
+    setSuccess(
+      t("moderation.resetAllDone").replace(
+        "{count}",
+        String(clearedViolations)
+      )
+    );
     refreshRestricted();
   };
 
@@ -300,6 +327,13 @@ export default function OperatorModerationPanel() {
             >
               {t("moderation.clearRestriction")}
             </button>
+            <button
+              type="button"
+              onClick={handleResetAllModerationState}
+              className={`${compactSecondaryButtonClassName} bg-sky-600 text-white hover:bg-sky-700`}
+            >
+              {t("moderation.resetAll")}
+            </button>
 
             {error && <ErrorMessage message={error} />}
             {success && (
@@ -316,7 +350,7 @@ export default function OperatorModerationPanel() {
             ) : (
               <div className="max-h-[min(520px,60vh)] space-y-2 overflow-y-auto pr-1">
                 {restricted.map((target) => {
-                  const restriction = getActiveRestriction(target);
+                  const restriction = getRestrictionForOperator(target);
                   if (!restriction) {
                     return null;
                   }

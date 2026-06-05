@@ -51,3 +51,13 @@ export function countRecentViolations(userId: string, days: number): number {
       new Date(item.createdAt).getTime() >= since
   ).length;
 }
+
+export function clearViolationsByUser(userId: string): number {
+  const records = readViolations();
+  const remain = records.filter((item) => item.userId !== userId);
+  const deleted = records.length - remain.length;
+  if (deleted > 0) {
+    writeViolations(remain);
+  }
+  return deleted;
+}

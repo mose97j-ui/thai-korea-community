@@ -34,23 +34,43 @@ function isExpired(restriction: UserRestriction): boolean {
   return new Date(restriction.until).getTime() <= Date.now();
 }
 
-export function getActiveRestriction(
+function getStoredRestriction(
   user: User | null | undefined
 ): UserRestriction | null {
-  if (hasOperatorPrivileges(user)) {
-    return null;
-  }
   if (!user?.restriction) {
-    return null;
-  }
-  // Temporarily suppress legacy auto restrictions to avoid false positives.
-  if (user.restriction.source === "auto") {
     return null;
   }
   if (isExpired(user.restriction)) {
     return null;
   }
   return user.restriction;
+}
+
+export function getActiveRestriction(
+  user: User | null | undefined
+): UserRestriction | null {
+  if (hasOperatorPrivileges(user)) {
+    return null;
+  }
+  const restriction = getStoredRestriction(user);
+  if (!restriction) {
+    return null;
+  }
+  // Temporarily suppress legacy auto restrictions to avoid false positives.
+  if (restriction.source === "auto") {
+    return null;
+  }
+  return restriction;
+}
+
+/** Operator panel helper: includes auto restrictions for review/reset. */
+export function getRestrictionForOperator(
+  user: User | null | undefined
+): UserRestriction | null {
+  if (hasOperatorPrivileges(user)) {
+    return null;
+  }
+  return getStoredRestriction(user);
 }
 
 export function isLoginBlocked(user: User | null | undefined): boolean {
@@ -146,10 +166,10 @@ export function searchUsersForModeration(query: string): User[] {
 
 export function listRestrictedUsers(): User[] {
   return getAllUsers()
-    .filter((user) => !isOperatorUser(user) && getActiveRestriction(user))
+    .filter((user) => !isOperatorUser(user) && getRestrictionForOperator(user))
     .sort((a, b) => {
-      const aTime = getActiveRestriction(a)?.createdAt ?? "";
-      const bTime = getActiveRestriction(b)?.createdAt ?? "";
+      const aTime = getRestrictionForOperator(a)?.createdAt ?? "";
+      const bTime = getRestrictionForOperator(b)?.createdAt ?? "";
       return bTime.localeCompare(aTime);
     });
 }
