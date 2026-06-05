@@ -11,11 +11,16 @@ import type { PostFormTemplateId } from "@/lib/posts/formTemplateTypes";
 
 export const MENU_TEMPLATE_OPTIONS: {
   id: PostFormTemplateId;
-  labelKey: "userMenu.templateArticle" | "userMenu.templatePlace" | "userMenu.templateJob";
+  labelKey:
+    | "userMenu.templateArticle"
+    | "userMenu.templatePlace"
+    | "userMenu.templateJob"
+    | "userMenu.templatePurchaseAgency";
 }[] = [
   { id: "article", labelKey: "userMenu.templateArticle" },
   { id: "place", labelKey: "userMenu.templatePlace" },
   { id: "job", labelKey: "userMenu.templateJob" },
+  { id: "purchaseAgency", labelKey: "userMenu.templatePurchaseAgency" },
 ];
 
 export type MenuSubDraft = {

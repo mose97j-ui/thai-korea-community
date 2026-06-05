@@ -38,10 +38,32 @@ export default function OperatorRecentPostsPanel() {
   }, [refresh]);
 
   const recentCount = useMemo(() => posts.length, [posts]);
+  const [exporting, setExporting] = useState(false);
 
   if (!user || !showOperatorUI) {
     return null;
   }
+
+  const handleExportPurchaseAgency = async () => {
+    setExporting(true);
+    try {
+      const response = await fetch("/api/operator/purchase-agency-export");
+      if (!response.ok) {
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `purchase-agency-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <Card className="mb-4 border-l-4 border-l-sky-500 p-5">
@@ -54,9 +76,19 @@ export default function OperatorRecentPostsPanel() {
             {t("operator.recentPostsDesc")}
           </p>
         </div>
-        <span className="rounded-full bg-sky-100 px-3 py-1.5 text-sm font-bold text-sky-700 ring-1 ring-sky-200">
-          {t("operator.recentPostsCount").replace("{count}", String(recentCount))}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void handleExportPurchaseAgency()}
+            disabled={exporting}
+            className="rounded-full bg-emerald-100 px-3 py-1.5 text-sm font-bold text-emerald-700 ring-1 ring-emerald-200 disabled:opacity-50"
+          >
+            {exporting ? t("common.loading") : t("operator.purchaseExportButton")}
+          </button>
+          <span className="rounded-full bg-sky-100 px-3 py-1.5 text-sm font-bold text-sky-700 ring-1 ring-sky-200">
+            {t("operator.recentPostsCount").replace("{count}", String(recentCount))}
+          </span>
+        </div>
       </div>
 
       {posts.length === 0 ? (

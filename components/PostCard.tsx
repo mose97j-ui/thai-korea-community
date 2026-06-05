@@ -13,6 +13,7 @@ import { Card } from "@/components/ui";
 import { siteNameClass } from "@/lib/i18n/typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useOperatorView } from "@/hooks/useOperatorView";
 import { useCategoryRegistryVersion } from "@/contexts/CategoryRegistryContext";
 import { useLocalizedPost } from "@/hooks/useLocalizedPost";
 import { useSecretPostAccess } from "@/hooks/useSecretPostAccess";
@@ -41,6 +42,7 @@ export default function PostCard({
 }: PostCardProps) {
   const { pick, t, locale } = useLocale();
   const { user } = useAuth();
+  const { showOperatorUI } = useOperatorView();
   const { display, isTranslating, isTranslatedView, translationError } =
     useLocalizedPost(post);
   const { isSecret, canView, unlock } = useSecretPostAccess(post, user?.id);
@@ -191,6 +193,37 @@ export default function PostCard({
                 videoUrl={post.videoUrl}
                 compact
               />
+              {showOperatorUI && post.purchaseAgency ? (
+                <div className="mt-3 rounded-xl border border-[#06C755]/20 bg-[#06C755]/5 p-3 text-sm">
+                  <p className="font-semibold text-[#06C755]">{t("post.purchaseOperatorOnlyTitle")}</p>
+                  {post.purchaseAgency.bankAccount ? (
+                    <p className="mt-1 text-gray-700">
+                      {t("post.purchaseBankAccount")}: {post.purchaseAgency.bankAccount}
+                    </p>
+                  ) : null}
+                  {post.purchaseAgency.phoneNumber ? (
+                    <p className="text-gray-700">
+                      {t("post.purchasePhoneNumber")}: {post.purchaseAgency.phoneNumber}
+                    </p>
+                  ) : null}
+                  {post.purchaseAgency.receiverAddress ? (
+                    <p className="text-gray-700">
+                      {t("post.purchaseReceiverAddress")}: {post.purchaseAgency.receiverAddress}
+                    </p>
+                  ) : null}
+                  {post.purchaseAgency.inferredItems?.length ? (
+                    <p className="text-gray-700">
+                      {t("post.purchaseInferredItems")}:{" "}
+                      {post.purchaseAgency.inferredItems.join(", ")}
+                    </p>
+                  ) : null}
+                  {post.purchaseAgency.inferenceSummary ? (
+                    <p className="text-gray-700">
+                      {t("post.purchaseInferenceSummary")}: {post.purchaseAgency.inferenceSummary}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </>
           )}
         </div>
@@ -377,6 +410,42 @@ export default function PostCard({
             </div>
 
             <PostMediaDisplay images={post.images} videoUrl={post.videoUrl} />
+            {showOperatorUI && post.purchaseAgency ? (
+              <div className="mt-4 rounded-xl border border-[#06C755]/20 bg-[#06C755]/5 p-4 text-sm">
+                <p className="font-semibold text-[#06C755]">{t("post.purchaseOperatorOnlyTitle")}</p>
+                {post.purchaseAgency.bankAccount ? (
+                  <p className="mt-1 text-gray-700">
+                    {t("post.purchaseBankAccount")}: {post.purchaseAgency.bankAccount}
+                  </p>
+                ) : null}
+                {post.purchaseAgency.phoneNumber ? (
+                  <p className="text-gray-700">
+                    {t("post.purchasePhoneNumber")}: {post.purchaseAgency.phoneNumber}
+                  </p>
+                ) : null}
+                {post.purchaseAgency.receiverAddress ? (
+                  <p className="text-gray-700">
+                    {t("post.purchaseReceiverAddress")}: {post.purchaseAgency.receiverAddress}
+                  </p>
+                ) : null}
+                {post.purchaseAgency.sourceLinks?.length ? (
+                  <p className="text-gray-700">
+                    {t("post.purchaseSourceLinks")}: {post.purchaseAgency.sourceLinks.join(", ")}
+                  </p>
+                ) : null}
+                {post.purchaseAgency.inferredItems?.length ? (
+                  <p className="text-gray-700">
+                    {t("post.purchaseInferredItems")}:{" "}
+                    {post.purchaseAgency.inferredItems.join(", ")}
+                  </p>
+                ) : null}
+                {post.purchaseAgency.inferenceSummary ? (
+                  <p className="text-gray-700">
+                    {t("post.purchaseInferenceSummary")}: {post.purchaseAgency.inferenceSummary}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
           <PostEngagement post={post} isDetailPage={isDetailPage} />

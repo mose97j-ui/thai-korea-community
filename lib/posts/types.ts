@@ -33,6 +33,14 @@ export type Post = {
   secretPasswordHash?: string;
   isHiddenByAuthor?: boolean;
   placeReview?: PlaceReviewData;
+  purchaseAgency?: {
+    bankAccount?: string;
+    phoneNumber?: string;
+    receiverAddress?: string;
+    sourceLinks?: string[];
+    inferredItems?: string[];
+    inferenceSummary?: string;
+  };
   createdAt: string;
 };
 
@@ -57,6 +65,14 @@ export type CreatePostInput = {
   isSecret?: boolean;
   secretPasswordHash?: string;
   placeReview?: PlaceReviewData;
+  purchaseAgency?: {
+    bankAccount?: string;
+    phoneNumber?: string;
+    receiverAddress?: string;
+    sourceLinks?: string[];
+    inferredItems?: string[];
+    inferenceSummary?: string;
+  };
 };
 
 export type UpdatePostInput = {
@@ -75,6 +91,14 @@ export type UpdatePostInput = {
   isSecret?: boolean;
   secretPasswordHash?: string;
   placeReview?: PlaceReviewData;
+  purchaseAgency?: {
+    bankAccount?: string;
+    phoneNumber?: string;
+    receiverAddress?: string;
+    sourceLinks?: string[];
+    inferredItems?: string[];
+    inferenceSummary?: string;
+  };
 };
 
 export type AddressGroup = {

@@ -10,6 +10,12 @@ export type PostDraft = {
   pricePerPerson?: string;
   priceLevel?: string;
   priceNote?: string;
+  bankAccount?: string;
+  phoneNumber?: string;
+  receiverAddress?: string;
+  sourceLinksText?: string;
+  inferredItemsText?: string;
+  inferenceSummary?: string;
   updatedAt: string;
 };
 
@@ -74,7 +80,13 @@ export function savePostDraft(
     draft.videoUrl.trim() ||
     draft.reviewRatingsJson?.trim() ||
     draft.pricePerPerson?.trim() ||
-    draft.priceNote?.trim();
+    draft.priceNote?.trim() ||
+    draft.bankAccount?.trim() ||
+    draft.phoneNumber?.trim() ||
+    draft.receiverAddress?.trim() ||
+    draft.sourceLinksText?.trim() ||
+    draft.inferredItemsText?.trim() ||
+    draft.inferenceSummary?.trim();
 
   const key = getPostDraftKey(userId, categoryId, subId, postId);
   const store = readStore();

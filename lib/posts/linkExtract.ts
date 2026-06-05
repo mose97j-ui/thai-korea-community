@@ -13,6 +13,8 @@ export type LinkImportDraft = {
   subId?: string;
   videoUrl?: string;
   sourceUrl: string;
+  inferredItems?: string[];
+  inferenceSummary?: string;
 };
 
 export type LinkExtractInput = {
@@ -127,6 +129,26 @@ function scoreSubCategory(text: string, categoryId: string, item: HomeSubItem): 
   }
 
   return score;
+}
+
+function inferItemKeywords(text: string): string[] {
+  const dictionary: Array<{ label: string; patterns: RegExp[] }> = [
+    { label: "전자제품", patterns: [/iphone/i, /ipad/i, /galaxy/i, /노트북/, /laptop/i] },
+    { label: "의류", patterns: [/옷/, /패션/, /의류/, /shirt/i, /jacket/i, /dress/i] },
+    { label: "신발", patterns: [/신발/, /운동화/, /sneaker/i, /shoe/i] },
+    { label: "화장품", patterns: [/화장품/, /cosmetic/i, /skincare/i, /beauty/i] },
+    { label: "건강식품", patterns: [/비타민/, /supplement/i, /건강식품/] },
+    { label: "식품", patterns: [/식품/, /food/i, /snack/i, /음료/, /drink/i] },
+    { label: "유아용품", patterns: [/아기/, /유아/, /baby/i, /기저귀/] },
+  ];
+
+  const found: string[] = [];
+  for (const entry of dictionary) {
+    if (entry.patterns.some((pattern) => pattern.test(text))) {
+      found.push(entry.label);
+    }
+  }
+  return found.slice(0, 5);
 }
 
 export function suggestCategoryFromText(
@@ -245,6 +267,10 @@ export function buildDraftFromHtml(input: LinkExtractInput): LinkImportDraft {
     bodyText && bodyText !== description ? bodyText : "",
     `🔗 ${input.sourceUrl}`,
   ].filter(Boolean);
+  const inferredItems = inferItemKeywords(combinedText);
+  const inferenceSummary = inferredItems.length
+    ? `자동 유추 품목: ${inferredItems.join(", ")}`
+    : undefined;
 
   return {
     storeName,
@@ -255,6 +281,8 @@ export function buildDraftFromHtml(input: LinkExtractInput): LinkImportDraft {
     subId: suggested.subId,
     videoUrl: isVideoUrl(input.sourceUrl) ? input.sourceUrl : undefined,
     sourceUrl: input.sourceUrl,
+    inferredItems,
+    inferenceSummary,
   };
 }
 

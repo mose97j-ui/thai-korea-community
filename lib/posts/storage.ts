@@ -70,6 +70,16 @@ function migratePost(raw: Post): Post {
     secretPasswordHash: raw.secretPasswordHash?.trim() || undefined,
     isHiddenByAuthor: raw.isHiddenByAuthor ?? false,
     placeReview: raw.placeReview,
+    purchaseAgency: raw.purchaseAgency
+      ? {
+          bankAccount: raw.purchaseAgency.bankAccount?.trim() || undefined,
+          phoneNumber: raw.purchaseAgency.phoneNumber?.trim() || undefined,
+          receiverAddress: raw.purchaseAgency.receiverAddress?.trim() || undefined,
+          sourceLinks: raw.purchaseAgency.sourceLinks?.filter(Boolean) ?? [],
+          inferredItems: raw.purchaseAgency.inferredItems?.filter(Boolean) ?? [],
+          inferenceSummary: raw.purchaseAgency.inferenceSummary?.trim() || undefined,
+        }
+      : undefined,
   };
 }
 
@@ -276,6 +286,7 @@ export function createPost(input: CreatePostInput): Post {
     isSecret: input.isSecret ?? false,
     secretPasswordHash: input.secretPasswordHash,
     placeReview: input.placeReview,
+    purchaseAgency: input.purchaseAgency,
     createdAt: new Date().toISOString(),
   };
 
@@ -351,6 +362,7 @@ export function updatePost(postId: string, input: UpdatePostInput): Post | null 
       ? input.secretPasswordHash ?? current.secretPasswordHash
       : undefined,
     placeReview: input.placeReview ?? current.placeReview,
+    purchaseAgency: input.purchaseAgency ?? current.purchaseAgency,
   };
 
   posts[index] = updated;

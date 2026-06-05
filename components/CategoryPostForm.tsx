@@ -113,6 +113,13 @@ export default function CategoryPostForm({
   const [pricePerPerson, setPricePerPerson] = useState("");
   const [priceLevel, setPriceLevel] = useState<PlaceReviewPriceLevel | "">("");
   const [priceNote, setPriceNote] = useState("");
+  const [bankAccount, setBankAccount] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [receiverAddress, setReceiverAddress] = useState("");
+  const [sourceLinksText, setSourceLinksText] = useState("");
+  const [inferredItemsText, setInferredItemsText] = useState("");
+  const [inferenceSummary, setInferenceSummary] = useState("");
+  const isPurchaseAgency = template.id === "purchaseAgency";
 
   const isEditMode = Boolean(postId);
   const contentMinHeightPx = compact
@@ -146,6 +153,12 @@ export default function CategoryPostForm({
       setPriceLevel(existing.placeReview.priceLevel ?? "");
       setPriceNote(existing.placeReview.priceNote ?? "");
     }
+    setBankAccount(existing.purchaseAgency?.bankAccount ?? "");
+    setPhoneNumber(existing.purchaseAgency?.phoneNumber ?? "");
+    setReceiverAddress(existing.purchaseAgency?.receiverAddress ?? "");
+    setSourceLinksText((existing.purchaseAgency?.sourceLinks ?? []).join("\n"));
+    setInferredItemsText((existing.purchaseAgency?.inferredItems ?? []).join(", "));
+    setInferenceSummary(existing.purchaseAgency?.inferenceSummary ?? "");
     setLoaded(true);
   }, [postId, reviewSchema]);
 
@@ -176,6 +189,12 @@ export default function CategoryPostForm({
         setPricePerPerson("");
         setPriceLevel("");
         setPriceNote("");
+        setBankAccount("");
+        setPhoneNumber("");
+        setReceiverAddress("");
+        setSourceLinksText("");
+        setInferredItemsText("");
+        setInferenceSummary("");
       }
       return;
     }
@@ -197,6 +216,12 @@ export default function CategoryPostForm({
     setPricePerPerson(draft.pricePerPerson ?? "");
     setPriceLevel((draft.priceLevel as PlaceReviewPriceLevel) ?? "");
     setPriceNote(draft.priceNote ?? "");
+    setBankAccount(draft.bankAccount ?? "");
+    setPhoneNumber(draft.phoneNumber ?? "");
+    setReceiverAddress(draft.receiverAddress ?? "");
+    setSourceLinksText(draft.sourceLinksText ?? "");
+    setInferredItemsText(draft.inferredItemsText ?? "");
+    setInferenceSummary(draft.inferenceSummary ?? "");
 
     setDraftRestored(true);
     setAutoSavedAt(draft.updatedAt);
@@ -219,6 +244,12 @@ export default function CategoryPostForm({
         pricePerPerson: showPlaceReview ? pricePerPerson : undefined,
         priceLevel: showPlaceReview ? priceLevel : undefined,
         priceNote: showPlaceReview ? priceNote : undefined,
+        bankAccount: isPurchaseAgency ? bankAccount : undefined,
+        phoneNumber: isPurchaseAgency ? phoneNumber : undefined,
+        receiverAddress: isPurchaseAgency ? receiverAddress : undefined,
+        sourceLinksText: isPurchaseAgency ? sourceLinksText : undefined,
+        inferredItemsText: isPurchaseAgency ? inferredItemsText : undefined,
+        inferenceSummary: isPurchaseAgency ? inferenceSummary : undefined,
       });
       setAutoSavedAt(new Date().toISOString());
     },
@@ -240,6 +271,13 @@ export default function CategoryPostForm({
       pricePerPerson,
       priceLevel,
       priceNote,
+      isPurchaseAgency,
+      bankAccount,
+      phoneNumber,
+      receiverAddress,
+      sourceLinksText,
+      inferredItemsText,
+      inferenceSummary,
     ],
     700
   );
@@ -273,6 +311,15 @@ export default function CategoryPostForm({
     }
     if (draft.videoUrl) {
       setVideoUrl(draft.videoUrl);
+    }
+    setSourceLinksText((prev) =>
+      [prev, draft.sourceUrl].filter(Boolean).join("\n")
+    );
+    if (draft.inferredItems?.length) {
+      setInferredItemsText(draft.inferredItems.join(", "));
+    }
+    if (draft.inferenceSummary) {
+      setInferenceSummary(draft.inferenceSummary);
     }
   };
 
@@ -351,6 +398,22 @@ export default function CategoryPostForm({
       ? secondary.trim() || storeName
       : storeName;
     const postAddress = address.trim();
+    const purchaseAgency = isPurchaseAgency
+      ? {
+          bankAccount: bankAccount.trim() || undefined,
+          phoneNumber: phoneNumber.trim() || undefined,
+          receiverAddress: receiverAddress.trim() || undefined,
+          sourceLinks: sourceLinksText
+            .split(/\n|,/)
+            .map((item) => item.trim())
+            .filter(Boolean),
+          inferredItems: inferredItemsText
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
+          inferenceSummary: inferenceSummary.trim() || undefined,
+        }
+      : undefined;
 
     let resolvedAddress = addressMeta;
     if (postAddress && template.address) {
@@ -404,6 +467,7 @@ export default function CategoryPostForm({
         mapLat: resolvedAddress?.mapLat,
         mapLng: resolvedAddress?.mapLng,
         placeReview,
+        purchaseAgency,
         title: postTitle,
         content,
         images: template.showMedia ? images : [],
@@ -550,6 +614,69 @@ export default function CategoryPostForm({
           priceNote={priceNote}
           onPriceNoteChange={setPriceNote}
         />
+      ) : null}
+
+      {isPurchaseAgency ? (
+        <div className="space-y-4 rounded-2xl border border-[#06C755]/20 bg-[#06C755]/5 p-4">
+          <p className="text-sm font-semibold text-[#06C755]">{t("post.purchaseAgencyInfoTitle")}</p>
+          <FormField label={t("post.purchaseBankAccount")}>
+            <input
+              type="text"
+              value={bankAccount}
+              onChange={(event) => setBankAccount(event.target.value)}
+              placeholder={t("post.purchaseBankAccountPlaceholder")}
+              maxLength={120}
+              className={inputClassName}
+            />
+          </FormField>
+          <FormField label={t("post.purchasePhoneNumber")}>
+            <input
+              type="text"
+              value={phoneNumber}
+              onChange={(event) => setPhoneNumber(event.target.value)}
+              placeholder={t("post.purchasePhoneNumberPlaceholder")}
+              maxLength={40}
+              className={inputClassName}
+            />
+          </FormField>
+          <FormField label={t("post.purchaseReceiverAddress")}>
+            <textarea
+              value={receiverAddress}
+              onChange={(event) => setReceiverAddress(event.target.value)}
+              placeholder={t("post.purchaseReceiverAddressPlaceholder")}
+              rows={2}
+              className={postFormTextareaClassName}
+            />
+          </FormField>
+          <FormField label={t("post.purchaseSourceLinks")}>
+            <textarea
+              value={sourceLinksText}
+              onChange={(event) => setSourceLinksText(event.target.value)}
+              placeholder={t("post.purchaseSourceLinksPlaceholder")}
+              rows={2}
+              className={postFormTextareaClassName}
+            />
+          </FormField>
+          <FormField label={t("post.purchaseInferredItems")}>
+            <input
+              type="text"
+              value={inferredItemsText}
+              onChange={(event) => setInferredItemsText(event.target.value)}
+              placeholder={t("post.purchaseInferredItemsPlaceholder")}
+              className={inputClassName}
+            />
+          </FormField>
+          <FormField label={t("post.purchaseInferenceSummary")}>
+            <textarea
+              value={inferenceSummary}
+              onChange={(event) => setInferenceSummary(event.target.value)}
+              placeholder={t("post.purchaseInferenceSummaryPlaceholder")}
+              rows={2}
+              className={postFormTextareaClassName}
+            />
+          </FormField>
+          <p className="text-xs text-gray-600">{t("post.purchaseOperatorOnlyHint")}</p>
+        </div>
       ) : null}
 
       <FormField label={t(template.content.labelKey)}>

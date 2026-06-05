@@ -92,6 +92,12 @@ const jobTemplate: PostFormTemplate = {
     placeholderKey: "post.formCompanyPlaceholder",
     required: false,
   },
+  address: {
+    labelKey: "post.formWorkLocation",
+    placeholderKey: "post.formWorkLocationPlaceholder",
+    hintKey: "post.formWorkLocationHint",
+    required: true,
+  },
   content: {
     labelKey: "post.formJobContent",
     placeholderKey: "post.formJobContentPlaceholder",
@@ -104,6 +110,7 @@ const jobTemplate: PostFormTemplate = {
     detailMinHeightRem: 27,
   },
   errorPrimaryKey: "post.errorJobTitle",
+  errorAddressKey: "post.errorWorkLocation",
 };
 
 const articleTemplate: PostFormTemplate = {
@@ -132,6 +139,37 @@ const articleTemplate: PostFormTemplate = {
   errorPrimaryKey: "post.errorPostTitle",
 };
 
+const purchaseAgencyTemplate: PostFormTemplate = {
+  id: "purchaseAgency",
+  hintKey: "post.writeHintPurchaseAgency",
+  showLinkImport: true,
+  showMedia: true,
+  showSecondaryTitle: true,
+  groupByAddress: false,
+  primary: {
+    labelKey: "post.formPurchaseTitle",
+    placeholderKey: "post.formPurchaseTitlePlaceholder",
+    required: true,
+  },
+  secondary: {
+    labelKey: "post.titleOptional",
+    placeholderKey: "post.titlePlaceholder",
+    required: false,
+  },
+  content: {
+    labelKey: "post.formPurchaseContent",
+    placeholderKey: "post.formPurchaseContentPlaceholder",
+    required: true,
+  },
+  contentArea: {
+    formMinHeightPx: 320,
+    formMinHeightCompactPx: 200,
+    feedMinHeightRem: 21,
+    detailMinHeightRem: 28,
+  },
+  errorPrimaryKey: "post.errorPostTitle",
+};
+
 const templateByCategory: Record<string, PostFormTemplateId> = {
   info: "article",
   notices: "article",
@@ -142,6 +180,7 @@ const templates: Record<PostFormTemplateId, PostFormTemplate> = {
   place: placeTemplate,
   job: jobTemplate,
   article: articleTemplate,
+  purchaseAgency: purchaseAgencyTemplate,
 };
 
 export function getPostFormTemplate(categoryId: string): PostFormTemplate {
