@@ -56,6 +56,13 @@ function purchaseLinks(
 
 export const homeCategories: CategoryItem[] = [
   { id: "info", label: { th: "ความรู้มีประโยชน์", ko: "유용한지식" }, icon: "📚", href: "/c/info/info-0", tint: "bg-sky-100" },
+  {
+    id: "notices",
+    label: { th: "ประกาศ", ko: "알립니다" },
+    icon: "📢",
+    href: "/c/notices/notices-0",
+    tint: "bg-blue-100",
+  },
   { id: "hotitems", label: { th: "ไอเทมฮอต&ข้อมูล", ko: "핫한아이템&정보" }, icon: "🔥", href: "/c/hotitems/hotitems-0", tint: "bg-pink-100" },
   { id: "jobs", label: { th: "หางาน", ko: "구인구직" }, icon: "💼", href: "/c/jobs/jobs-0", tint: "bg-emerald-100" },
   { id: "reviews", label: { th: "รีวิวสถานที่", ko: "장소리뷰" }, icon: "📍", href: "/c/reviews/reviews-0", tint: "bg-rose-100" },
@@ -68,6 +75,36 @@ export const homeCategories: CategoryItem[] = [
   { id: "transport", label: { th: "การเดินทาง", ko: "교통" }, icon: "🚕", href: "/c/transport/transport-0", tint: "bg-yellow-100" },
   { id: "education", label: { th: "การศึกษา", ko: "교육" }, icon: "🎓", href: "/c/education/education-0", tint: "bg-purple-100" },
   { id: "service", label: { th: "บริการ", ko: "서비스" }, icon: "🔧", href: "/c/service/service-0", tint: "bg-slate-100" },
+];
+
+export const noticesTopics: TopicItem[] = [
+  {
+    title: { th: "คำเตือน", ko: "경고" },
+    description: {
+      th: "ประกาศเตือน กฎ และข้อปฏิบัติที่สมาชิกควรทราบ",
+      ko: "회원에게 전하는 경고·규칙·주의 안내",
+    },
+    icon: "⚠️",
+    tint: "bg-amber-100",
+  },
+  {
+    title: { th: "ข่าวร้าย", ko: "나쁜소식" },
+    description: {
+      th: "ข่าวไม่ดี ปัญหา และสถานการณ์ที่ต้องระวัง",
+      ko: "안 좋은 소식·문제·주의가 필요한 상황",
+    },
+    icon: "📉",
+    tint: "bg-rose-100",
+  },
+  {
+    title: { th: "ข่าวดี", ko: "좋은소식" },
+    description: {
+      th: "ข่าวดี โปรโมชัน และเรื่องราวดีๆ จากชุมชน",
+      ko: "좋은 소식·혜택·커뮤니티의 반가운 이야기",
+    },
+    icon: "📈",
+    tint: "bg-emerald-100",
+  },
 ];
 
 export const infoTopics: TopicItem[] = [
@@ -599,6 +636,7 @@ const serviceItems: TopicItem[] = [
 
 export const homeCategoryItems: Record<string, HomeSubItem[]> = {
   info: topicLinks(infoTopics, "info"),
+  notices: topicLinks(noticesTopics, "notices"),
   hotitems: topicLinks(hotItemsTopics, "hotitems"),
   jobs: topicLinks(jobTopics, "jobs"),
   reviews: withRoutes("reviews", reviewPlaceItems),

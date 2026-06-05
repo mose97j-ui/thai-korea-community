@@ -141,6 +141,7 @@ const articleTemplate: PostFormTemplate = {
 
 const templateByCategory: Record<string, PostFormTemplateId> = {
   info: "article",
+  notices: "article",
   jobs: "job",
 };
 
