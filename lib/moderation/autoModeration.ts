@@ -35,7 +35,7 @@ export type ContentValidationResult =
       autoRestricted?: boolean;
     };
 
-const AUTO_VIOLATION_LIMIT = 3;
+const AUTO_VIOLATION_LIMIT = 5;
 
 function getOperatorAccount(): User | null {
   const defaults = getOperatorDefaults();

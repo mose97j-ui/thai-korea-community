@@ -1,4 +1,4 @@
-export const MAX_POST_IMAGES = 3;
+export const MAX_POST_IMAGES = 10;
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const OUTPUT_MAX_PX = 960;
 const JPEG_QUALITY = 0.78;
