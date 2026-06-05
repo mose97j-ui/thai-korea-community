@@ -128,9 +128,11 @@ export default function OperatorRecentMembersPanel() {
     }
   }, [refreshDirectory, t]);
 
-  const handleToggleOperator = useCallback(
-    (member: User) => {
-      const nextRole = member.role === "operator" ? "user" : "operator";
+  const handleSetOperatorRole = useCallback(
+    (member: User, nextRole: "operator" | "user") => {
+      if (member.role === nextRole) {
+        return;
+      }
       const updated: User = {
         ...member,
         role: nextRole,
@@ -234,18 +236,28 @@ export default function OperatorRecentMembersPanel() {
                         locale={locale}
                         t={t}
                       />
-                      <div className="mt-2">
+                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
                         <button
                           type="button"
                           onClick={(event) => {
                             event.stopPropagation();
-                            handleToggleOperator(member);
+                            handleSetOperatorRole(member, "operator");
                           }}
-                          className="w-full rounded-xl bg-amber-100 px-3 py-2 text-sm font-semibold text-amber-900 ring-1 ring-amber-200 hover:bg-amber-200"
+                          disabled={member.role === "operator"}
+                          className="w-full rounded-xl bg-amber-100 px-3 py-2 text-sm font-semibold text-amber-900 ring-1 ring-amber-200 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          {member.role === "operator"
-                            ? t("admin.recentMembersUnsetOperator")
-                            : t("admin.recentMembersSetOperator")}
+                          {t("admin.recentMembersSetOperator")}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleSetOperatorRole(member, "user");
+                          }}
+                          disabled={member.role !== "operator"}
+                          className="w-full rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {t("admin.recentMembersUnsetOperator")}
                         </button>
                       </div>
                     </>
