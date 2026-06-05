@@ -109,7 +109,9 @@ export default function HomeContent() {
     setSectionOpens(setAllHomeSectionsOpen(!allMenusExpanded));
   }, [allMenusExpanded]);
 
-  const menuItems = showOperatorUI ? operatorCategoriesForEdit : operatorCategories;
+  const menuItems = (showOperatorUI ? operatorCategoriesForEdit : operatorCategories).filter(
+    (item) => item.id !== "ideas"
+  );
   const menuListSignature = categoryListSignature(menuItems);
 
   const selectedCategory = useMemo(

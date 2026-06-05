@@ -66,7 +66,6 @@ export const homeCategories: CategoryItem[] = [
   { id: "hotitems", label: { th: "ไอเทมฮอต&ข้อมูล", ko: "핫한아이템&정보" }, icon: "🔥", href: "/c/hotitems/hotitems-0", tint: "bg-pink-100" },
   { id: "jobs", label: { th: "หางาน", ko: "구인구직" }, icon: "💼", href: "/c/jobs/jobs-0", tint: "bg-emerald-100" },
   { id: "reviews", label: { th: "รีวิวสถานที่", ko: "장소리뷰" }, icon: "📍", href: "/c/reviews/reviews-0", tint: "bg-rose-100" },
-  { id: "ideas", label: { th: "แชร์ไอเดีย", ko: "아이디어공유" }, icon: "💡", href: "/c/ideas/ideas-0", tint: "bg-yellow-100" },
   { id: "krculture", label: { th: "ไทย/เกาหลีแนะนำ", ko: "태국/한국 추천" }, icon: "🌏", href: "/c/krculture/krculture-0", tint: "bg-cyan-100" },
   { id: "purchase", label: { th: "รับหิ้ว", ko: "구매대행" }, icon: "🛍️", href: "/c/purchase/purchase-0", tint: "bg-violet-100" },
   { id: "food", label: { th: "ส่งอาหาร", ko: "음식배달" }, icon: "🍜", href: "/c/food/food-0", tint: "bg-orange-100" },
