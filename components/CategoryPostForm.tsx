@@ -586,17 +586,24 @@ export default function CategoryPostForm({
       )}
 
       {template.address && (
-        <KakaoAddressField
-          value={address}
-          onChange={(value) => {
-            setAddress(value);
-            setAddressMeta(null);
-          }}
-          onResolved={setAddressMeta}
-          label={t(template.address.labelKey)}
-          required={template.address.required}
-          placeholder={t(template.address.placeholderKey)}
-        />
+        <div>
+          <KakaoAddressField
+            value={address}
+            onChange={(value) => {
+              setAddress(value);
+              setAddressMeta(null);
+            }}
+            onResolved={setAddressMeta}
+            label={t(template.address.labelKey)}
+            required={template.address.required}
+            placeholder={t(template.address.placeholderKey)}
+          />
+          {template.address.hintKey ? (
+            <p className="-mt-1 text-xs font-semibold text-rose-600">
+              {t(template.address.hintKey)}
+            </p>
+          ) : null}
+        </div>
       )}
 
       {showPlaceReview && reviewSchema ? (

@@ -156,6 +156,12 @@ const purchaseAgencyTemplate: PostFormTemplate = {
     placeholderKey: "post.titlePlaceholder",
     required: false,
   },
+  address: {
+    labelKey: "post.purchaseDeliveryAddressLabel",
+    placeholderKey: "post.purchaseReceiverAddressPlaceholder",
+    hintKey: "post.purchaseDeliveryAddressSecretHint",
+    required: true,
+  },
   content: {
     labelKey: "post.formPurchaseContent",
     placeholderKey: "post.formPurchaseContentPlaceholder",
@@ -174,6 +180,7 @@ const templateByCategory: Record<string, PostFormTemplateId> = {
   info: "article",
   notices: "article",
   jobs: "job",
+  purchase: "purchaseAgency",
 };
 
 const templates: Record<PostFormTemplateId, PostFormTemplate> = {
