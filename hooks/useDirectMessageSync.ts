@@ -7,8 +7,8 @@ import { pullMessagesForUser } from "@/lib/social/messageSync";
 import { MESSAGES_SYNC_EVENT } from "@/lib/social/messageSync";
 import { subscribeDirectMessageChanges } from "@/lib/social/messageRealtime";
 
-const POLL_MS = 8_000;
-const POLL_MS_OPERATOR = 4_000;
+const POLL_MS = 5_000;
+const POLL_MS_OPERATOR = 3_000;
 
 /** Pull direct messages from Supabase for the logged-in user (all devices). */
 export function useDirectMessageSync(enabled: boolean, user: User | null) {

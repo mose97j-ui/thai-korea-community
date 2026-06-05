@@ -41,6 +41,18 @@ function isSameRequest(a: SupportRequest, b: SupportRequest): boolean {
   );
 }
 
+function pickNewerSupportRequest(
+  local: SupportRequest,
+  remote: SupportRequest
+): SupportRequest {
+  const localTime = new Date(local.updatedAt).getTime();
+  const remoteTime = new Date(remote.updatedAt).getTime();
+  if (remoteTime !== localTime) {
+    return remoteTime > localTime ? remote : local;
+  }
+  return remote.messages.length >= local.messages.length ? remote : local;
+}
+
 export function mergeRemoteSupportRequests(remote: SupportRequest[]): boolean {
   if (remote.length === 0) {
     return false;
@@ -51,8 +63,9 @@ export function mergeRemoteSupportRequests(remote: SupportRequest[]): boolean {
 
   for (const request of remote) {
     const existing = merged.get(request.id);
-    if (!existing || !isSameRequest(existing, request)) {
-      merged.set(request.id, request);
+    const next = existing ? pickNewerSupportRequest(existing, request) : request;
+    if (!existing || !isSameRequest(existing, next)) {
+      merged.set(request.id, next);
       changed = true;
     }
   }
@@ -102,33 +115,65 @@ export function scheduleSupportRequestSync(request: SupportRequest): void {
 export async function fetchSupportRequestsForUser(
   user: User
 ): Promise<number> {
+  const operator = hasOperatorPrivileges(user);
   const gmail = user.gmail?.trim().toLowerCase();
-  if (!gmail) {
+  if (!operator && !gmail) {
     return 0;
   }
 
-  const operator = hasOperatorPrivileges(user);
   const query = operator
     ? "scope=operator"
-    : `gmail=${encodeURIComponent(gmail)}`;
+    : `gmail=${encodeURIComponent(gmail!)}`;
+
+  let count = 0;
 
   try {
     const response = await fetch(`/api/support?${query}`, {
       cache: "no-store",
       headers: { Pragma: "no-cache" },
     });
-    if (!response.ok) {
-      return 0;
+    if (response.ok) {
+      const payload = (await response.json()) as {
+        requests?: SupportRequest[];
+      };
+      const requests = payload.requests ?? [];
+      if (requests.length > 0 && mergeRemoteSupportRequests(requests)) {
+        count = requests.length;
+      } else if (requests.length > 0) {
+        count = requests.length;
+      }
     }
+  } catch {
+    // Fall through to client read.
+  }
 
-    const payload = (await response.json()) as {
-      requests?: SupportRequest[];
-    };
-    const requests = payload.requests ?? [];
+  const fromClient = await fetchSupportRequestsFromSupabase(user);
+  return Math.max(count, fromClient);
+}
+
+/** Client-side Supabase read when service role API is unavailable. */
+export async function fetchSupportRequestsFromSupabase(user: User): Promise<number> {
+  if (typeof window === "undefined") {
+    return 0;
+  }
+
+  const operator = hasOperatorPrivileges(user);
+  const gmail = user.gmail?.trim().toLowerCase();
+  if (!operator && !gmail) {
+    return 0;
+  }
+
+  try {
+    const {
+      fetchAllSupportRequestsClient,
+      fetchSupportRequestsForGmailClient,
+    } = await import("@/lib/supabase/supportRequestsClient");
+    const requests = operator
+      ? await fetchAllSupportRequestsClient()
+      : await fetchSupportRequestsForGmailClient(gmail!);
     if (requests.length === 0) {
       return 0;
     }
-
     mergeRemoteSupportRequests(requests);
     return requests.length;
   } catch {
@@ -148,8 +193,9 @@ export async function pushAllLocalSupportToServer(): Promise<number> {
 }
 
 export async function pullSupportRequestsForUser(user: User): Promise<number> {
+  const pulled = await fetchSupportRequestsForUser(user);
   await pushAllLocalSupportToServer();
-  return fetchSupportRequestsForUser(user);
+  return pulled;
 }
 
 export async function syncSupportDeletionsToServer(ids: string[]): Promise<void> {

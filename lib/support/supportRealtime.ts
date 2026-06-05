@@ -9,7 +9,7 @@ export function subscribeSupportRequestChanges(onChange: () => void): () => void
   }
 
   const channel = supabase
-    .channel("support_requests_live")
+    .channel(`support_requests_live_${Date.now()}`)
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "support_requests" },

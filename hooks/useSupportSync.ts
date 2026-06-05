@@ -7,8 +7,8 @@ import { subscribeSupportRequestChanges } from "@/lib/support/supportRealtime";
 import { pullSupportRequestsForUser, SUPPORT_SYNC_EVENT } from "@/lib/support/supportSync";
 import { SUPPORT_CHANGE_EVENT } from "@/lib/support/types";
 
-const POLL_MS = 12_000;
-const POLL_MS_OPERATOR = 5_000;
+const POLL_MS = 5_000;
+const POLL_MS_OPERATOR = 3_000;
 
 /** Pull support requests from Supabase (member ↔ operator across devices). */
 export function useSupportSync(enabled: boolean, user: User | null) {

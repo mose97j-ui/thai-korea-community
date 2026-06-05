@@ -67,6 +67,7 @@ export function mergeRemoteMessages(remote: DirectMessage[]): boolean {
     )
   );
   dispatchMessagesSyncEvent();
+  emitSocialChange();
   return true;
 }
 
@@ -192,9 +193,9 @@ export async function pushAllLocalMessagesToServer(): Promise<number> {
 }
 
 export async function pullMessagesForUser(user: User): Promise<number> {
-  await pushAllLocalMessagesToServer();
   const fromApi = await fetchDirectMessagesForUser(user);
   const fromClient = await fetchDirectMessagesFromSupabase(user);
+  await pushAllLocalMessagesToServer();
   return Math.max(fromApi, fromClient);
 }
 

@@ -41,6 +41,7 @@ import {
   getMessagesForConversation,
   markConversationRead,
 } from "@/lib/social/messages";
+import { MESSAGES_SYNC_EVENT } from "@/lib/social/messageSync";
 import type { DirectMessage } from "@/lib/social/types";
 import { SOCIAL_CHANGE_EVENT } from "@/lib/social/types";
 
@@ -106,7 +107,11 @@ export default function MessageThreadContent({ params }: MessageThreadContentPro
   useEffect(() => {
     refresh();
     window.addEventListener(SOCIAL_CHANGE_EVENT, refresh);
-    return () => window.removeEventListener(SOCIAL_CHANGE_EVENT, refresh);
+    window.addEventListener(MESSAGES_SYNC_EVENT, refresh);
+    return () => {
+      window.removeEventListener(SOCIAL_CHANGE_EVENT, refresh);
+      window.removeEventListener(MESSAGES_SYNC_EVENT, refresh);
+    };
   }, [user?.id, resolvedPeerId, peer?.id]);
 
   useEffect(() => {

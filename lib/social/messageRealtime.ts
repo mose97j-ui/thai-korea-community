@@ -10,10 +10,17 @@ export function subscribeDirectMessageChanges(onChange: () => void): () => void 
   }
 
   const channel = supabase
-    .channel("direct_messages_live")
+    .channel(`direct_messages_live_${Date.now()}`)
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "direct_messages" },
+      () => {
+        onChange();
+      }
+    )
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "direct_messages" },
       () => {
         onChange();
       }

@@ -11,6 +11,7 @@ import {
   getUnreadSupportCountForOperator,
 } from "@/lib/support/storage";
 import type { SupportRequest } from "@/lib/support/types";
+import { SUPPORT_SYNC_EVENT } from "@/lib/support/supportSync";
 import { SUPPORT_CHANGE_EVENT } from "@/lib/support/types";
 
 export default function OperatorSupportPanel() {
@@ -32,7 +33,11 @@ export default function OperatorSupportPanel() {
   useEffect(() => {
     refresh();
     window.addEventListener(SUPPORT_CHANGE_EVENT, refresh);
-    return () => window.removeEventListener(SUPPORT_CHANGE_EVENT, refresh);
+    window.addEventListener(SUPPORT_SYNC_EVENT, refresh);
+    return () => {
+      window.removeEventListener(SUPPORT_CHANGE_EVENT, refresh);
+      window.removeEventListener(SUPPORT_SYNC_EVENT, refresh);
+    };
   }, [refresh]);
 
   return (
