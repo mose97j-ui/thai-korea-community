@@ -243,7 +243,10 @@ export default function HomeContent() {
         {showOperatorUI && menuEditMode ? (
           <OperatorMenuTileControls
             categoryId={item.id}
-            onEdit={() => setEditingCategoryId(item.id)}
+            onEdit={() => {
+              setSelectedId(item.id);
+              setEditingCategoryId(item.id);
+            }}
             onToggleHidden={() =>
               toggleOperatorCategoryHidden(item.id, refreshOperatorMenus)
             }
