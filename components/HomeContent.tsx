@@ -475,8 +475,8 @@ export default function HomeContent() {
     patchHomeSection(key, open);
   };
 
-  const showMemberMenus = !showOperatorUI;
-  const showMemberOnlySections = !showOperatorUI;
+  const showMemberMenus = false;
+  const showMemberOnlySections = false;
 
   return (
     <div className={socialPageStackSidebarClassName}>
