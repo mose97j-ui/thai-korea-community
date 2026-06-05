@@ -180,6 +180,7 @@ const templateByCategory: Record<string, PostFormTemplateId> = {
   info: "article",
   notices: "article",
   jobs: "job",
+  krculture: "article",
   purchase: "purchaseAgency",
 };
 
