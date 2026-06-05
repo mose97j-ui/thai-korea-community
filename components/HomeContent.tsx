@@ -476,7 +476,7 @@ export default function HomeContent() {
   };
 
   const showMemberMenus = !showOperatorUI;
-  const showComplexMemberSections = !showOperatorUI;
+  const showMemberOnlySections = !showOperatorUI;
 
   return (
     <div className={socialPageStackSidebarClassName}>
@@ -542,7 +542,7 @@ export default function HomeContent() {
           <GlobalSearchBar className="mb-0 w-full xl:min-w-[min(100%,28rem)] xl:flex-1" />
         </div>
 
-        {showComplexMemberSections ? (
+        {showMemberOnlySections ? (
           <>
             <HomeMobileBoardStrip
               favoriteIds={favorites}
@@ -571,16 +571,18 @@ export default function HomeContent() {
               subId={writeSubId}
               onCategoryChange={handleWriteCategoryChange}
             />
+          </>
+        ) : null}
 
-            <div className="mb-2 flex justify-end">
-              <button
-                type="button"
-                onClick={toggleAllHomeMenus}
-                className={pillSecondaryButtonClassName}
-              >
-                {allMenusExpanded ? t("home.collapseAllMenus") : t("home.expandAllMenus")}
-              </button>
-            </div>
+        <div className="mb-2 flex justify-end">
+          <button
+            type="button"
+            onClick={toggleAllHomeMenus}
+            className={pillSecondaryButtonClassName}
+          >
+            {allMenusExpanded ? t("home.collapseAllMenus") : t("home.expandAllMenus")}
+          </button>
+        </div>
 
             <section className="social-surface social-home-menu-card mb-3 rounded-2xl ring-1 ring-black/[0.06]">
               <div className="px-4 pt-4">
@@ -648,7 +650,7 @@ export default function HomeContent() {
                 isPremiumCategoryId(selectedCategory.id) && !hasPremiumAccess ? (
                   <>
                     <PremiumPaywall variant="inline" />
-                    <UserMenusSection {...userMenuProps} />
+                    {showMemberMenus ? <UserMenusSection {...userMenuProps} /> : null}
                   </>
                 ) : (
                 <CollapsibleSection
@@ -767,14 +769,14 @@ export default function HomeContent() {
               )}
             </div>
 
-            <Link
-              href="/board"
-              className={`social-page-bottom-safe mt-4 flex w-full items-center justify-center gap-2 lg:mt-5 ${primaryButtonClassName}`}
-            >
-              <span aria-hidden>{SYMBOL_BOARD}</span>
-              <span>{t("home.board")}</span>
-            </Link>
-          </>
+        {showMemberOnlySections ? (
+          <Link
+            href="/board"
+            className={`social-page-bottom-safe mt-4 flex w-full items-center justify-center gap-2 lg:mt-5 ${primaryButtonClassName}`}
+          >
+            <span aria-hidden>{SYMBOL_BOARD}</span>
+            <span>{t("home.board")}</span>
+          </Link>
         ) : null}
       </div>
     </div>
