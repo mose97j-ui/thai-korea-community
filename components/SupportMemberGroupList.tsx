@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import OperatorMemberGroupHeader from "@/components/operator/OperatorMemberGroupHeader";
 import { SectionLabel } from "@/components/ui";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -64,6 +65,15 @@ function GroupRequestRow({
           <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700 ring-1 ring-sky-100">
             {t(supportCategoryLabelKey(request.category))}
           </span>
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${
+              request.unreadByOperator
+                ? "bg-red-50 text-red-700 ring-red-100"
+                : "bg-emerald-50 text-emerald-700 ring-emerald-100"
+            }`}
+          >
+            {request.unreadByOperator ? t("common.unread") : t("common.read")}
+          </span>
           {request.unreadByOperator ? (
             <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
               1
@@ -80,6 +90,12 @@ function GroupRequestRow({
   );
 }
 
+function initialOpenIds(groups: SupportMemberGroup[]): Set<string> {
+  return new Set(
+    groups.filter((group) => group.unreadCount > 0).map((group) => group.userId)
+  );
+}
+
 export default function SupportMemberGroupList({
   groups,
   locale,
@@ -88,11 +104,65 @@ export default function SupportMemberGroupList({
   locale: "ko" | "th";
 }) {
   const { t } = useLocale();
+  const [openIds, setOpenIds] = useState<Set<string>>(() => initialOpenIds(groups));
+
+  useEffect(() => {
+    setOpenIds((prev) => {
+      const next = new Set(prev);
+      for (const group of groups) {
+        if (group.unreadCount > 0) {
+          next.add(group.userId);
+        }
+      }
+      return next;
+    });
+  }, [groups]);
+
+  const toggleGroup = useCallback((userId: string) => {
+    setOpenIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) {
+        next.delete(userId);
+      } else {
+        next.add(userId);
+      }
+      return next;
+    });
+  }, []);
+
+  const expandAll = useCallback(() => {
+    setOpenIds(new Set(groups.map((group) => group.userId)));
+  }, [groups]);
+
+  const collapseAll = useCallback(() => {
+    setOpenIds(new Set());
+  }, []);
 
   return (
     <div className="space-y-4">
-      <SectionLabel>{t("admin.inboxGroupedByMember")}</SectionLabel>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <SectionLabel>{t("admin.inboxGroupedByMember")}</SectionLabel>
+        {groups.length > 1 ? (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={expandAll}
+              className="text-xs font-semibold text-[#06C755] hover:underline"
+            >
+              {t("support.expandAllGroups")}
+            </button>
+            <button
+              type="button"
+              onClick={collapseAll}
+              className="text-xs font-semibold text-gray-500 hover:underline"
+            >
+              {t("support.collapseAllGroups")}
+            </button>
+          </div>
+        ) : null}
+      </div>
       {groups.map((group) => {
+        const expanded = openIds.has(group.userId);
         const memberUser = {
           id: group.userId,
           name: group.userNickname,
@@ -119,12 +189,17 @@ export default function SupportMemberGroupList({
                 String(group.requests.length)
               )}
               unreadCount={group.unreadCount}
+              collapsible
+              expanded={expanded}
+              onToggle={() => toggleGroup(group.userId)}
             />
-            <div className="space-y-2 p-3">
-              {group.requests.map((request) => (
-                <GroupRequestRow key={request.id} request={request} locale={locale} />
-              ))}
-            </div>
+            {expanded ? (
+              <div className="space-y-2 p-3">
+                {group.requests.map((request) => (
+                  <GroupRequestRow key={request.id} request={request} locale={locale} />
+                ))}
+              </div>
+            ) : null}
           </section>
         );
       })}

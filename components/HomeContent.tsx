@@ -475,6 +475,9 @@ export default function HomeContent() {
     patchHomeSection(key, open);
   };
 
+  const showMemberMenus = !showOperatorUI;
+  const showComplexMemberSections = !showOperatorUI;
+
   return (
     <div className={socialPageStackSidebarClassName}>
       <HomeSidebar
@@ -539,236 +542,240 @@ export default function HomeContent() {
           <GlobalSearchBar className="mb-0 w-full xl:min-w-[min(100%,28rem)] xl:flex-1" />
         </div>
 
-        <HomeMobileBoardStrip
-          favoriteIds={favorites}
-          popular={popular}
-          selectedId={selectedId}
-          onSelect={handleCategorySelect}
-          open={sectionOpens.mobileStrip}
-          onOpenChange={(open) => patchHomeSection("mobileStrip", open)}
-        />
+        {showComplexMemberSections ? (
+          <>
+            <HomeMobileBoardStrip
+              favoriteIds={favorites}
+              popular={popular}
+              selectedId={selectedId}
+              onSelect={handleCategorySelect}
+              open={sectionOpens.mobileStrip}
+              onOpenChange={(open) => patchHomeSection("mobileStrip", open)}
+            />
 
-        <HomeMobileDiscoverPanel
-          favoriteIds={favorites}
-          popular={popular}
-          popularPosts={popularPosts}
-          hotPosts={hotPosts}
-          selectedId={selectedId}
-          onSelect={handleCategorySelect}
-          open={sectionOpens.mobileDiscover}
-          onOpenChange={(open) => patchHomeSection("mobileDiscover", open)}
-          sectionOpens={sidebarSectionOpens}
-          onSectionOpenChange={handleSidebarSectionOpenChange}
-        />
+            <HomeMobileDiscoverPanel
+              favoriteIds={favorites}
+              popular={popular}
+              popularPosts={popularPosts}
+              hotPosts={hotPosts}
+              selectedId={selectedId}
+              onSelect={handleCategorySelect}
+              open={sectionOpens.mobileDiscover}
+              onOpenChange={(open) => patchHomeSection("mobileDiscover", open)}
+              sectionOpens={sidebarSectionOpens}
+              onSectionOpenChange={handleSidebarSectionOpenChange}
+            />
 
-        <HomeQuickWritePanel
-          categoryId={writeCategoryId}
-          subId={writeSubId}
-          onCategoryChange={handleWriteCategoryChange}
-        />
+            <HomeQuickWritePanel
+              categoryId={writeCategoryId}
+              subId={writeSubId}
+              onCategoryChange={handleWriteCategoryChange}
+            />
 
-        <div className="mb-2 flex justify-end">
-          <button
-            type="button"
-            onClick={toggleAllHomeMenus}
-            className={pillSecondaryButtonClassName}
-          >
-            {allMenusExpanded ? t("home.collapseAllMenus") : t("home.expandAllMenus")}
-          </button>
-        </div>
+            <div className="mb-2 flex justify-end">
+              <button
+                type="button"
+                onClick={toggleAllHomeMenus}
+                className={pillSecondaryButtonClassName}
+              >
+                {allMenusExpanded ? t("home.collapseAllMenus") : t("home.expandAllMenus")}
+              </button>
+            </div>
 
-        <section className="social-surface social-home-menu-card mb-3 rounded-2xl ring-1 ring-black/[0.06]">
-          <div className="px-4 pt-4">
-            <SectionLabel>{t("common.menu")}</SectionLabel>
-          </div>
-          <div className="px-2 pb-3 pt-1 sm:px-3">
-            {showOperatorUI ? (
-              <OperatorMenuAdminPanel
-                editingCategoryId={editingCategoryId}
-                menuEditMode={menuEditMode}
-                menuAutoSavedAt={menuAutoSavedAt}
-                onClose={() => setEditingCategoryId(null)}
-                onSaved={refreshOperatorMenus}
-                onStartEdit={handleStartMenuEdit}
-                onSaveEdit={handleSaveMenuEdit}
-                onCancelEdit={handleCancelMenuEdit}
-              />
-            ) : null}
-
-            {menuEditMode ? (
-              <SortableTileGrid
-                items={visibleMenuItems}
-                enabled
-                className={menuGridClassName}
-                dragLabel={t("operatorMenu.dragToReorder")}
-                onReorder={handleReorderVisibleMenus}
-                renderItem={(item, { dragHandleProps }) =>
-                  renderMenuTile(item, false, dragHandleProps)
-                }
-              />
-            ) : (
-              <div className={menuGridClassName}>
-                {visibleMenuItems.map((item) => renderMenuTile(item, false))}
+            <section className="social-surface social-home-menu-card mb-3 rounded-2xl ring-1 ring-black/[0.06]">
+              <div className="px-4 pt-4">
+                <SectionLabel>{t("common.menu")}</SectionLabel>
               </div>
-            )}
+              <div className="px-2 pb-3 pt-1 sm:px-3">
+                {showOperatorUI ? (
+                  <OperatorMenuAdminPanel
+                    editingCategoryId={editingCategoryId}
+                    menuEditMode={menuEditMode}
+                    menuAutoSavedAt={menuAutoSavedAt}
+                    onClose={() => setEditingCategoryId(null)}
+                    onSaved={refreshOperatorMenus}
+                    onStartEdit={handleStartMenuEdit}
+                    onSaveEdit={handleSaveMenuEdit}
+                    onCancelEdit={handleCancelMenuEdit}
+                  />
+                ) : null}
 
-            {hiddenMenuItems.length > 0 ? (
-              <div className="mt-4 border-t border-gray-200 pt-4">
-                <p className="menu-label mb-3 text-gray-500">
-                  {t("operatorMenu.hiddenBadge")}
-                </p>
                 {menuEditMode ? (
                   <SortableTileGrid
-                    items={hiddenMenuItems}
+                    items={visibleMenuItems}
                     enabled
                     className={menuGridClassName}
                     dragLabel={t("operatorMenu.dragToReorder")}
-                    onReorder={handleReorderHiddenMenus}
+                    onReorder={handleReorderVisibleMenus}
                     renderItem={(item, { dragHandleProps }) =>
-                      renderMenuTile(item, true, dragHandleProps)
+                      renderMenuTile(item, false, dragHandleProps)
                     }
                   />
                 ) : (
                   <div className={menuGridClassName}>
-                    {hiddenMenuItems.map((item) => renderMenuTile(item, true))}
+                    {visibleMenuItems.map((item) => renderMenuTile(item, false))}
                   </div>
                 )}
+
+                {hiddenMenuItems.length > 0 ? (
+                  <div className="mt-4 border-t border-gray-200 pt-4">
+                    <p className="menu-label mb-3 text-gray-500">
+                      {t("operatorMenu.hiddenBadge")}
+                    </p>
+                    {menuEditMode ? (
+                      <SortableTileGrid
+                        items={hiddenMenuItems}
+                        enabled
+                        className={menuGridClassName}
+                        dragLabel={t("operatorMenu.dragToReorder")}
+                        onReorder={handleReorderHiddenMenus}
+                        renderItem={(item, { dragHandleProps }) =>
+                          renderMenuTile(item, true, dragHandleProps)
+                        }
+                      />
+                    ) : (
+                      <div className={menuGridClassName}>
+                        {hiddenMenuItems.map((item) => renderMenuTile(item, true))}
+                      </div>
+                    )}
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
-        </section>
+            </section>
 
-        <div ref={panelRef} className="mt-4 scroll-mt-8 lg:mt-6">
-          {selectedCategory ? (
-            isPremiumCategoryId(selectedCategory.id) && !hasPremiumAccess ? (
-              <>
-                <PremiumPaywall variant="inline" />
-                <UserMenusSection {...userMenuProps} />
-              </>
-            ) : (
-            <CollapsibleSection
-              className="social-home-category-panel rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.05]"
-              title={pick(selectedCategory.label)}
-              description={t("home.subcategories")}
-              open={sectionOpens.subPanel}
-              onOpenChange={(open) => patchHomeSection("subPanel", open)}
-              headerExtra={
-                <Link
-                  href={
-                    isPremiumCategoryId(selectedCategory.id) && !hasPremiumAccess
-                      ? "/premium"
-                      : getCategoryOverviewHref(selectedCategory.id)
+            <div ref={panelRef} className="mt-4 scroll-mt-8 lg:mt-6">
+              {selectedCategory ? (
+                isPremiumCategoryId(selectedCategory.id) && !hasPremiumAccess ? (
+                  <>
+                    <PremiumPaywall variant="inline" />
+                    <UserMenusSection {...userMenuProps} />
+                  </>
+                ) : (
+                <CollapsibleSection
+                  className="social-home-category-panel rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.05]"
+                  title={pick(selectedCategory.label)}
+                  description={t("home.subcategories")}
+                  open={sectionOpens.subPanel}
+                  onOpenChange={(open) => patchHomeSection("subPanel", open)}
+                  headerExtra={
+                    <Link
+                      href={
+                        isPremiumCategoryId(selectedCategory.id) && !hasPremiumAccess
+                          ? "/premium"
+                          : getCategoryOverviewHref(selectedCategory.id)
+                      }
+                      className={pillSecondaryButtonClassName}
+                    >
+                      {isPremiumCategoryId(selectedCategory.id) && !hasPremiumAccess
+                        ? t("premium.viewPlans")
+                        : `${t("home.viewAll")} ${SYMBOL_ARROW_RIGHT}`}
+                    </Link>
                   }
-                  className={pillSecondaryButtonClassName}
+                  bodyClassName="space-y-4"
                 >
-                  {isPremiumCategoryId(selectedCategory.id) && !hasPremiumAccess
-                    ? t("premium.viewPlans")
-                    : `${t("home.viewAll")} ${SYMBOL_ARROW_RIGHT}`}
-                </Link>
-              }
-              bodyClassName="space-y-4"
-            >
-              <div className="flex items-center gap-2.5 lg:gap-3">
-                <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl lg:h-14 lg:w-14 lg:rounded-[18px] ${selectedCategory.tint} ring-1 ring-black/[0.04]`}
-                >
-                  <MenuIcon icon={selectedCategory.icon} emojiClassName="text-2xl lg:text-3xl" />
-                </div>
-                <p className="text-ui-caption">{t("home.scrollHint")}</p>
-              </div>
+                  <div className="flex items-center gap-2.5 lg:gap-3">
+                    <div
+                      className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl lg:h-14 lg:w-14 lg:rounded-[18px] ${selectedCategory.tint} ring-1 ring-black/[0.04]`}
+                    >
+                      <MenuIcon icon={selectedCategory.icon} emojiClassName="text-2xl lg:text-3xl" />
+                    </div>
+                    <p className="text-ui-caption">{t("home.scrollHint")}</p>
+                  </div>
 
-              {canManageSubs && selectedId ? (
-                <OperatorSubCategoryAddForm
-                  categoryId={selectedId}
-                  onSaved={refreshOperatorMenus}
-                  onError={setSubManageError}
-                />
-              ) : null}
+                  {canManageSubs && selectedId ? (
+                    <OperatorSubCategoryAddForm
+                      categoryId={selectedId}
+                      onSaved={refreshOperatorMenus}
+                      onError={setSubManageError}
+                    />
+                  ) : null}
 
-              {subManageError ? (
-                <p className="mb-3 text-sm text-red-500">{subManageError}</p>
-              ) : null}
+                  {subManageError ? (
+                    <p className="mb-3 text-sm text-red-500">{subManageError}</p>
+                  ) : null}
 
-              {editingSubItem && selectedId ? (
-                <div className="mb-4">
-                  <OperatorSubEditForm
-                    categoryId={selectedId}
-                    subItem={editingSubItem}
-                    onAutoSaved={refreshOperatorMenus}
-                    onSaved={() => {
-                      setEditingSubId(null);
-                      setSubManageError("");
-                      refreshOperatorMenus();
-                    }}
-                    onCancel={() => {
-                      setEditingSubId(null);
-                      setSubManageError("");
-                    }}
-                  />
-                </div>
-              ) : null}
+                  {editingSubItem && selectedId ? (
+                    <div className="mb-4">
+                      <OperatorSubEditForm
+                        categoryId={selectedId}
+                        subItem={editingSubItem}
+                        onAutoSaved={refreshOperatorMenus}
+                        onSaved={() => {
+                          setEditingSubId(null);
+                          setSubManageError("");
+                          refreshOperatorMenus();
+                        }}
+                        onCancel={() => {
+                          setEditingSubId(null);
+                          setSubManageError("");
+                        }}
+                      />
+                    </div>
+                  ) : null}
 
-              {canManageSubs ? (
-                <SortableTileGrid
-                  items={visibleSubItems}
-                  enabled
-                  className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
-                  dragLabel={t("operatorMenu.dragToReorder")}
-                  onReorder={handleReorderVisibleSubs}
-                  renderItem={(item, { dragHandleProps }) =>
-                    renderSubTile(item, false, dragHandleProps)
-                  }
-                />
-              ) : (
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                  {visibleSubItems.map((item) => renderSubTile(item, false))}
-                </div>
-              )}
-
-              {hiddenSubItems.length > 0 ? (
-                <div className="mt-4 border-t border-gray-200 pt-4">
-                  <p className="menu-label mb-3 text-gray-500">
-                    {t("operatorMenu.hiddenBadge")}
-                  </p>
                   {canManageSubs ? (
                     <SortableTileGrid
-                      items={hiddenSubItems}
+                      items={visibleSubItems}
                       enabled
                       className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
                       dragLabel={t("operatorMenu.dragToReorder")}
-                      onReorder={handleReorderHiddenSubs}
+                      onReorder={handleReorderVisibleSubs}
                       renderItem={(item, { dragHandleProps }) =>
-                        renderSubTile(item, true, dragHandleProps)
+                        renderSubTile(item, false, dragHandleProps)
                       }
                     />
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                      {hiddenSubItems.map((item) => renderSubTile(item, true))}
+                      {visibleSubItems.map((item) => renderSubTile(item, false))}
                     </div>
                   )}
-                </div>
-              ) : null}
 
-              <UserMenusSection embedded {...userMenuProps} />
-            </CollapsibleSection>
-            )
-          ) : (
-            <>
-              <Card className="py-12 text-center text-lg text-gray-500">
-                {t("home.pickCategory")}
-              </Card>
-              <UserMenusSection {...userMenuProps} />
-            </>
-          )}
-        </div>
+                  {hiddenSubItems.length > 0 ? (
+                    <div className="mt-4 border-t border-gray-200 pt-4">
+                      <p className="menu-label mb-3 text-gray-500">
+                        {t("operatorMenu.hiddenBadge")}
+                      </p>
+                      {canManageSubs ? (
+                        <SortableTileGrid
+                          items={hiddenSubItems}
+                          enabled
+                          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+                          dragLabel={t("operatorMenu.dragToReorder")}
+                          onReorder={handleReorderHiddenSubs}
+                          renderItem={(item, { dragHandleProps }) =>
+                            renderSubTile(item, true, dragHandleProps)
+                          }
+                        />
+                      ) : (
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                          {hiddenSubItems.map((item) => renderSubTile(item, true))}
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
 
-        <Link
-          href="/board"
-          className={`social-page-bottom-safe mt-4 flex w-full items-center justify-center gap-2 lg:mt-5 ${primaryButtonClassName}`}
-        >
-          <span aria-hidden>{SYMBOL_BOARD}</span>
-          <span>{t("home.board")}</span>
-        </Link>
+                  {showMemberMenus ? <UserMenusSection embedded {...userMenuProps} /> : null}
+                </CollapsibleSection>
+                )
+              ) : (
+                <>
+                  <Card className="py-12 text-center text-lg text-gray-500">
+                    {t("home.pickCategory")}
+                  </Card>
+                  {showMemberMenus ? <UserMenusSection {...userMenuProps} /> : null}
+                </>
+              )}
+            </div>
+
+            <Link
+              href="/board"
+              className={`social-page-bottom-safe mt-4 flex w-full items-center justify-center gap-2 lg:mt-5 ${primaryButtonClassName}`}
+            >
+              <span aria-hidden>{SYMBOL_BOARD}</span>
+              <span>{t("home.board")}</span>
+            </Link>
+          </>
+        ) : null}
       </div>
     </div>
   );
