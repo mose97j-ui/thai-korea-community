@@ -223,6 +223,20 @@ export default function HomeContent() {
     const active = selectedId === item.id;
     const starred = isFavorite(item.id);
     const lockedPremium = item.premium && !hasPremiumAccess;
+    const tintClass = item.tint.toLowerCase();
+    const toneClass = tintClass.includes("amber")
+      ? "bg-gradient-to-b from-amber-50/95 to-white ring-1 ring-amber-200/70"
+      : tintClass.includes("sky")
+        ? "bg-gradient-to-b from-sky-50/95 to-white ring-1 ring-sky-200/70"
+        : tintClass.includes("rose") || tintClass.includes("pink")
+          ? "bg-gradient-to-b from-rose-50/95 to-white ring-1 ring-rose-200/70"
+          : tintClass.includes("violet") || tintClass.includes("purple")
+            ? "bg-gradient-to-b from-violet-50/95 to-white ring-1 ring-violet-200/70"
+            : tintClass.includes("slate") || tintClass.includes("gray")
+              ? "bg-gradient-to-b from-slate-50/95 to-white ring-1 ring-slate-200/70"
+              : tintClass.includes("green")
+                ? "bg-gradient-to-b from-emerald-50/95 to-white ring-1 ring-emerald-200/70"
+                : "bg-gradient-to-b from-gray-50/95 to-white ring-1 ring-gray-200/70";
 
     return (
       <div className="relative">
@@ -249,7 +263,7 @@ export default function HomeContent() {
                 ? "bg-[#06C755]/12 ring-2 ring-[#06C755]/40"
                 : item.premium
                   ? "bg-gradient-to-b from-amber-50/80 to-white ring-1 ring-amber-200/70 hover:bg-amber-50/60"
-                  : "hover:bg-[#F0F2F5]/80 ring-1 ring-transparent"
+                  : `${toneClass} hover:brightness-[0.99]`
           }`}
         >
           {lockedPremium ? (
