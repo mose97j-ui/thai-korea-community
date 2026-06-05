@@ -114,7 +114,7 @@ export function deleteSupportMessage(
     ...current,
     messages,
     title: deriveSupportTitle(messages[0]?.content ?? current.title),
-    updatedAt: last?.createdAt ?? current.updatedAt,
+    updatedAt: new Date().toISOString(),
   };
 
   requests[index] = updated;

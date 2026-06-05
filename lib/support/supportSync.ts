@@ -118,7 +118,9 @@ function pickNewerSupportRequest(
   if (remoteTime !== localTime) {
     return remoteTime > localTime ? remote : local;
   }
-  return remote.messages.length >= local.messages.length ? remote : local;
+  // When timestamps tie, trust remote payload so read/delete updates
+  // are not dropped due message-length heuristics.
+  return remote;
 }
 
 export function mergeRemoteSupportRequests(remote: SupportRequest[]): boolean {

@@ -216,6 +216,7 @@ export function markSupportRequestRead(
     ...current,
     unreadByUser: operator ? current.unreadByUser : false,
     unreadByOperator: operator ? false : current.unreadByOperator,
+    updatedAt: new Date().toISOString(),
   };
 
   if (
