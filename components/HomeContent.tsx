@@ -173,6 +173,8 @@ export default function HomeContent() {
     hidden: boolean,
     dragHandleProps?: SortableDragHandleProps
   ) => {
+    const showSubQuickEditButton =
+      showOperatorUI && Boolean(selectedId) && !isUserCategoryId(selectedId ?? "");
     const card = (
       <TopicCard
         icon={item.icon}
@@ -184,17 +186,33 @@ export default function HomeContent() {
 
     if (!canManageSubs) {
       return (
-        <Link
-          key={item.id}
-          href={item.href}
-          className={`block h-full ${hidden ? "opacity-70 [&_.text-ui-title]:underline [&_.text-ui-title]:decoration-gray-400 [&_.text-ui-title]:underline-offset-2" : ""}`}
-        >
-          {hidden ? (
-            <div className="h-full rounded-2xl ring-1 ring-dashed ring-gray-300">{card}</div>
-          ) : (
-            card
-          )}
-        </Link>
+        <div className="relative h-full">
+          {showSubQuickEditButton ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setEditingSubId((current) => (current === item.id ? null : item.id));
+              }}
+              className="absolute left-1 top-1 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-xs shadow-sm ring-1 ring-black/[0.08]"
+              aria-label={t("operatorMenu.editSubcategory")}
+            >
+              ✏️
+            </button>
+          ) : null}
+          <Link
+            key={item.id}
+            href={item.href}
+            className={`block h-full ${hidden ? "opacity-70 [&_.text-ui-title]:underline [&_.text-ui-title]:decoration-gray-400 [&_.text-ui-title]:underline-offset-2" : ""}`}
+          >
+            {hidden ? (
+              <div className="h-full rounded-2xl ring-1 ring-dashed ring-gray-300">{card}</div>
+            ) : (
+              card
+            )}
+          </Link>
+        </div>
       );
     }
 
