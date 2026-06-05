@@ -86,6 +86,7 @@ export default function HomeContent() {
   const [editingSubId, setEditingSubId] = useState<string | null>(null);
   const [subManageError, setSubManageError] = useState("");
   const [menuEditMode, setMenuEditMode] = useState(false);
+  const [subMenuEditMode, setSubMenuEditMode] = useState(false);
   const [menuAutoSavedAt, setMenuAutoSavedAt] = useState<string | null>(null);
   const [writeCategoryId, setWriteCategoryId] = useState("reviews");
   const [writeSubId, setWriteSubId] = useState("reviews-0");
@@ -166,7 +167,10 @@ export default function HomeContent() {
   }, [subItems, showOperatorUI]);
 
   const canManageSubs =
-    menuEditMode && showOperatorUI && Boolean(selectedId) && !isUserCategoryId(selectedId ?? "");
+    (menuEditMode || subMenuEditMode) &&
+    showOperatorUI &&
+    Boolean(selectedId) &&
+    !isUserCategoryId(selectedId ?? "");
 
   const renderSubTile = (
     item: (typeof subItems)[number],
@@ -344,12 +348,20 @@ export default function HomeContent() {
     if (!showOperatorUI && menuEditMode) {
       cancelOperatorMenuEditSession();
       setMenuEditMode(false);
+      setSubMenuEditMode(false);
       setEditingCategoryId(null);
       setEditingSubId(null);
       setSubManageError("");
       refreshOperatorMenus();
     }
-  }, [showOperatorUI, menuEditMode, refreshOperatorMenus]);
+    if (!showOperatorUI && subMenuEditMode) {
+      cancelOperatorMenuEditSession();
+      setSubMenuEditMode(false);
+      setEditingSubId(null);
+      setSubManageError("");
+      refreshOperatorMenus();
+    }
+  }, [showOperatorUI, menuEditMode, subMenuEditMode, refreshOperatorMenus]);
 
   useEffect(() => {
     setEditingSubId(null);
@@ -357,15 +369,23 @@ export default function HomeContent() {
   }, [selectedId]);
 
   const handleStartMenuEdit = useCallback(() => {
+    if (subMenuEditMode) {
+      setSubMenuEditMode(false);
+      setMenuEditMode(true);
+      setMenuAutoSavedAt(null);
+      refreshOperatorMenus();
+      return;
+    }
     beginOperatorMenuEditSession();
     setMenuEditMode(true);
     setMenuAutoSavedAt(null);
     refreshOperatorMenus();
-  }, [refreshOperatorMenus]);
+  }, [subMenuEditMode, refreshOperatorMenus]);
 
   const handleSaveMenuEdit = useCallback(() => {
     commitOperatorMenuEditSession();
     setMenuEditMode(false);
+    setSubMenuEditMode(false);
     setMenuAutoSavedAt(null);
     setEditingCategoryId(null);
     setEditingSubId(null);
@@ -376,6 +396,7 @@ export default function HomeContent() {
   const handleCancelMenuEdit = useCallback(() => {
     cancelOperatorMenuEditSession();
     setMenuEditMode(false);
+    setSubMenuEditMode(false);
     setMenuAutoSavedAt(null);
     setEditingCategoryId(null);
     setEditingSubId(null);
@@ -383,13 +404,49 @@ export default function HomeContent() {
     refreshOperatorMenus();
   }, [refreshOperatorMenus]);
 
+  const handleStartSubMenuEdit = useCallback(() => {
+    if (!selectedId || isUserCategoryId(selectedId) || menuEditMode || subMenuEditMode) {
+      return;
+    }
+    beginOperatorMenuEditSession();
+    setSubMenuEditMode(true);
+    setEditingSubId(null);
+    setSubManageError("");
+    setMenuAutoSavedAt(null);
+    refreshOperatorMenus();
+  }, [selectedId, menuEditMode, subMenuEditMode, refreshOperatorMenus]);
+
+  const handleSaveSubMenuEdit = useCallback(() => {
+    if (!subMenuEditMode || menuEditMode) {
+      return;
+    }
+    commitOperatorMenuEditSession();
+    setSubMenuEditMode(false);
+    setEditingSubId(null);
+    setSubManageError("");
+    setMenuAutoSavedAt(null);
+    refreshOperatorMenus();
+  }, [subMenuEditMode, menuEditMode, refreshOperatorMenus]);
+
+  const handleCancelSubMenuEdit = useCallback(() => {
+    if (!subMenuEditMode || menuEditMode) {
+      return;
+    }
+    cancelOperatorMenuEditSession();
+    setSubMenuEditMode(false);
+    setEditingSubId(null);
+    setSubManageError("");
+    setMenuAutoSavedAt(null);
+    refreshOperatorMenus();
+  }, [subMenuEditMode, menuEditMode, refreshOperatorMenus]);
+
   const handleMenuIdleAutoSave = useCallback(() => {
     setMenuAutoSavedAt(new Date().toISOString());
     refreshOperatorMenus();
   }, [refreshOperatorMenus]);
 
   useOperatorMenuIdleAutoSave(
-    menuEditMode && showOperatorUI,
+    (menuEditMode || subMenuEditMode) && showOperatorUI,
     handleMenuIdleAutoSave,
     menuListSignature
   );
@@ -729,6 +786,55 @@ export default function HomeContent() {
                     </div>
                     <p className="text-ui-caption">{t("home.scrollHint")}</p>
                   </div>
+
+                  {showOperatorUI && selectedId && !isUserCategoryId(selectedId) && !menuEditMode ? (
+                    <div className="rounded-2xl border border-amber-200/80 bg-amber-50/60 px-4 py-3">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-ui-title text-sm text-amber-900">
+                            {t("operatorMenu.editSubcategory")}
+                          </p>
+                          <p className="text-ui-caption mt-1 text-amber-800/90">
+                            {subMenuEditMode
+                              ? t("operatorMenu.unsavedEditHint")
+                              : t("operatorMenu.editModeHint")}
+                          </p>
+                          {subMenuEditMode && menuAutoSavedAt ? (
+                            <p className="text-ui-caption mt-1 font-medium text-[#06C755]">
+                              {t("operatorMenu.autoSaved")} ·{" "}
+                              {new Date(menuAutoSavedAt).toLocaleTimeString()}
+                            </p>
+                          ) : null}
+                        </div>
+                        {subMenuEditMode ? (
+                          <div className="flex shrink-0 flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={handleSaveSubMenuEdit}
+                              className={primaryButtonClassName}
+                            >
+                              {t("operatorMenu.saveAll")}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleCancelSubMenuEdit}
+                              className={pillSecondaryButtonClassName}
+                            >
+                              {t("operatorMenu.cancelEdit")}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleStartSubMenuEdit}
+                            className={primaryButtonClassName}
+                          >
+                            {t("operatorMenu.startEdit")}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
 
                   {canManageSubs && selectedId ? (
                     <OperatorSubCategoryAddForm
