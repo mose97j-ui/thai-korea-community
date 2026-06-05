@@ -75,7 +75,7 @@ export async function upsertDirectMessage(
 export async function listDirectMessagesForGmail(
   supabase: SupabaseClient,
   gmail: string,
-  limit = 500
+  limit = 1000
 ): Promise<DirectMessageRow[]> {
   const normalized = gmail.trim().toLowerCase();
   const { data, error } = await supabase

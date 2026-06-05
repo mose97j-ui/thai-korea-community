@@ -21,7 +21,7 @@ export async function fetchSupportRequestsForGmailClient(
     .select("*")
     .eq("user_gmail", normalized)
     .order("updated_at", { ascending: false })
-    .limit(100);
+    .limit(300);
 
   if (error || !data) {
     return [];
@@ -40,7 +40,7 @@ export async function fetchAllSupportRequestsClient(): Promise<SupportRequest[]>
     .from("support_requests")
     .select("*")
     .order("updated_at", { ascending: false })
-    .limit(200);
+    .limit(500);
 
   if (error || !data) {
     return [];

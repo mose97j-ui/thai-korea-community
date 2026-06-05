@@ -21,7 +21,7 @@ export async function fetchDirectMessagesForGmailClient(
     .select("*")
     .or(`sender_gmail.eq.${normalized},recipient_gmail.eq.${normalized}`)
     .order("created_at", { ascending: true })
-    .limit(500);
+    .limit(1000);
 
   if (error || !data) {
     return [];

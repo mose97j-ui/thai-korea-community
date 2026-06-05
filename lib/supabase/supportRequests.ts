@@ -72,7 +72,7 @@ export async function upsertSupportRequest(
 export async function listSupportRequestsForGmail(
   supabase: SupabaseClient,
   gmail: string,
-  limit = 100
+  limit = 300
 ): Promise<SupportRequestRow[]> {
   const normalized = gmail.trim().toLowerCase();
   const { data, error } = await supabase
@@ -91,7 +91,7 @@ export async function listSupportRequestsForGmail(
 
 export async function listAllSupportRequests(
   supabase: SupabaseClient,
-  limit = 200
+  limit = 500
 ): Promise<SupportRequestRow[]> {
   const { data, error } = await supabase
     .from("support_requests")

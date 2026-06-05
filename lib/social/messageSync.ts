@@ -1,8 +1,7 @@
-import { findOperatorAccount, getOperatorDefaults } from "@/lib/auth/operator";
-import { findUserByGmail, findUserById } from "@/lib/auth/storage";
 import type { User } from "@/lib/auth/types";
 import type { DirectMessage } from "@/lib/social/types";
 import { emitSocialChange } from "./events";
+import { resolveMessagePartyGmail } from "./resolveMessageGmail";
 
 export const MESSAGES_SYNC_EVENT = "tkc-messages-sync";
 
@@ -15,7 +14,7 @@ function dispatchMessagesSyncEvent() {
   window.dispatchEvent(new Event(MESSAGES_SYNC_EVENT));
 }
 
-function readMessages(): DirectMessage[] {
+export function readAllLocalMessages(): DirectMessage[] {
   if (typeof window === "undefined") {
     return [];
   }
@@ -25,6 +24,10 @@ function readMessages(): DirectMessage[] {
   } catch {
     return [];
   }
+}
+
+function readMessages(): DirectMessage[] {
+  return readAllLocalMessages();
 }
 
 function writeMessages(messages: DirectMessage[]): void {
@@ -71,28 +74,11 @@ export function mergeRemoteMessages(remote: DirectMessage[]): boolean {
   return true;
 }
 
-function resolveGmail(userId: string): string | null {
-  const user = findUserById(userId);
-  const gmail = user?.gmail?.trim().toLowerCase();
-  if (gmail) {
-    return gmail;
-  }
-  const operator = findOperatorAccount();
-  if (operator && operator.id === userId) {
-    return operator.gmail.trim().toLowerCase();
-  }
-  const defaults = getOperatorDefaults();
-  if (userId === defaults.id) {
-    return defaults.gmail.toLowerCase();
-  }
-  return null;
-}
-
 export async function syncDirectMessageToServer(
   message: DirectMessage
 ): Promise<boolean> {
-  const senderGmail = resolveGmail(message.senderId);
-  const recipientGmail = resolveGmail(message.recipientId);
+  const senderGmail = resolveMessagePartyGmail(message, message.senderId);
+  const recipientGmail = resolveMessagePartyGmail(message, message.recipientId);
 
   if (!senderGmail || !recipientGmail) {
     return false;
