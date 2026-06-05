@@ -42,6 +42,10 @@ function readUsers(): User[] {
       nickname: user.nickname?.trim() || user.name,
       createdAt: user.createdAt || "1970-01-01T00:00:00.000Z",
       authProvider: user.authProvider ?? "local",
+      points:
+        Number.isFinite(user.points) && typeof user.points === "number"
+          ? Math.max(0, Math.floor(user.points))
+          : 0,
     }));
   } catch {
     return [];

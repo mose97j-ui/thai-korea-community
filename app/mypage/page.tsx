@@ -42,6 +42,12 @@ import ModerationNotice from "@/components/ModerationNotice";
 import { getActiveRestriction } from "@/lib/auth/moderation";
 import { getCategoryOverviewHref } from "@/lib/i18n/content";
 import { usePremiumAccess } from "@/hooks/usePremiumAccess";
+import {
+  POINTS_CHANGE_EVENT,
+  getPointTransactionsByUser,
+  POST_CREATE_REWARD,
+} from "@/lib/auth/points";
+import type { PointTransaction } from "@/lib/auth/types";
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
@@ -72,6 +78,7 @@ export default function MyPage() {
   const [birthDateInput, setBirthDateInput] = useState("");
   const [hometownInput, setHometownInput] = useState("");
   const [phoneInput, setPhoneInput] = useState("");
+  const [pointHistory, setPointHistory] = useState<PointTransaction[]>([]);
   const { showOperatorUI } = useOperatorView();
 
   useEffect(() => {
@@ -84,6 +91,22 @@ export default function MyPage() {
     setBirthDateInput(getUserBirthDate(user));
     setHometownInput(user.hometown);
     setPhoneInput(user.koreanPhone);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setPointHistory([]);
+      return;
+    }
+
+    const refresh = () => {
+      setPointHistory(getPointTransactionsByUser(user.id));
+    };
+    refresh();
+    window.addEventListener(POINTS_CHANGE_EVENT, refresh);
+    return () => {
+      window.removeEventListener(POINTS_CHANGE_EVENT, refresh);
+    };
   }, [user]);
 
   if (!isReady) {
@@ -419,6 +442,66 @@ export default function MyPage() {
               </Link>
             </>
           )}
+        </FeedSection>
+
+        <FeedSection
+          tone="sky"
+          icon="💎"
+          title={t("mypage.pointsTitle")}
+          description={t("mypage.pointsDesc")}
+        >
+          <div className="rounded-2xl border border-sky-100 bg-sky-50/80 px-4 py-3">
+            <p className="text-ui-caption">{t("mypage.pointsBalanceLabel")}</p>
+            <p className="mt-1 text-2xl font-extrabold text-sky-700">
+              {(user.points ?? 0).toLocaleString()}P
+            </p>
+          </div>
+          <p className="text-ui-caption mt-3">
+            {t("mypage.pointsPostReward").replace("{points}", String(POST_CREATE_REWARD))}
+          </p>
+
+          <div className="mt-4 space-y-2">
+            {pointHistory.length === 0 ? (
+              <Card className="!shadow-none ring-1 ring-black/[0.05]">
+                <p className="text-ui-body">{t("mypage.pointsEmpty")}</p>
+              </Card>
+            ) : (
+              pointHistory.slice(0, 30).map((item) => (
+                <Card key={item.id} className="!shadow-none ring-1 ring-black/[0.05]">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-ui-title">
+                        {item.type === "post_create"
+                          ? t("mypage.pointsTypePostCreate")
+                          : item.type === "spend"
+                            ? t("mypage.pointsTypeSpend")
+                            : t("mypage.pointsTypeManual")}
+                      </p>
+                      <p className="text-ui-caption mt-1">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p
+                        className={`text-ui-title font-bold ${
+                          item.amount >= 0 ? "text-emerald-600" : "text-rose-600"
+                        }`}
+                      >
+                        {item.amount >= 0 ? "+" : ""}
+                        {item.amount}P
+                      </p>
+                      <p className="text-ui-caption mt-1">
+                        {t("mypage.pointsBalanceAfter").replace(
+                          "{points}",
+                          String(item.balanceAfter)
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
         </FeedSection>
 
         {!user.referredBy && (

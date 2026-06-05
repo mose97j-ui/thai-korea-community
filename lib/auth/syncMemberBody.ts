@@ -14,6 +14,7 @@ export type SyncMemberBody = {
   referredBy?: string;
   role?: User["role"];
   premiumUntil?: string;
+  points?: number;
   restriction?: User["restriction"];
   authProvider?: User["authProvider"];
   createdAt?: string;
@@ -59,6 +60,7 @@ export function parseSyncBody(body: SyncMemberBody, operatorSync: boolean): User
     password: "",
     role: operatorSync && body.role === "operator" ? "operator" : "user",
     premiumUntil: operatorSync ? body.premiumUntil : undefined,
+    points: operatorSync && typeof body.points === "number" ? body.points : 0,
     restriction: operatorSync ? body.restriction : undefined,
     authProvider: body.authProvider ?? "local",
     createdAt: body.createdAt || new Date().toISOString(),

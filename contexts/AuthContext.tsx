@@ -280,6 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: "user",
       preferredLocale: input.isKoreanMember ? "ko" : "th",
       isKoreanMember: Boolean(input.isKoreanMember),
+      points: 0,
       authProvider: "local",
       createdAt: new Date().toISOString(),
     };
@@ -370,6 +371,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         existing?.preferredLocale ??
         (input.isKoreanMember ? "ko" : "th"),
       isKoreanMember: input.isKoreanMember ?? existing?.isKoreanMember ?? false,
+      points: existing?.points ?? 0,
       premiumUntil: existing?.premiumUntil,
       restriction: existing?.restriction,
       supabaseId: authUser.id,

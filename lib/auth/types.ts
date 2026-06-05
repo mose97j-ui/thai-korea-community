@@ -13,6 +13,19 @@ export type UserRestriction = {
   source?: "manual" | "auto" | "report";
 };
 
+export type PointTransactionType = "post_create" | "manual_adjust" | "spend";
+
+export type PointTransaction = {
+  id: string;
+  userId: string;
+  type: PointTransactionType;
+  amount: number;
+  balanceAfter: number;
+  reason?: string;
+  referenceId?: string;
+  createdAt: string;
+};
+
 export type User = {
   id: string;
   name: string;
@@ -34,6 +47,7 @@ export type User = {
   /** ISO date — active while in the future */
   premiumUntil?: string;
   restriction?: UserRestriction;
+  points?: number;
   createdAt: string;
   supabaseId?: string;
   authProvider?: "local" | "google";

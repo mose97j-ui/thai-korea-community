@@ -31,6 +31,7 @@ export type MemberSyncPayload = {
   createdAt: string;
   role?: User["role"];
   premiumUntil?: string;
+  points?: number;
   restriction?: User["restriction"];
   syncAsOperator?: boolean;
   operatorGmail?: string;
@@ -66,6 +67,7 @@ export function buildOperatorMemberSyncPayload(user: User): MemberSyncPayload | 
     ...buildMemberSyncPayload(user),
     role: user.role,
     premiumUntil: user.premiumUntil,
+    points: user.points,
     restriction: user.restriction,
     syncAsOperator: true,
     operatorGmail: session.gmail,

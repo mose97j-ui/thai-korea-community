@@ -27,6 +27,7 @@ import {
   getSubCategoryItem,
 } from "@/lib/categories/registry";
 import { getUserNickname } from "@/lib/auth/profileImage";
+import { awardPostCreatePoints } from "@/lib/auth/points";
 import { canWritePosts } from "@/lib/auth/moderation";
 import { validatePostContent } from "@/lib/moderation/autoModeration";
 import { validateKoreanAddress } from "@/lib/posts/address";
@@ -501,6 +502,7 @@ export default function CategoryPostForm({
           authorProfileImage: user.profileImage,
           ...payload,
         });
+        awardPostCreatePoints(user.id, created.id);
         clearPostDraft(user.id, categoryId, subId);
 
         setPostPublishFlash({

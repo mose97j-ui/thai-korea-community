@@ -15,6 +15,7 @@ export type MemberRegistryRow = {
   referred_by: string | null;
   role: "user" | "operator";
   premium_until: string | null;
+  points: number | null;
   restriction: User["restriction"] | null;
   auth_provider: "local" | "google";
   created_at: string;
@@ -37,6 +38,7 @@ export function memberRowToUser(row: MemberRegistryRow): User {
     password: "",
     role: row.role,
     premiumUntil: row.premium_until ?? undefined,
+    points: typeof row.points === "number" ? row.points : 0,
     restriction: row.restriction ?? undefined,
     authProvider: row.auth_provider,
     createdAt: row.created_at,
@@ -58,6 +60,7 @@ export function userToMemberRow(user: User): Omit<MemberRegistryRow, "updated_at
     referred_by: user.referredBy ?? null,
     role: user.role ?? "user",
     premium_until: user.premiumUntil ?? null,
+    points: Number.isFinite(user.points) ? Math.max(0, Math.floor(user.points ?? 0)) : 0,
     restriction: user.restriction ?? null,
     auth_provider: user.authProvider ?? "local",
     created_at: user.createdAt,
@@ -106,7 +109,7 @@ export async function upsertMemberRegistryProfile(
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const { data: existing } = await supabase
     .from("member_registry")
-    .select("role, premium_until, restriction")
+    .select("role, premium_until, points, restriction")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -118,6 +121,10 @@ export async function upsertMemberRegistryProfile(
       existing?.premium_until != null
         ? String(existing.premium_until)
         : user.premiumUntil,
+    points:
+      typeof existing?.points === "number"
+        ? existing.points
+        : (user.points ?? 0),
     restriction:
       (existing?.restriction as User["restriction"] | null) ?? user.restriction,
   };

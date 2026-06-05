@@ -18,6 +18,7 @@ export type SupabaseProfileRow = {
   is_korean_member: boolean | null;
   premium_until: string | null;
   restriction: UserRestriction | null;
+  points: number | null;
   created_at: string;
 };
 
@@ -40,6 +41,7 @@ export function profileRowToUser(row: SupabaseProfileRow): User {
     isKoreanMember: row.is_korean_member ?? undefined,
     premiumUntil: row.premium_until ?? undefined,
     restriction: row.restriction ?? undefined,
+    points: typeof row.points === "number" ? row.points : 0,
     supabaseId: row.id,
     authProvider: "google",
     createdAt: row.created_at,
@@ -64,6 +66,7 @@ export function userToProfileRow(user: User): SupabaseProfileRow {
     is_korean_member: user.isKoreanMember ?? null,
     premium_until: user.premiumUntil ?? null,
     restriction: user.restriction ?? null,
+    points: Number.isFinite(user.points) ? Math.max(0, Math.floor(user.points ?? 0)) : 0,
     created_at: user.createdAt,
   };
 }
