@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import ProfilePhotoField from "@/components/ProfilePhotoField";
@@ -54,7 +54,8 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 export default function MyPage() {
   const router = useRouter();
-  const { user, isReady, logout, applyReferralCode, updateProfileImage } = useAuth();
+  const { user, isReady, logout, applyReferralCode, updateProfileImage, updateBasicProfile } =
+    useAuth();
   const { t, te, locale } = useLocale();
   const { hasAccess: hasPremiumAccess, premiumUntilLabel, status: premiumStatus } =
     usePremiumAccess();
@@ -64,7 +65,26 @@ export default function MyPage() {
   const [copied, setCopied] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [profileSuccess, setProfileSuccess] = useState("");
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [nicknameInput, setNicknameInput] = useState("");
+  const [genderInput, setGenderInput] = useState<"male" | "female">("male");
+  const [birthDateInput, setBirthDateInput] = useState("");
+  const [hometownInput, setHometownInput] = useState("");
+  const [phoneInput, setPhoneInput] = useState("");
   const { showOperatorUI } = useOperatorView();
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+    setNameInput(user.name);
+    setNicknameInput(user.nickname);
+    setGenderInput(user.gender === "female" ? "female" : "male");
+    setBirthDateInput(getUserBirthDate(user));
+    setHometownInput(user.hometown);
+    setPhoneInput(user.koreanPhone);
+  }, [user]);
 
   if (!isReady) {
     return (
@@ -138,6 +158,27 @@ export default function MyPage() {
     setProfileSuccess(t("mypage.profilePhotoSaved"));
   };
 
+  const handleProfileSave = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setProfileError("");
+    setProfileSuccess("");
+
+    const result = updateBasicProfile({
+      name: nameInput,
+      nickname: nicknameInput,
+      gender: genderInput,
+      birthDate: birthDateInput,
+      hometown: hometownInput,
+      koreanPhone: phoneInput,
+    });
+    if (!result.ok) {
+      setProfileError(te(result.errorKey));
+      return;
+    }
+    setProfileSuccess(t("mypage.profileSaved"));
+    setIsEditingProfile(false);
+  };
+
   return (
     <PageShell maxWidth="full">
       <PageHeader title={t("mypage.title")} />
@@ -206,15 +247,125 @@ export default function MyPage() {
                 </div>
               </div>
 
-              <InfoRow label={t("mypage.nickname")} value={getUserNickname(user)} />
-              <InfoRow label={t("mypage.name")} value={user.name} />
-              <InfoRow label={t("mypage.age")} value={formatAgeLabel(user, locale)} />
-              <InfoRow label={t("mypage.birthDate")} value={getUserBirthDate(user)} />
-              <InfoRow label={t("mypage.hometown")} value={user.hometown} />
-              <InfoRow label="Gmail" value={user.gmail} />
-              <InfoRow label={t("mypage.phone")} value={formatPhone(user.koreanPhone)} />
-              {user.referredBy && (
-                <InfoRow label={t("mypage.referrer")} value={user.referredBy} />
+              {isEditingProfile ? (
+                <form onSubmit={handleProfileSave} className="space-y-3">
+                  <FormField label={t("mypage.nickname")}>
+                    <input
+                      type="text"
+                      value={nicknameInput}
+                      onChange={(e) => setNicknameInput(e.target.value)}
+                      maxLength={16}
+                      className={inputClassName}
+                      required
+                    />
+                  </FormField>
+                  <FormField label={t("mypage.name")}>
+                    <input
+                      type="text"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      className={inputClassName}
+                      required
+                    />
+                  </FormField>
+                  <FormField label={t("mypage.gender")}>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setGenderInput("male")}
+                        className={`flex-1 rounded-full px-4 py-2.5 text-sm font-semibold ${
+                          genderInput === "male"
+                            ? "bg-[#06C755] text-white"
+                            : "bg-[#F0F2F5] text-gray-700 ring-1 ring-black/[0.06]"
+                        }`}
+                      >
+                        ♂ {t("signup.genderMale")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setGenderInput("female")}
+                        className={`flex-1 rounded-full px-4 py-2.5 text-sm font-semibold ${
+                          genderInput === "female"
+                            ? "bg-[#06C755] text-white"
+                            : "bg-[#F0F2F5] text-gray-700 ring-1 ring-black/[0.06]"
+                        }`}
+                      >
+                        ♀ {t("signup.genderFemale")}
+                      </button>
+                    </div>
+                  </FormField>
+                  <FormField label={t("mypage.birthDate")}>
+                    <input
+                      type="date"
+                      value={birthDateInput}
+                      onChange={(e) => setBirthDateInput(e.target.value)}
+                      className={inputClassName}
+                      required
+                    />
+                  </FormField>
+                  <FormField label={t("mypage.hometown")}>
+                    <input
+                      type="text"
+                      value={hometownInput}
+                      onChange={(e) => setHometownInput(e.target.value)}
+                      className={inputClassName}
+                      required
+                    />
+                  </FormField>
+                  <FormField label={t("mypage.phone")}>
+                    <input
+                      type="tel"
+                      value={phoneInput}
+                      onChange={(e) => setPhoneInput(e.target.value)}
+                      className={inputClassName}
+                      required
+                    />
+                  </FormField>
+                  <div className="flex gap-2 pt-1">
+                    <button type="submit" className={`flex-1 ${primaryButtonClassName}`}>
+                      {t("common.save")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingProfile(false);
+                        setNameInput(user.name);
+                        setNicknameInput(user.nickname);
+                        setGenderInput(user.gender === "female" ? "female" : "male");
+                        setBirthDateInput(getUserBirthDate(user));
+                        setHometownInput(user.hometown);
+                        setPhoneInput(user.koreanPhone);
+                      }}
+                      className={`flex-1 ${secondaryButtonClassName}`}
+                    >
+                      {t("common.cancel")}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <InfoRow label={t("mypage.nickname")} value={getUserNickname(user)} />
+                  <InfoRow label={t("mypage.name")} value={user.name} />
+                  <InfoRow
+                    label={t("mypage.gender")}
+                    value={user.gender === "female" ? t("signup.genderFemale") : t("signup.genderMale")}
+                  />
+                  <InfoRow label={t("mypage.age")} value={formatAgeLabel(user, locale)} />
+                  <InfoRow label={t("mypage.birthDate")} value={getUserBirthDate(user)} />
+                  <InfoRow label={t("mypage.hometown")} value={user.hometown} />
+                  <InfoRow label="Gmail" value={user.gmail} />
+                  <InfoRow label={t("mypage.phone")} value={formatPhone(user.koreanPhone)} />
+                  {user.referredBy && (
+                    <InfoRow label={t("mypage.referrer")} value={user.referredBy} />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingProfile(true)}
+                    className={`mt-3 w-full ${secondaryButtonClassName}`}
+                  >
+                    {t("mypage.profileEdit")}
+                  </button>
+                </>
               )}
             </Card>
           </div>

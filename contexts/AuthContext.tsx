@@ -81,6 +81,14 @@ type AuthContextValue = {
     newPassword: string
   ) => { ok: true } | AuthFail;
   changePhone: (newPhone: string) => { ok: true } | AuthFail;
+  updateBasicProfile: (input: {
+    name: string;
+    nickname: string;
+    gender: "male" | "female";
+    birthDate: string;
+    hometown: string;
+    koreanPhone: string;
+  }) => { ok: true } | AuthFail;
   updateProfileImage: (profileImage: string) => { ok: true } | AuthFail;
   subscribePremium: () => { ok: true } | AuthFail;
   activatePremiumAfterPayment: (premiumUntil: string) => { ok: true } | AuthFail;
@@ -538,6 +546,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [user]
   );
 
+  const updateBasicProfile = useCallback(
+    (input: {
+      name: string;
+      nickname: string;
+      gender: "male" | "female";
+      birthDate: string;
+      hometown: string;
+      koreanPhone: string;
+    }) => {
+      if (!user) {
+        return authFail("LOGIN_REQUIRED");
+      }
+
+      const nickname = input.nickname.trim();
+      if (nickname.length < 2 || nickname.length > 16) {
+        return authFail("NICKNAME_INVALID");
+      }
+      const sameNicknameOwner = findUserByNickname(nickname);
+      if (sameNicknameOwner && sameNicknameOwner.id !== user.id) {
+        return authFail("NICKNAME_TAKEN");
+      }
+
+      if (input.gender !== "male" && input.gender !== "female") {
+        return authFail("GENDER_REQUIRED");
+      }
+
+      const age = getInternationalAge(input.birthDate);
+      if (age < 18 || age > 100) {
+        return authFail("AGE_INVALID");
+      }
+
+      const formattedPhone = formatPhone(input.koreanPhone);
+      const samePhoneOwner = findUserByPhone(formattedPhone);
+      if (
+        samePhoneOwner &&
+        normalizePhone(samePhoneOwner.koreanPhone) !== normalizePhone(user.koreanPhone)
+      ) {
+        return authFail("PHONE_IN_USE");
+      }
+
+      const updated: User = {
+        ...user,
+        name: input.name.trim(),
+        nickname,
+        gender: input.gender,
+        birthDate: input.birthDate,
+        hometown: input.hometown.trim(),
+        koreanPhone: formattedPhone,
+      };
+      updateUser(updated);
+      setUser(updated);
+      return { ok: true as const };
+    },
+    [user]
+  );
+
   const updateProfileImage = useCallback(
     (profileImage: string) => {
       if (!user) {
@@ -616,6 +680,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       resetPassword,
       changePassword,
       changePhone,
+      updateBasicProfile,
       updateProfileImage,
       subscribePremium,
       activatePremiumAfterPayment,
@@ -634,6 +699,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       resetPassword,
       changePassword,
       changePhone,
+      updateBasicProfile,
       updateProfileImage,
       subscribePremium,
       activatePremiumAfterPayment,
