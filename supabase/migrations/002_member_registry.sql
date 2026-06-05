@@ -11,7 +11,7 @@ create table if not exists public.member_registry (
   korean_phone text not null default '',
   personal_code text not null,
   referred_by text,
-  role text not null default 'user' check (role in ('user', 'operator')),
+  role text not null default 'user' check (role in ('user', 'admin', 'operator')),
   premium_until timestamptz,
   restriction jsonb,
   auth_provider text not null default 'local',

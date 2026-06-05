@@ -13,7 +13,7 @@ export type MemberRegistryRow = {
   korean_phone: string;
   personal_code: string;
   referred_by: string | null;
-  role: "user" | "operator";
+  role: "user" | "admin" | "operator";
   premium_until: string | null;
   points: number | null;
   restriction: User["restriction"] | null;
@@ -116,7 +116,11 @@ export async function upsertMemberRegistryProfile(
   const merged: User = {
     ...user,
     role:
-      existing?.role === "operator" || user.role === "operator" ? "operator" : "user",
+      existing?.role === "operator" || user.role === "operator"
+        ? "operator"
+        : existing?.role === "admin" || user.role === "admin"
+          ? "admin"
+          : "user",
     premiumUntil:
       existing?.premium_until != null
         ? String(existing.premium_until)

@@ -60,3 +60,7 @@ export function isOperatorUser(user: User | null | undefined): boolean {
     user.personalCode.toUpperCase() === defaults.personalCode.toUpperCase()
   );
 }
+
+export function isAdminUser(user: User | null | undefined): boolean {
+  return Boolean(user && user.role === "admin");
+}

@@ -1,6 +1,6 @@
 import type { Locale } from "@/lib/i18n/types";
 
-export type UserRole = "user" | "operator";
+export type UserRole = "user" | "admin" | "operator";
 
 export type Gender = "male" | "female";
 

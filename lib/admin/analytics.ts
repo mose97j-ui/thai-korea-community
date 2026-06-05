@@ -1,5 +1,5 @@
 import { getInternationalAge, getUserBirthDate } from "@/lib/auth/age";
-import { isOperatorUser } from "@/lib/auth/operator";
+import { isAdminUser, isOperatorUser } from "@/lib/auth/operator";
 import {
   getPremiumStatus,
   hasPremiumAccess,
@@ -21,6 +21,7 @@ export type OperatorAnalytics = {
   summary: {
     totalMembers: number;
     totalOperators: number;
+    totalAdmins: number;
     premiumActive: number;
     premiumExpired: number;
     freeMembers: number;
@@ -132,6 +133,7 @@ export function buildOperatorAnalytics(
   const allUsers = getAllUsers();
   const members = filterMembers(allUsers);
   const operators = allUsers.filter((user) => isOperatorUser(user));
+  const admins = allUsers.filter((user) => isAdminUser(user));
   const now = Date.now();
   const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
 
@@ -212,6 +214,7 @@ export function buildOperatorAnalytics(
     summary: {
       totalMembers: allUsers.length,
       totalOperators: operators.length,
+      totalAdmins: admins.length,
       premiumActive,
       premiumExpired,
       freeMembers,

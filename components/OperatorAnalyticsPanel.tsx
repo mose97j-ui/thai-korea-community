@@ -162,6 +162,11 @@ export default function OperatorAnalyticsPanel() {
       accent: "text-sky-600",
     },
     {
+      label: t("admin.totalAdmins"),
+      value: analytics.summary.totalAdmins,
+      accent: "text-violet-600",
+    },
+    {
       label: t("admin.premiumActive"),
       value: analytics.summary.premiumActive,
       accent: "text-amber-600",
@@ -196,7 +201,7 @@ export default function OperatorAnalyticsPanel() {
           <SectionLabel>{t("admin.summary")}</SectionLabel>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-9">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-10">
           {summaryItems.map((item) => (
             <SummaryCard
               key={item.label}

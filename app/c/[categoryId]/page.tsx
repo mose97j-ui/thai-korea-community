@@ -11,7 +11,7 @@ import PremiumGate from "@/components/PremiumGate";
 import { Card } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
-import { isOperatorUser } from "@/lib/auth/operator";
+import { isAdminUser, isOperatorUser } from "@/lib/auth/operator";
 import {
   getHomeCategoryById,
   getCategorySubItems,
@@ -51,7 +51,12 @@ export default function CategoryOverviewPage({ params }: CategoryOverviewProps) 
     );
   }
 
-  if (categoryId === "ideas" && isReady && !isOperatorUser(user)) {
+  if (
+    categoryId === "ideas" &&
+    isReady &&
+    !isOperatorUser(user) &&
+    !isAdminUser(user)
+  ) {
     notFound();
   }
 

@@ -58,7 +58,12 @@ export function parseSyncBody(body: SyncMemberBody, operatorSync: boolean): User
     personalCode: body.personalCode.trim().toUpperCase(),
     referredBy: body.referredBy?.trim().toUpperCase() || undefined,
     password: "",
-    role: operatorSync && body.role === "operator" ? "operator" : "user",
+    role:
+      operatorSync && body.role === "operator"
+        ? "operator"
+        : operatorSync && body.role === "admin"
+          ? "admin"
+          : "user",
     premiumUntil: operatorSync ? body.premiumUntil : undefined,
     points: operatorSync && typeof body.points === "number" ? body.points : 0,
     restriction: operatorSync ? body.restriction : undefined,

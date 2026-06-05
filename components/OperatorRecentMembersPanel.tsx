@@ -56,7 +56,13 @@ function MemberDetail({
       ) : null}
       <DetailRow
         label="Role"
-        value={member.role === "operator" ? t("admin.recentMembersRoleOperator") : t("admin.recentMembersRoleUser")}
+        value={
+          member.role === "operator"
+            ? t("admin.recentMembersRoleOperator")
+            : member.role === "admin"
+              ? t("admin.recentMembersRoleAdmin")
+              : t("admin.recentMembersRoleUser")
+        }
       />
     </dl>
     </div>
@@ -129,14 +135,14 @@ export default function OperatorRecentMembersPanel() {
   }, [refreshDirectory, t]);
 
   const handleSetOperatorRole = useCallback(
-    (member: User, nextRole: "operator" | "user") => {
+    (member: User, nextRole: "admin" | "user") => {
       if (member.role === nextRole) {
         return;
       }
       const updated: User = {
         ...member,
         role: nextRole,
-        preferredLocale: nextRole === "operator" ? "ko" : member.preferredLocale ?? "th",
+        preferredLocale: nextRole === "admin" ? "ko" : member.preferredLocale ?? "th",
       };
       updateUser(updated);
       setRoleMessage(t("admin.recentMembersRoleUpdated"));
@@ -241,9 +247,9 @@ export default function OperatorRecentMembersPanel() {
                           type="button"
                           onClick={(event) => {
                             event.stopPropagation();
-                            handleSetOperatorRole(member, "operator");
+                            handleSetOperatorRole(member, "admin");
                           }}
-                          disabled={member.role === "operator"}
+                          disabled={member.role === "admin"}
                           className="w-full rounded-xl bg-amber-100 px-3 py-2 text-sm font-semibold text-amber-900 ring-1 ring-amber-200 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {t("admin.recentMembersSetOperator")}
@@ -254,7 +260,7 @@ export default function OperatorRecentMembersPanel() {
                             event.stopPropagation();
                             handleSetOperatorRole(member, "user");
                           }}
-                          disabled={member.role !== "operator"}
+                          disabled={member.role !== "admin"}
                           className="w-full rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {t("admin.recentMembersUnsetOperator")}

@@ -45,7 +45,7 @@ import MenuIcon from "@/components/MenuIcon";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOperatorView } from "@/hooks/useOperatorView";
-import { isOperatorUser } from "@/lib/auth/operator";
+import { isAdminUser, isOperatorUser } from "@/lib/auth/operator";
 import { categoryListSignature } from "@/lib/categories/categoryListSignature";
 import { useOperatorMenus } from "@/hooks/useOperatorMenus";
 import { useCategoryFavorites } from "@/hooks/useCategoryFavorites";
@@ -78,7 +78,7 @@ export default function HomeContent() {
   const { user } = useAuth();
   const { t, pick } = useLocale();
   const { showOperatorUI } = useOperatorView();
-  const canUseIdeaShare = isOperatorUser(user);
+  const canUseIdeaShare = isOperatorUser(user) || isAdminUser(user);
   const { operatorCategories, operatorCategoriesForEdit, refreshOperatorMenus } =
     useOperatorMenus();
   const { hasAccess: hasPremiumAccess } = usePremiumAccess();

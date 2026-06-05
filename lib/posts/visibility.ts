@@ -1,6 +1,6 @@
 import type { Post } from "@/lib/posts/types";
 import { findUserById } from "@/lib/auth/storage";
-import { isOperatorUser } from "@/lib/auth/operator";
+import { isAdminUser, isOperatorUser } from "@/lib/auth/operator";
 
 type PostVisibility = Pick<Post, "authorId" | "isHiddenByAuthor">;
 
@@ -24,10 +24,10 @@ export function filterPostsForViewer<T extends PostVisibility>(
       "categoryId" in post && typeof post.categoryId === "string"
         ? post.categoryId
         : null;
-    // Operator/admin-only idea board.
+    // Admin/operator-only idea board.
     if (categoryId === "ideas") {
       const viewer = viewerId ? findUserById(viewerId) : null;
-      if (!isOperatorUser(viewer)) {
+      if (!isOperatorUser(viewer) && !isAdminUser(viewer)) {
         return false;
       }
     }

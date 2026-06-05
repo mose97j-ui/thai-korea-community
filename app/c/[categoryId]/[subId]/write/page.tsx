@@ -11,7 +11,7 @@ import PremiumGate from "@/components/PremiumGate";
 import { Card } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
-import { isOperatorUser } from "@/lib/auth/operator";
+import { isAdminUser, isOperatorUser } from "@/lib/auth/operator";
 import {
   getHomeCategoryById,
   getSubCategoryItem,
@@ -75,7 +75,11 @@ export default function CategoryWritePage({ params }: WritePageProps) {
     return null;
   }
 
-  if (route.categoryId === "ideas" && !isOperatorUser(user)) {
+  if (
+    route.categoryId === "ideas" &&
+    !isOperatorUser(user) &&
+    !isAdminUser(user)
+  ) {
     notFound();
   }
 
