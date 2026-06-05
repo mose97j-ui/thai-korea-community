@@ -178,7 +178,10 @@ export default function HomeContent() {
     dragHandleProps?: SortableDragHandleProps
   ) => {
     const showSubQuickEditButton =
-      showOperatorUI && Boolean(selectedId) && !isUserCategoryId(selectedId ?? "");
+      showOperatorUI &&
+      (menuEditMode || subMenuEditMode) &&
+      Boolean(selectedId) &&
+      !isUserCategoryId(selectedId ?? "");
     const card = (
       <TopicCard
         icon={item.icon}
