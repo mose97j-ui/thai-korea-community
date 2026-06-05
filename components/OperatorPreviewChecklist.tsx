@@ -9,7 +9,7 @@ import type { MessageKey } from "@/lib/i18n/messages";
 const checklistItems: { key: MessageKey; href: string; icon: string }[] = [
   { key: "operator.previewCheckBrowse", href: "/", icon: "🏠" },
   { key: "operator.previewCheckEngage", href: "/c/reviews/reviews-0", icon: "👍" },
-  { key: "operator.previewCheckMessage", href: "/messages", icon: "💬" },
+  { key: "operator.previewCheckMessage", href: "/support", icon: "📮" },
   { key: "operator.previewCheckReport", href: "/c/reviews/reviews-0", icon: "🚩" },
   { key: "operator.previewCheckSupport", href: "/support/new", icon: "📮" },
   { key: "operator.previewCheckPremium", href: "/premium", icon: "👑" },

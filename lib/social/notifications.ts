@@ -117,7 +117,7 @@ export function markAllNotificationsRead(userId: string): void {
 
 export function getNotificationHref(notification: Notification): string {
   if (notification.type === "message") {
-    return `/messages/${notification.actorId}`;
+    return "/support";
   }
   if (notification.type === "support" && notification.supportId) {
     return `/support/${notification.supportId}`;

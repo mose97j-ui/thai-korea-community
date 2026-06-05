@@ -123,10 +123,10 @@ export default function OperatorPostAuthorInfo({
 
             <div className="flex flex-col gap-2 pt-1">
               <Link
-                href={`/messages/${author.id}?post=${encodeURIComponent(post.id)}`}
+                href="/support/new"
                 className={compactSecondaryButtonClassName}
               >
-                ✉️ {t("operator.messageAuthor")}
+                📮 {t("support.newRequest")}
               </Link>
               {(category || subItem) && (
                 <span className="inline-flex w-full items-center rounded-xl bg-white/80 px-3 py-2 text-xs font-semibold text-gray-600 ring-1 ring-black/[0.06]">

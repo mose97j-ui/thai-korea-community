@@ -17,7 +17,6 @@ import UserAvatar from "@/components/UserAvatar";
 import {
   SYMBOL_DOCK_EXPAND,
   SYMBOL_NAV_ALERT,
-  SYMBOL_NAV_CHAT,
   SYMBOL_NAV_HOME,
   SYMBOL_NAV_PROFILE,
   SYMBOL_NAV_SUPPORT,
@@ -62,7 +61,7 @@ export default function TopNav() {
   const pathname = usePathname();
   const { t } = useLocale();
   const { user } = useAuth();
-  const { unreadMessages, unreadNotifications } = useSocialBadges();
+  const { unreadNotifications } = useSocialBadges();
   const { unreadSupport } = useSupportBadges();
   const { pendingReports } = useReportBadges();
   const { expanded: dockExpanded, toggle: toggleDock, collapse: collapseDock } =
@@ -86,11 +85,11 @@ export default function TopNav() {
       match: (path) => path === "/",
     },
     {
-      href: user ? "/messages" : "/login?next=%2Fmessages",
-      label: t("nav.chat"),
-      icon: SYMBOL_NAV_CHAT,
-      badge: user ? unreadMessages : 0,
-      match: (path) => path.startsWith("/messages"),
+      href: user ? "/support" : "/login?next=%2Fsupport",
+      label: t("nav.support"),
+      icon: SYMBOL_NAV_SUPPORT,
+      badge: supportBadge,
+      match: (path) => path.startsWith("/support"),
     },
     {
       href: user ? "/notifications" : "/login?next=%2Fnotifications",
@@ -246,10 +245,10 @@ export default function TopNav() {
       <div className="social-desktop-nav hidden w-full max-w-full flex-col items-center gap-1.5 overflow-hidden lg:flex">
         <div className="flex w-full max-w-full items-center justify-center gap-1 sm:gap-1.5">
           <NavIconLink
-            href={user ? "/messages" : "/login?next=%2Fmessages"}
-            label={t("nav.chat")}
-            icon={SYMBOL_NAV_CHAT}
-            badge={user ? unreadMessages : 0}
+            href={user ? "/support" : "/login?next=%2Fsupport"}
+            label={t("nav.support")}
+            icon={SYMBOL_NAV_SUPPORT}
+            badge={supportBadge}
           />
           <NavIconLink
             href={user ? "/notifications" : "/login?next=%2Fnotifications"}

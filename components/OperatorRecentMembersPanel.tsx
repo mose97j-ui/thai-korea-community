@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import UserAvatar from "@/components/UserAvatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,7 +17,6 @@ import { mergeRemoteMembers, updateUser } from "@/lib/auth/storage";
 import { formatPhone } from "@/lib/auth/phone";
 import { getUserNickname } from "@/lib/auth/profileImage";
 import type { User } from "@/lib/auth/types";
-import { getMessageThreadHref } from "@/lib/social/actions";
 import type { MessageKey } from "@/lib/i18n/messages";
 import type { Locale } from "@/lib/i18n/types";
 
@@ -39,22 +37,13 @@ function MemberDetail({
   member,
   locale,
   t,
-  messageHref,
 }: {
   member: User;
   locale: Locale;
   t: (key: MessageKey) => string;
-  messageHref: string;
 }) {
   return (
     <div className="mt-3 border-t border-black/[0.06] pt-3">
-      <Link
-        href={messageHref}
-        onClick={() => mergeRemoteMembers([member])}
-        className="mb-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#06C755] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#05b34c]"
-      >
-        ✉️ {t("admin.recentMembersSendMessage")}
-      </Link>
     <dl className="grid gap-1.5 sm:grid-cols-2">
       <DetailRow label="Gmail" value={member.gmail} />
       <DetailRow label={t("mypage.phone")} value={formatPhone(member.koreanPhone) || "—"} />
@@ -244,7 +233,6 @@ export default function OperatorRecentMembersPanel() {
                         member={member}
                         locale={locale}
                         t={t}
-                        messageHref={getMessageThreadHref(operator.id, member.id)}
                       />
                       <div className="mt-2">
                         <button
