@@ -92,12 +92,6 @@ const jobTemplate: PostFormTemplate = {
     placeholderKey: "post.formCompanyPlaceholder",
     required: false,
   },
-  address: {
-    labelKey: "post.formWorkLocation",
-    placeholderKey: "post.formWorkLocationPlaceholder",
-    hintKey: "post.formWorkLocationHint",
-    required: true,
-  },
   content: {
     labelKey: "post.formJobContent",
     placeholderKey: "post.formJobContentPlaceholder",
@@ -110,7 +104,6 @@ const jobTemplate: PostFormTemplate = {
     detailMinHeightRem: 27,
   },
   errorPrimaryKey: "post.errorJobTitle",
-  errorAddressKey: "post.errorWorkLocation",
 };
 
 const articleTemplate: PostFormTemplate = {
