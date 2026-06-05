@@ -77,6 +77,8 @@ function buildUserFromAuth(
     personalCode: createUniqueCode(),
     password: "",
     role: isOperatorUser({ gmail } as User) ? "operator" : "user",
+    preferredLocale: "th",
+    isKoreanMember: false,
     supabaseId: authUser.id,
     authProvider: "google",
     createdAt: authUser.created_at ?? new Date().toISOString(),

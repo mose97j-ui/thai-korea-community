@@ -57,7 +57,7 @@ function LoginContent() {
 
   return (
     <AuthPageShell centerContent>
-      <PageHeader title={t("login.title")} backLabel={t("common.back")} />
+      <PageHeader title={t("login.titleEn")} backLabel={t("common.back")} />
 
       <Card>
         <SectionLabel>{t("common.account")}</SectionLabel>
@@ -91,7 +91,7 @@ function LoginContent() {
           {error && <ErrorMessage message={error} />}
 
           <SubmitButton disabled={submitting}>
-            {submitting ? t("common.loading") : t("login.submit")}
+            {submitting ? t("common.loading") : t("login.submitEn")}
           </SubmitButton>
         </form>
 
@@ -106,7 +106,7 @@ function LoginContent() {
       <p className="mt-4 text-center text-base text-gray-500">
         {t("login.noAccount")}{" "}
         <Link href="/signup" className="font-semibold text-[#06C755]">
-          {t("login.signupLink")}
+          {t("signup.titleEn")}
         </Link>
       </p>
 

@@ -14,6 +14,8 @@ export type SupabaseProfileRow = {
   personal_code: string;
   referred_by: string | null;
   role: UserRole;
+  preferred_locale: "ko" | "th" | null;
+  is_korean_member: boolean | null;
   premium_until: string | null;
   restriction: UserRestriction | null;
   created_at: string;
@@ -34,6 +36,8 @@ export function profileRowToUser(row: SupabaseProfileRow): User {
     referredBy: row.referred_by ?? undefined,
     password: "",
     role: row.role,
+    preferredLocale: row.preferred_locale ?? undefined,
+    isKoreanMember: row.is_korean_member ?? undefined,
     premiumUntil: row.premium_until ?? undefined,
     restriction: row.restriction ?? undefined,
     supabaseId: row.id,
@@ -56,6 +60,8 @@ export function userToProfileRow(user: User): SupabaseProfileRow {
     personal_code: user.personalCode,
     referred_by: user.referredBy ?? null,
     role: user.role ?? "user",
+    preferred_locale: user.preferredLocale ?? null,
+    is_korean_member: user.isKoreanMember ?? null,
     premium_until: user.premiumUntil ?? null,
     restriction: user.restriction ?? null,
     created_at: user.createdAt,

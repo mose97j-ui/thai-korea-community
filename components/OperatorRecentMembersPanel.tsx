@@ -14,7 +14,7 @@ import {
   MEMBERS_SYNC_EVENT,
   fetchMembersDirectory,
 } from "@/lib/auth/memberSync";
-import { mergeRemoteMembers } from "@/lib/auth/storage";
+import { mergeRemoteMembers, updateUser } from "@/lib/auth/storage";
 import { formatPhone } from "@/lib/auth/phone";
 import { getUserNickname } from "@/lib/auth/profileImage";
 import type { User } from "@/lib/auth/types";
@@ -65,6 +65,10 @@ function MemberDetail({
       {member.referredBy ? (
         <DetailRow label={t("mypage.referrer")} value={member.referredBy} />
       ) : null}
+      <DetailRow
+        label="Role"
+        value={member.role === "operator" ? t("admin.recentMembersRoleOperator") : t("admin.recentMembersRoleUser")}
+      />
     </dl>
     </div>
   );
@@ -88,6 +92,7 @@ export default function OperatorRecentMembersPanel() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [backfilling, setBackfilling] = useState(false);
   const [backfillMessage, setBackfillMessage] = useState<string | null>(null);
+  const [roleMessage, setRoleMessage] = useState<string | null>(null);
 
   const refreshDirectory = useCallback(async () => {
     const { members, meta } = await fetchMembersDirectory();
@@ -133,6 +138,22 @@ export default function OperatorRecentMembersPanel() {
       setBackfilling(false);
     }
   }, [refreshDirectory, t]);
+
+  const handleToggleOperator = useCallback(
+    (member: User) => {
+      const nextRole = member.role === "operator" ? "user" : "operator";
+      const updated: User = {
+        ...member,
+        role: nextRole,
+        preferredLocale: nextRole === "operator" ? "ko" : member.preferredLocale ?? "th",
+      };
+      updateUser(updated);
+      setRoleMessage(t("admin.recentMembersRoleUpdated"));
+      void refreshDirectory();
+      window.setTimeout(() => setRoleMessage(null), 2000);
+    },
+    [refreshDirectory, t]
+  );
 
   return (
     <Card className="mb-4 border-l-4 border-l-sky-500 p-5">
@@ -180,6 +201,9 @@ export default function OperatorRecentMembersPanel() {
       {backfillMessage ? (
         <p className="mt-2 text-sm font-medium text-[#06C755]">{backfillMessage}</p>
       ) : null}
+      {roleMessage ? (
+        <p className="mt-2 text-sm font-medium text-[#06C755]">{roleMessage}</p>
+      ) : null}
 
       {members.length === 0 ? (
         <p className="mt-4 text-sm text-gray-500">{t("admin.recentMembersEmpty")}</p>
@@ -215,12 +239,28 @@ export default function OperatorRecentMembersPanel() {
                     </span>
                   </span>
                   {expanded && operator ? (
-                    <MemberDetail
-                      member={member}
-                      locale={locale}
-                      t={t}
-                      messageHref={getMessageThreadHref(operator.id, member.id)}
-                    />
+                    <>
+                      <MemberDetail
+                        member={member}
+                        locale={locale}
+                        t={t}
+                        messageHref={getMessageThreadHref(operator.id, member.id)}
+                      />
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleToggleOperator(member);
+                          }}
+                          className="w-full rounded-xl bg-amber-100 px-3 py-2 text-sm font-semibold text-amber-900 ring-1 ring-amber-200 hover:bg-amber-200"
+                        >
+                          {member.role === "operator"
+                            ? t("admin.recentMembersUnsetOperator")
+                            : t("admin.recentMembersSetOperator")}
+                        </button>
+                      </div>
+                    </>
                   ) : null}
                 </button>
               </li>

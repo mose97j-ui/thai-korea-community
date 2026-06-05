@@ -1,3 +1,5 @@
+import type { Locale } from "@/lib/i18n/types";
+
 export type UserRole = "user" | "operator";
 
 export type Gender = "male" | "female";
@@ -27,6 +29,8 @@ export type User = {
   referredBy?: string;
   password: string;
   role?: UserRole;
+  preferredLocale?: Locale;
+  isKoreanMember?: boolean;
   /** ISO date — active while in the future */
   premiumUntil?: string;
   restriction?: UserRestriction;
@@ -44,6 +48,7 @@ export type GoogleSignupInput = {
   hometown: string;
   koreanPhone: string;
   referralCode?: string;
+  isKoreanMember?: boolean;
 };
 
 export type SignupInput = {
@@ -57,6 +62,7 @@ export type SignupInput = {
   koreanPhone: string;
   password: string;
   referralCode?: string;
+  isKoreanMember?: boolean;
 };
 
 export type LoginInput = {

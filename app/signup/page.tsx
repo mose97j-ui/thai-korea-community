@@ -41,6 +41,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [referralCode, setReferralCode] = useState("");
+  const [isKoreanMember, setIsKoreanMember] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -89,6 +90,7 @@ export default function SignupPage() {
         SIGNUP_REFERRAL_CODE_ENABLED && referralCode.trim()
           ? referralCode.trim()
           : undefined,
+      isKoreanMember,
     });
 
     setSubmitting(false);
@@ -103,7 +105,7 @@ export default function SignupPage() {
 
   return (
     <AuthPageShell topAligned centerContent={false}>
-      <PageHeader title={t("signup.title")} backLabel={t("common.back")} />
+      <PageHeader title={t("signup.titleEn")} backLabel={t("common.back")} />
 
       <Card className="mb-4">
         <p className="text-base leading-relaxed text-gray-600">{t("signup.note")}</p>
@@ -255,8 +257,20 @@ export default function SignupPage() {
 
           {error && <ErrorMessage message={error} />}
 
+          <FormField label={t("signup.isKoreanMember")}>
+            <label className="flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2">
+              <input
+                type="checkbox"
+                checked={isKoreanMember}
+                onChange={(e) => setIsKoreanMember(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">{t("signup.isKoreanMemberHint")}</span>
+            </label>
+          </FormField>
+
           <SubmitButton disabled={submitting}>
-            {submitting ? t("common.loading") : t("signup.submit")}
+            {submitting ? t("common.loading") : t("signup.submitEn")}
           </SubmitButton>
         </form>
       </Card>
@@ -264,7 +278,7 @@ export default function SignupPage() {
       <p className="mt-4 text-center text-base text-gray-500">
         {t("signup.hasAccount")}{" "}
         <Link href="/login" className="font-semibold text-[#06C755]">
-          {t("welcome.login")}
+          {t("login.submitEn")}
         </Link>
       </p>
 

@@ -51,6 +51,7 @@ function SignupCompleteContent() {
   const [hometown, setHometown] = useState("");
   const [koreanPhone, setKoreanPhone] = useState("");
   const [referralCode, setReferralCode] = useState("");
+  const [isKoreanMember, setIsKoreanMember] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -120,6 +121,7 @@ function SignupCompleteContent() {
         SIGNUP_REFERRAL_CODE_ENABLED && referralCode.trim()
           ? referralCode.trim()
           : undefined,
+      isKoreanMember,
     });
 
     setSubmitting(false);
@@ -158,7 +160,7 @@ function SignupCompleteContent() {
 
   return (
     <AuthPageShell topAligned centerContent={false}>
-      <PageHeader title={t("signup.complete.title")} backLabel={t("common.back")} />
+      <PageHeader title={t("signup.titleEn")} backLabel={t("common.back")} />
 
       <Card className="mb-4">
         <p className="text-base leading-relaxed text-gray-600">{t("signup.complete.note")}</p>
@@ -274,10 +276,22 @@ function SignupCompleteContent() {
             </FormField>
           ) : null}
 
+          <FormField label={t("signup.isKoreanMember")}>
+            <label className="flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2">
+              <input
+                type="checkbox"
+                checked={isKoreanMember}
+                onChange={(e) => setIsKoreanMember(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">{t("signup.isKoreanMemberHint")}</span>
+            </label>
+          </FormField>
+
           {error && <ErrorMessage message={error} />}
 
           <SubmitButton disabled={submitting}>
-            {submitting ? t("common.loading") : t("signup.complete.submit")}
+            {submitting ? t("common.loading") : t("signup.submitEn")}
           </SubmitButton>
         </form>
       </Card>

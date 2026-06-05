@@ -270,6 +270,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           : undefined,
       password: input.password,
       role: "user",
+      preferredLocale: input.isKoreanMember ? "ko" : "th",
+      isKoreanMember: Boolean(input.isKoreanMember),
       authProvider: "local",
       createdAt: new Date().toISOString(),
     };
@@ -278,7 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSessionUserId(newUser.id);
     setUser(newUser);
     markSignupWelcomePending(newUser.id);
-    persistUiLocale("th");
+    persistUiLocale(newUser.preferredLocale ?? "th");
     scheduleMemberSync(newUser, true);
     return { ok: true as const };
   }, []);
@@ -356,6 +358,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           : existing?.referredBy,
       password: "",
       role: existing?.role ?? "user",
+      preferredLocale:
+        existing?.preferredLocale ??
+        (input.isKoreanMember ? "ko" : "th"),
+      isKoreanMember: input.isKoreanMember ?? existing?.isKoreanMember ?? false,
       premiumUntil: existing?.premiumUntil,
       restriction: existing?.restriction,
       supabaseId: authUser.id,
@@ -370,7 +376,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setUser(newUser);
     markSignupWelcomePending(newUser.id);
-    persistUiLocale("th");
+    persistUiLocale(newUser.preferredLocale ?? "th");
     scheduleMemberSync(newUser, true);
     return { ok: true as const };
   }, []);

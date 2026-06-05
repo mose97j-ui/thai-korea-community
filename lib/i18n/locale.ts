@@ -21,6 +21,13 @@ export function persistUiLocale(locale: Locale): void {
 }
 
 export function resolveAppLocale(user: User | null | undefined): Locale {
+  if (user?.preferredLocale === "ko") {
+    return "ko";
+  }
+  if (user?.preferredLocale === "th") {
+    return "th";
+  }
+
   if (isOperatorUser(user)) {
     return "ko";
   }
@@ -36,7 +43,11 @@ export function syncUiLocaleForUser(user: User | null | undefined): Locale {
   const locale = resolveAppLocale(user);
 
   if (typeof window !== "undefined") {
-    if (user && isOperatorUser(user)) {
+    if (user?.preferredLocale === "ko") {
+      persistUiLocale("ko");
+    } else if (user?.preferredLocale === "th") {
+      persistUiLocale("th");
+    } else if (user && isOperatorUser(user)) {
       persistUiLocale("ko");
     } else if (user) {
       persistUiLocale("th");
