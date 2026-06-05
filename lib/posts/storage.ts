@@ -3,6 +3,7 @@ import { translatePostFields } from "@/lib/translate/service";
 import { deleteCommentsByPostId } from "@/lib/social/comments";
 import { deleteLikesByPostId } from "@/lib/social/likes";
 import { buildDisplayAddress } from "@/lib/maps/formatAddress";
+import { schedulePostDeletionsSync, schedulePostSync } from "@/lib/posts/postSync";
 import { normalizeAddressKey } from "./address";
 import { detectPostSourceLocale } from "./detectLocale";
 import { normalizeVideoUrl } from "./media";
@@ -82,6 +83,7 @@ function migratePost(raw: Post): Post {
           inferenceSummary: raw.purchaseAgency.inferenceSummary?.trim() || undefined,
         }
       : undefined,
+    updatedAt: raw.updatedAt || raw.createdAt,
   };
 }
 
@@ -292,11 +294,13 @@ export function createPost(input: CreatePostInput): Post {
     placeReview: input.placeReview,
     purchaseAgency: input.purchaseAgency,
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   const posts = readPosts();
   posts.push(post);
   writePosts(posts);
+  schedulePostSync(post);
   return post;
 }
 
@@ -369,10 +373,12 @@ export function updatePost(postId: string, input: UpdatePostInput): Post | null 
       : undefined,
     placeReview: input.placeReview ?? current.placeReview,
     purchaseAgency: input.purchaseAgency ?? current.purchaseAgency,
+    updatedAt: new Date().toISOString(),
   };
 
   posts[index] = updated;
   writePosts(posts);
+  schedulePostSync(updated);
   return updated;
 }
 
@@ -409,6 +415,7 @@ export function deletePost(postId: string): boolean {
 
   posts.splice(index, 1);
   writePosts(posts);
+  schedulePostDeletionsSync([postId]);
   deleteCommentsByPostId(postId);
   deleteLikesByPostId(postId);
   return true;
@@ -421,7 +428,9 @@ export function deletePostsByCategory(categoryId: string): number {
     return 0;
   }
 
+  const deletedIds = toDelete.map((post) => post.id);
   writePosts(posts.filter((post) => post.categoryId !== categoryId));
+  schedulePostDeletionsSync(deletedIds);
 
   for (const post of toDelete) {
     deleteCommentsByPostId(post.id);
@@ -449,5 +458,6 @@ export function setPostHiddenByAuthor(
 
   posts[index] = updated;
   writePosts(posts);
+  schedulePostSync(updated);
   return updated;
 }

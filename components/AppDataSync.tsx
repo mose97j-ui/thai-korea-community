@@ -10,6 +10,7 @@ import { useDirectMessageSync } from "@/hooks/useDirectMessageSync";
 import { useSupportSync } from "@/hooks/useSupportSync";
 import { useSessionMemberBackfill } from "@/hooks/useSessionMemberBackfill";
 import { useSessionSocialBackfill } from "@/hooks/useSessionSocialBackfill";
+import { usePostSync } from "@/hooks/usePostSync";
 import { isAuthLayoutPath } from "@/lib/routes/auth";
 
 /** Keeps operator menus and member directory in sync across mobile/desktop tabs. */
@@ -30,6 +31,7 @@ export default function AppDataSync() {
   useOperatorMemberSync(showOperatorUI && syncMembers);
   useDirectMessageSync(syncMembers, user);
   useSupportSync(syncMembers, user);
+  usePostSync(syncMembers, user);
 
   return null;
 }
