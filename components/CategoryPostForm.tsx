@@ -95,6 +95,8 @@ export default function CategoryPostForm({
   const [address, setAddress] = useState("");
   const [addressMeta, setAddressMeta] = useState<KakaoAddressValue | null>(null);
   const [content, setContent] = useState("");
+  const [directions, setDirections] = useState("");
+  const [businessHours, setBusinessHours] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState("");
   const [isSecret, setIsSecret] = useState(false);
@@ -145,6 +147,8 @@ export default function CategoryPostForm({
     setAddress(fields.address);
     setAddressMeta(null);
     setContent(fields.content);
+    setDirections(existing.directions ?? "");
+    setBusinessHours(existing.businessHours ?? "");
     setImages(existing.images ?? []);
     setVideoUrl(existing.videoUrl ?? "");
     setIsSecret(existing.isSecret ?? false);
@@ -183,6 +187,8 @@ export default function CategoryPostForm({
         setSecondary("");
         setAddress("");
         setContent("");
+        setDirections("");
+        setBusinessHours("");
         setImages([]);
         setVideoUrl("");
         setIsSecret(false);
@@ -204,6 +210,8 @@ export default function CategoryPostForm({
     setSecondary(draft.secondary);
     setAddress(draft.address);
     setContent(draft.content);
+    setDirections(draft.directions ?? "");
+    setBusinessHours(draft.businessHours ?? "");
     setImages(draft.images);
     setVideoUrl(draft.videoUrl);
     setIsSecret(draft.isSecret);
@@ -238,6 +246,8 @@ export default function CategoryPostForm({
         secondary,
         address,
         content,
+        directions,
+        businessHours,
         images,
         videoUrl,
         isSecret,
@@ -264,6 +274,8 @@ export default function CategoryPostForm({
       secondary,
       address,
       content,
+      directions,
+      businessHours,
       images,
       videoUrl,
       isSecret,
@@ -471,6 +483,8 @@ export default function CategoryPostForm({
         purchaseAgency,
         title: postTitle,
         content,
+        directions: directions.trim() || undefined,
+        businessHours: businessHours.trim() || undefined,
         images: template.showMedia ? images : [],
         videoUrl: template.showMedia ? videoUrl.trim() || undefined : undefined,
         sourceLocale: locale,
@@ -702,6 +716,32 @@ export default function CategoryPostForm({
           />
         </div>
       </FormField>
+
+      {template.id === "place" || showPlaceReview ? (
+        <>
+          <FormField label={t("post.directions")}>
+            <textarea
+              value={directions}
+              onChange={(event) => setDirections(event.target.value)}
+              placeholder={t("post.directionsPlaceholder")}
+              rows={2}
+              maxLength={500}
+              className={postFormTextareaClassName}
+            />
+          </FormField>
+
+          <FormField label={t("post.businessHours")}>
+            <textarea
+              value={businessHours}
+              onChange={(event) => setBusinessHours(event.target.value)}
+              placeholder={t("post.businessHoursPlaceholder")}
+              rows={2}
+              maxLength={300}
+              className={postFormTextareaClassName}
+            />
+          </FormField>
+        </>
+      ) : null}
 
       {template.showMedia &&
         (compact ? (

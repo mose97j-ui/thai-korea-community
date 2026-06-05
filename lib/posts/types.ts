@@ -25,6 +25,8 @@ export type Post = {
   authorProfileImage?: string;
   title: string;
   content: string;
+  directions?: string;
+  businessHours?: string;
   images?: string[];
   videoUrl?: string;
   sourceLocale?: Locale;
@@ -59,6 +61,8 @@ export type CreatePostInput = {
   authorProfileImage?: string;
   title: string;
   content: string;
+  directions?: string;
+  businessHours?: string;
   images?: string[];
   videoUrl?: string;
   sourceLocale: Locale;
@@ -85,6 +89,8 @@ export type UpdatePostInput = {
   mapLng?: number;
   title: string;
   content: string;
+  directions?: string;
+  businessHours?: string;
   images?: string[];
   videoUrl?: string;
   sourceLocale: Locale;

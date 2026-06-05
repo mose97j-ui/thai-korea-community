@@ -3,6 +3,8 @@ export type PostDraft = {
   secondary: string;
   address: string;
   content: string;
+  directions?: string;
+  businessHours?: string;
   images: string[];
   videoUrl: string;
   isSecret: boolean;
@@ -76,6 +78,8 @@ export function savePostDraft(
     draft.secondary.trim() ||
     draft.address.trim() ||
     draft.content.trim() ||
+    draft.directions?.trim() ||
+    draft.businessHours?.trim() ||
     draft.images.length > 0 ||
     draft.videoUrl.trim() ||
     draft.reviewRatingsJson?.trim() ||

@@ -47,6 +47,8 @@ function migratePost(raw: Post): Post {
     storeName: sourceFields.storeName,
     title: sourceFields.title,
     content: sourceFields.content,
+    directions: raw.directions?.trim() || undefined,
+    businessHours: raw.businessHours?.trim() || undefined,
     address: sourceFields.address,
     addressKey:
       raw.addressKey?.trim() || normalizeAddressKey(sourceFields.address) || "",
@@ -277,6 +279,8 @@ export function createPost(input: CreatePostInput): Post {
     authorProfileImage: input.authorProfileImage,
     title: sourceFields.title,
     content: sourceFields.content,
+    directions: input.directions?.trim() || undefined,
+    businessHours: input.businessHours?.trim() || undefined,
     sourceLocale: input.sourceLocale,
     localized: {
       [input.sourceLocale]: sourceFields,
@@ -344,6 +348,8 @@ export function updatePost(postId: string, input: UpdatePostInput): Post | null 
     storeName: sourceFields.storeName,
     title: sourceFields.title,
     content: sourceFields.content,
+    directions: input.directions?.trim() || current.directions,
+    businessHours: input.businessHours?.trim() || current.businessHours,
     address: displayAddress || address,
     addressKey: address,
     roadAddress: input.roadAddress?.trim() || current.roadAddress,

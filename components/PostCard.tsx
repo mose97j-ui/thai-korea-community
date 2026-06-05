@@ -157,6 +157,22 @@ export default function PostCard({
               compact
             />
           ) : null}
+          {canView && (isPlacePost || showPlaceReview) && post.directions ? (
+            <div className="social-zone mt-3 flex items-start gap-2 px-3 py-2.5 text-sm">
+              <span aria-hidden>🧭</span>
+              <span className="text-ui-body min-w-0 flex-1 whitespace-pre-wrap text-[#050505]">
+                {post.directions}
+              </span>
+            </div>
+          ) : null}
+          {canView && (isPlacePost || showPlaceReview) && post.businessHours ? (
+            <div className="social-zone mt-2 flex items-start gap-2 px-3 py-2.5 text-sm">
+              <span aria-hidden>🕒</span>
+              <span className="text-ui-body min-w-0 flex-1 whitespace-pre-wrap text-[#050505]">
+                {post.businessHours}
+              </span>
+            </div>
+          ) : null}
 
           {!canView ? (
             <p className="text-ui-caption mt-3">{t("post.secretPreview")}</p>
@@ -353,6 +369,22 @@ export default function PostCard({
             subId={post.subId}
             placeReview={post.placeReview!}
           />
+        ) : null}
+        {canView && (isPlacePost || showPlaceReview) && post.directions ? (
+          <div className="social-zone mt-3 flex items-start gap-2 px-3 py-2.5 text-sm sm:text-base">
+            <span aria-hidden>🧭</span>
+            <span className="text-ui-body min-w-0 flex-1 whitespace-pre-wrap text-[#050505]">
+              {post.directions}
+            </span>
+          </div>
+        ) : null}
+        {canView && (isPlacePost || showPlaceReview) && post.businessHours ? (
+          <div className="social-zone mt-2 flex items-start gap-2 px-3 py-2.5 text-sm sm:text-base">
+            <span aria-hidden>🕒</span>
+            <span className="text-ui-body min-w-0 flex-1 whitespace-pre-wrap text-[#050505]">
+              {post.businessHours}
+            </span>
+          </div>
         ) : null}
         {isDetailPage && isAuthor && user ? (
           <PostAuthorActions post={post} userId={user.id} className="mt-3" />
