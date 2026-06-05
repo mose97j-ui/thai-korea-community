@@ -1466,8 +1466,9 @@ html.locale-ko body {
     }
 
     .social-menu-tile-label {
-      font-size: 0.98rem !important;
-      line-height: 1.38 !important;
+      font-size: 0.9rem !important;
+      line-height: 1.3 !important;
+      letter-spacing: -0.005em;
     }
 
     .social-menu-tile-star {
