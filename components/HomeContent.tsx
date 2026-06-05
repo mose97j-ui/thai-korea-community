@@ -45,6 +45,7 @@ import MenuIcon from "@/components/MenuIcon";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOperatorView } from "@/hooks/useOperatorView";
+import { isOperatorUser } from "@/lib/auth/operator";
 import { categoryListSignature } from "@/lib/categories/categoryListSignature";
 import { useOperatorMenus } from "@/hooks/useOperatorMenus";
 import { useCategoryFavorites } from "@/hooks/useCategoryFavorites";
@@ -77,6 +78,7 @@ export default function HomeContent() {
   const { user } = useAuth();
   const { t, pick } = useLocale();
   const { showOperatorUI } = useOperatorView();
+  const canUseIdeaShare = isOperatorUser(user);
   const { operatorCategories, operatorCategoriesForEdit, refreshOperatorMenus } =
     useOperatorMenus();
   const { hasAccess: hasPremiumAccess } = usePremiumAccess();
@@ -621,7 +623,7 @@ export default function HomeContent() {
             </div>
           </div>
           <div className="social-mobile-home-header__search">
-            {showOperatorUI ? (
+            {canUseIdeaShare ? (
               <div className="mb-2 flex justify-end">
                 <Link href="/c/ideas/ideas-0" className={pillSecondaryButtonClassName}>
                   💡 {t("home.ideaShare")}
@@ -653,7 +655,7 @@ export default function HomeContent() {
             </div>
           </div>
           <div className="w-full xl:min-w-[min(100%,28rem)] xl:flex-1">
-            {showOperatorUI ? (
+            {canUseIdeaShare ? (
               <div className="mb-2 flex justify-end">
                 <Link href="/c/ideas/ideas-0" className={pillSecondaryButtonClassName}>
                   💡 {t("home.ideaShare")}
