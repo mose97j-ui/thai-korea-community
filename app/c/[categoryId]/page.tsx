@@ -9,7 +9,9 @@ import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import PremiumGate from "@/components/PremiumGate";
 import { Card } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import { hasOperatorPrivileges } from "@/lib/auth/operatorView";
 import {
   getHomeCategoryById,
   getCategorySubItems,
@@ -22,6 +24,7 @@ type CategoryOverviewProps = {
 
 export default function CategoryOverviewPage({ params }: CategoryOverviewProps) {
   const { t, pick } = useLocale();
+  const { user, isReady } = useAuth();
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const menuVersion = useCategoryRegistryVersion();
 
@@ -46,6 +49,10 @@ export default function CategoryOverviewPage({ params }: CategoryOverviewProps) 
         </Card>
       </PageShell>
     );
+  }
+
+  if (categoryId === "ideas" && isReady && !hasOperatorPrivileges(user)) {
+    notFound();
   }
 
   const placeBased = isPlaceBasedCategory(categoryId);

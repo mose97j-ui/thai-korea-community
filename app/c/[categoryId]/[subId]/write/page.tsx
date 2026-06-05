@@ -11,6 +11,7 @@ import PremiumGate from "@/components/PremiumGate";
 import { Card } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import { hasOperatorPrivileges } from "@/lib/auth/operatorView";
 import {
   getHomeCategoryById,
   getSubCategoryItem,
@@ -72,6 +73,10 @@ export default function CategoryWritePage({ params }: WritePageProps) {
 
   if (!isReady || !user) {
     return null;
+  }
+
+  if (route.categoryId === "ideas" && !hasOperatorPrivileges(user)) {
+    notFound();
   }
 
   return (

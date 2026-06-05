@@ -621,6 +621,13 @@ export default function HomeContent() {
             </div>
           </div>
           <div className="social-mobile-home-header__search">
+            {showOperatorUI ? (
+              <div className="mb-2 flex justify-end">
+                <Link href="/c/ideas/ideas-0" className={pillSecondaryButtonClassName}>
+                  💡 {t("home.ideaShare")}
+                </Link>
+              </div>
+            ) : null}
             <GlobalSearchBar className="mb-0" />
           </div>
         </header>
@@ -645,7 +652,16 @@ export default function HomeContent() {
               <p className="text-ui-caption mt-2.5">{t("welcome.subtitle")}</p>
             </div>
           </div>
-          <GlobalSearchBar className="mb-0 w-full xl:min-w-[min(100%,28rem)] xl:flex-1" />
+          <div className="w-full xl:min-w-[min(100%,28rem)] xl:flex-1">
+            {showOperatorUI ? (
+              <div className="mb-2 flex justify-end">
+                <Link href="/c/ideas/ideas-0" className={pillSecondaryButtonClassName}>
+                  💡 {t("home.ideaShare")}
+                </Link>
+              </div>
+            ) : null}
+            <GlobalSearchBar className="mb-0 w-full" />
+          </div>
         </div>
 
         {showMemberOnlySections ? (

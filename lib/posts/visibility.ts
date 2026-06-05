@@ -1,4 +1,6 @@
 import type { Post } from "@/lib/posts/types";
+import { findUserById } from "@/lib/auth/storage";
+import { hasOperatorPrivileges } from "@/lib/auth/operatorView";
 
 type PostVisibility = Pick<Post, "authorId" | "isHiddenByAuthor">;
 
@@ -17,9 +19,31 @@ export function filterPostsForViewer<T extends PostVisibility>(
   posts: T[],
   viewerId?: string | null
 ): T[] {
-  return posts.filter((post) => isPostVisibleToViewer(post, viewerId));
+  return posts.filter((post) => {
+    const categoryId =
+      "categoryId" in post && typeof post.categoryId === "string"
+        ? post.categoryId
+        : null;
+    // Operator/admin-only idea board.
+    if (categoryId === "ideas") {
+      const viewer = viewerId ? findUserById(viewerId) : null;
+      if (!hasOperatorPrivileges(viewer)) {
+        return false;
+      }
+    }
+    return isPostVisibleToViewer(post, viewerId);
+  });
 }
 
 export function filterPublicPosts<T extends PostVisibility>(posts: T[]): T[] {
-  return posts.filter((post) => !post.isHiddenByAuthor);
+  return posts.filter((post) => {
+    const categoryId =
+      "categoryId" in post && typeof post.categoryId === "string"
+        ? post.categoryId
+        : null;
+    if (categoryId === "ideas") {
+      return false;
+    }
+    return !post.isHiddenByAuthor;
+  });
 }
