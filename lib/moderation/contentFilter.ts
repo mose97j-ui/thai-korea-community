@@ -42,8 +42,8 @@ const RULES: FilterRule[] = [
       /좆|ㅈ같|jot/i,
       /씹|siip|sshib/i,
       /nmcl|nml|nmc/i,
-      /asshole|bitch|bastard|damn/i,
-      /ควย|เหี้ย|สัด|fuck/i,
+      /asshole|bitch|bastard/i,
+      /ควย|เหี้ย|สัด/i,
     ],
   },
   {
@@ -56,17 +56,6 @@ const RULES: FilterRule[] = [
       /보지|자지|가슴사진|딜도|오르가즘/i,
       /오피|출장|조건만남|원나잇|매춘|성매매/i,
       /โป๊|หนังโป๊|เซ็กซ์|นัดเย็ด/i,
-    ],
-  },
-  {
-    category: "spam",
-    severity: "mild",
-    labels: ["spam"],
-    patterns: [
-      /(http|https|www\.)\S+/i,
-      /telegram|텔레|카톡\s*오픈채팅|openchat/i,
-      /(대출|도박|카지노|코인\s*100%|무직자\s*대출)/i,
-      /(free\s*money|click\s*here|earn\s*\$\d+)/i,
     ],
   },
 ];

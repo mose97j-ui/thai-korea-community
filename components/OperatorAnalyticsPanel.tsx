@@ -157,6 +157,11 @@ export default function OperatorAnalyticsPanel() {
   const summaryItems = [
     { label: t("admin.totalMembers"), value: analytics.summary.totalMembers },
     {
+      label: t("admin.totalOperators"),
+      value: analytics.summary.totalOperators,
+      accent: "text-sky-600",
+    },
+    {
       label: t("admin.premiumActive"),
       value: analytics.summary.premiumActive,
       accent: "text-amber-600",
@@ -191,7 +196,7 @@ export default function OperatorAnalyticsPanel() {
           <SectionLabel>{t("admin.summary")}</SectionLabel>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-9">
           {summaryItems.map((item) => (
             <SummaryCard
               key={item.label}

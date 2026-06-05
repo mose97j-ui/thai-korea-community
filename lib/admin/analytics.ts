@@ -20,6 +20,7 @@ export type StatRow = {
 export type OperatorAnalytics = {
   summary: {
     totalMembers: number;
+    totalOperators: number;
     premiumActive: number;
     premiumExpired: number;
     freeMembers: number;
@@ -128,7 +129,9 @@ export function buildOperatorAnalytics(
   },
   payments: OperatorAnalytics["payments"] = null
 ): OperatorAnalytics {
-  const members = filterMembers(getAllUsers());
+  const allUsers = getAllUsers();
+  const members = filterMembers(allUsers);
+  const operators = allUsers.filter((user) => isOperatorUser(user));
   const now = Date.now();
   const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
 
@@ -207,7 +210,8 @@ export function buildOperatorAnalytics(
 
   return {
     summary: {
-      totalMembers: members.length,
+      totalMembers: allUsers.length,
+      totalOperators: operators.length,
       premiumActive,
       premiumExpired,
       freeMembers,

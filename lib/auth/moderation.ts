@@ -43,6 +43,10 @@ export function getActiveRestriction(
   if (!user?.restriction) {
     return null;
   }
+  // Temporarily suppress legacy auto restrictions to avoid false positives.
+  if (user.restriction.source === "auto") {
+    return null;
+  }
   if (isExpired(user.restriction)) {
     return null;
   }
